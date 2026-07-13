@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EduTchad</title>
+<link rel="icon" type="image/svg+xml" href="edutchad-logo.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal-900:#063C3F;
+    --teal-700:#0B7285;
+    --teal-600:#0E8C93;
+    --teal-500:#12B8B0;
+    --teal-100:#E3F6F5;
+    --bg:#F3F8F8;
+    --surface:#FFFFFF;
+    --text:#1B2733;
+    --text-muted:#5B6B72;
+    --border:#DCE6E6;
+    --danger:#D64550;
+    --danger-bg:#FCEBEC;
+    --success:#2F9E44;
+    --success-bg:#EAF7ED;
+    --warning:#B8790F;
+    --warning-bg:#FBF1DE;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(6,60,63,.06), 0 8px 24px rgba(6,60,63,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  h1,h2,h3,.brand,.nav-item{font-family:'Poppins',system-ui,sans-serif;}
+  .hidden{display:none !important;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select{font-family:inherit;}
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(18,184,176,.16), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(11,114,133,.18), transparent 50%),
+      var(--teal-900);
+  }
+  .login-card{
+    width:380px;
+    max-width:90vw;
+    background:var(--surface);
+    border-radius:var(--radius);
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+    padding:40px 36px 32px;
+  }
+  .login-brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .login-brand .logo-mark{
+    width:36px;height:36px;border-radius:10px;
+    background:linear-gradient(135deg,var(--teal-500),var(--teal-700));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:16px;
+  }
+  .login-brand span{font-size:21px;font-weight:700;color:var(--teal-900);}
+  .login-sub{color:var(--text-muted);font-size:13.5px;margin:0 0 26px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;}
+  .field input{
+    width:100%;padding:11px 13px;border:1.5px solid var(--border);
+    border-radius:9px;font-size:14.5px;color:var(--text);
+    transition:border-color .15s;
+  }
+  .field input:focus{outline:none;border-color:var(--teal-500);}
+  .btn-primary{
+    width:100%;padding:12px;border:none;border-radius:9px;
+    background:var(--teal-700);color:#fff;font-size:14.5px;font-weight:600;
+    transition:background .15s;margin-top:6px;
+  }
+  .btn-primary:hover{background:var(--teal-900);}
+  .login-error{
+    background:var(--danger-bg);color:var(--danger);
+    padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:14px;
+    display:none;
+  }
+  .login-hint{margin-top:22px;font-size:12px;color:var(--text-muted);line-height:1.6;border-top:1px solid var(--border);padding-top:16px;}
+  .login-hint code{background:var(--teal-100);padding:1px 5px;border-radius:4px;color:var(--teal-900);}
+
+  /* ---------- APP SHELL ---------- */
+  #app-screen{display:flex;min-height:100vh;}
+  .sidebar{
+    width:240px;flex-shrink:0;background:var(--teal-900);
+    color:#EAF6F6;display:flex;flex-direction:column;
+    padding:22px 14px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:0 8px 22px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:16px;}
+  .brand .logo-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--teal-500),var(--teal-700));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+  .brand span{font-size:17px;font-weight:700;color:#fff;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:9px;margin-bottom:3px;
+    font-size:13.5px;font-weight:500;color:#CFE9E8;
+    background:transparent;border:none;text-align:left;width:100%;
+    transition:background .12s;
+  }
+  .nav-item .dot{width:6px;height:6px;border-radius:50%;background:var(--teal-500);opacity:0;flex-shrink:0;}
+  .nav-item:hover{background:rgba(255,255,255,.06);}
+  .nav-item.active{background:var(--teal-500);color:#04302F;font-weight:600;}
+  .nav-item.active .dot{opacity:0;}
+  .sidebar-footer{margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);}
+  .role-badge{
+    display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;padding:3px 8px;border-radius:20px;
+    background:rgba(18,184,176,.22);color:#8DEDE6;margin-bottom:10px;
+  }
+  .user-line{font-size:13.5px;color:#fff;font-weight:600;margin-bottom:2px;}
+  .user-email{font-size:11.5px;color:#9FC6C4;margin-bottom:12px;word-break:break-all;}
+  .btn-logout{
+    width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.22);
+    background:transparent;color:#EAF6F6;font-size:12.5px;font-weight:600;
+  }
+  .btn-logout:hover{background:rgba(255,255,255,.08);}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .topbar{
+    height:64px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+  }
+  .topbar h1{font-size:18px;margin:0;color:var(--teal-900);}
+  .topbar .subtitle{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
+  .content{flex:1;padding:26px 28px 60px;overflow-y:auto;}
+
+  /* ---------- SHARED UI ---------- */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px;}
+  .card h2{font-size:15px;margin:0 0 16px;color:var(--teal-900);}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media (max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}#app-screen{flex-direction:column;}.sidebar{width:100%;flex-direction:row;flex-wrap:wrap;align-items:center;}.brand{border:none;margin:0;padding:0 10px 0 0;}.sidebar-footer{margin:0 0 0 auto;padding:0;border:none;display:flex;align-items:center;gap:10px;}.user-line,.user-email,.role-badge{display:none;}}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-muted);padding:8px 10px;border-bottom:2px solid var(--border);}
+  td{padding:10px 10px;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+
+  .chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;color:#fff;}
+  .moy-pill{display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:4px 8px;border-radius:8px;font-weight:700;font-size:13px;}
+  .moy-good{background:var(--success-bg);color:var(--success);}
+  .moy-mid{background:var(--warning-bg);color:var(--warning);}
+  .moy-low{background:var(--danger-bg);color:var(--danger);}
+
+  .stat{display:flex;flex-direction:column;gap:4px;}
+  .stat .big{font-size:30px;font-weight:700;color:var(--teal-900);font-family:'Poppins',sans-serif;}
+  .stat .label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+
+  .badge-justifiee{background:var(--success-bg);color:var(--success);padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+  .badge-non-justifiee{background:var(--danger-bg);color:var(--danger);padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+
+  form.inline-form{display:flex;flex-wrap:wrap;gap:12px;align-items:end;}
+  form.inline-form .f{display:flex;flex-direction:column;gap:5px;min-width:140px;flex:1;}
+  form.inline-form label{font-size:11.5px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  form.inline-form input,form.inline-form select{padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;}
+  form.inline-form .btn-submit{
+    padding:10px 18px;border:none;border-radius:8px;background:var(--teal-700);color:#fff;
+    font-weight:600;font-size:13.5px;white-space:nowrap;
+  }
+  form.inline-form .btn-submit:hover{background:var(--teal-900);}
+
+  .empty-state{padding:30px 10px;text-align:center;color:var(--text-muted);font-size:13.5px;}
+  .toast{
+    position:fixed;bottom:22px;right:22px;padding:12px 18px;border-radius:9px;
+    font-size:13.5px;font-weight:600;box-shadow:var(--shadow);z-index:50;
+    animation:toastIn .2s ease-out;
+  }
+  .toast.success{background:var(--success);color:#fff;}
+  .toast.error{background:var(--danger);color:#fff;}
+  @keyframes toastIn{from{transform:translateY(8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+  .day-col-head{font-size:12px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;}
+  .creneau-block{
+    border-left:4px solid var(--teal-500);background:var(--teal-100);border-radius:8px;
+    padding:9px 11px;margin-bottom:8px;font-size:12.5px;
+  }
+  .creneau-block .heure{font-weight:700;color:var(--teal-900);}
+  .creneau-block .salle{color:var(--text-muted);font-size:11.5px;}
+
+  .child-card{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:between;gap:14px;}
+  .child-card .name{font-weight:600;}
+  .child-card .actions{margin-left:auto;display:flex;gap:8px;}
+  .btn-secondary{padding:7px 13px;border-radius:7px;border:1.5px solid var(--teal-500);background:#fff;color:var(--teal-700);font-size:12.5px;font-weight:600;}
+  .btn-secondary:hover{background:var(--teal-100);}
+
+  /* ---------- MESSAGERIE ---------- */
+  .msg-layout{display:flex;height:560px;}
+  .msg-contacts{width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:8px;}
+  .msg-contact{
+    display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;
+    padding:9px 11px;border:none;background:transparent;border-radius:8px;margin-bottom:2px;
+    text-align:left;position:relative;
+  }
+  .msg-contact:hover{background:var(--teal-100);}
+  .msg-contact.active{background:var(--teal-700);}
+  .msg-contact.active .msg-contact-name,.msg-contact.active .msg-contact-role{color:#fff;}
+  .msg-contact-name{font-size:13.5px;font-weight:600;color:var(--text);}
+  .msg-contact-role{font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .msg-unread-badge{
+    position:absolute;top:9px;right:10px;background:var(--danger);color:#fff;
+    font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;
+  }
+  .msg-thread-panel{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .msg-thread-header{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px;color:var(--teal-900);}
+  .msg-thread{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:8px;}
+  .msg-bubble-row{display:flex;}
+  .msg-bubble-row.mine{justify-content:flex-end;}
+  .msg-bubble{max-width:70%;background:var(--teal-100);color:var(--text);padding:9px 13px;border-radius:14px 14px 14px 3px;font-size:13.5px;}
+  .msg-bubble.mine{background:var(--teal-700);color:#fff;border-radius:14px 14px 3px 14px;}
+  .msg-bubble-time{font-size:10.5px;opacity:.7;margin-top:3px;}
+  .msg-compose{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--border);}
+  .msg-compose input{flex:1;padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;}
+  .msg-compose input:disabled,.msg-compose button:disabled{opacity:.5;cursor:not-allowed;}
+  @media (max-width:900px){.msg-layout{flex-direction:column;height:auto;}.msg-contacts{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:180px;}}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span>EduTchad</span>
+    </div>
+    <p class="login-sub">Connecte-toi à ton espace.</p>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" required autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="login-password" required autocomplete="current-password" />
+      </div>
+      <button class="btn-primary" type="submit">Se connecter</button>
+    </form>
+    <div class="login-hint">
+      Connecté à <code id="api-base-display"></code>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app-screen" class="hidden">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span>EduTchad</span>
+    </div>
+    <nav id="nav-list"></nav>
+    <div class="sidebar-footer">
+      <span class="role-badge" id="role-badge"></span>
+      <div class="user-line" id="user-name"></div>
+      <div class="user-email" id="user-email"></div>
+      <button class="btn-logout" id="logout-btn">Se déconnecter</button>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="page-title">Tableau de bord</h1>
+        <div class="subtitle" id="page-subtitle"></div>
+      </div>
+    </header>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+// Le frontend est servi par le même serveur que l'API : même origine, donc pas besoin
+// de configurer d'adresse — ça fonctionne pareil en local (http://localhost:3001)
+// et une fois déployé en ligne.
+const API_BASE = window.location.origin;
+document.getElementById('api-base-display').textContent = API_BASE;
+
+let state = { token: null, user: null };
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function saveSession(token, user){
+  state.token = token; state.user = user;
+  localStorage.setItem('edutchad_token', token);
+  localStorage.setItem('edutchad_user', JSON.stringify(user));
+}
+function clearSession(){
+  state.token = null; state.user = null;
+  localStorage.removeItem('edutchad_token');
+  localStorage.removeItem('edutchad_user');
+}
+function restoreSession(){
+  const t = localStorage.getItem('edutchad_token');
+  const u = localStorage.getItem('edutchad_user');
+  if(t && u){ state.token = t; state.user = JSON.parse(u); return true; }
+  return false;
+}
+
+async function api(path, options = {}){
+  const res = await fetch(API_BASE + path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(state.token ? { 'Authorization': 'Bearer ' + state.token } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  let data = null;
+  try { data = await res.json(); } catch(e) { /* no body */ }
+  if(!res.ok){
+    const message = (data && data.message) ? (Array.isArray(data.message) ? data.message.join(', ') : data.message) : 'Erreur inconnue';
+    throw new Error(message);
+  }
+  return data;
+}
+
+function toast(message, type = 'success'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+function bindDeleteButtons(container, attr, apiPrefix, onDone, label = 'cet élément'){
+  container.querySelectorAll('[' + attr + ']').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute(attr);
+      if(!confirm(`Supprimer définitivement ${label} (id ${id}) ?`)) return;
+      try{
+        await api(apiPrefix + '/' + id, { method:'DELETE' });
+        toast('Supprimé.');
+        onDone();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+}
+
+function escapeHtml(str){
+  if(str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function stringToColor(str){
+  let hash = 0;
+  for(let i=0;i<str.length;i++){ hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 55%, 45%)`;
+}
+
+function moyennePillClass(m){
+  if(m === null || m === undefined) return '';
+  if(m >= 14) return 'moy-good';
+  if(m >= 10) return 'moy-mid';
+  return 'moy-low';
+}
+
+const JOURS_ORDRE = ['LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorBox = document.getElementById('login-error');
+  errorBox.style.display = 'none';
+  try{
+    const data = await api('/auth/login', { method:'POST', body: JSON.stringify({ email, password }) });
+    saveSession(data.access_token, data.user);
+    enterApp();
+  }catch(err){
+    errorBox.textContent = err.message.includes('Unauthorized') || err.message.includes('invalides') ? 'Email ou mot de passe incorrect.' : err.message;
+    errorBox.style.display = 'block';
+  }
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  clearSession();
+  document.getElementById('app-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-form').reset();
+});
+
+/* ============================================================
+   APP SHELL / NAVIGATION
+   ============================================================ */
+const MENUS = {
+  ETUDIANT: [
+    { id:'bulletin', label:'Mon bulletin', render: renderEtudiantBulletin },
+    { id:'absences', label:'Mes absences', render: renderEtudiantAbsences },
+    { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
+    { id:'messagerie', label:'Messagerie', render: renderMessagerie },
+  ],
+  PROFESSEUR: [
+    { id:'enseignements', label:'Mes classes', render: renderProfEnseignements },
+    { id:'saisir-note', label:'Saisir une note', render: renderProfSaisirNote },
+    { id:'declarer-absence', label:'Déclarer une absence', render: renderProfDeclarerAbsence },
+    { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
+    { id:'messagerie', label:'Messagerie', render: renderMessagerie },
+    { id:'parametres', label:'Paramètres', render: renderParametres },
+  ],
+  PARENT: [
+    { id:'enfants', label:'Mes enfants', render: renderParentEnfants },
+    { id:'messagerie', label:'Messagerie', render: renderMessagerie },
+  ],
+  ADMIN: [
+    { id:'utilisateurs', label:'Utilisateurs', render: renderAdminUsers },
+    { id:'classes', label:'Classes', render: renderAdminClasses },
+    { id:'matieres', label:'Matières', render: renderAdminMatieres },
+    { id:'enseignements-admin', label:'Enseignements', render: renderAdminEnseignements },
+    { id:'creneaux-admin', label:'Emploi du temps', render: renderAdminCreneaux },
+    { id:'liaisons', label:'Liaisons parents', render: renderAdminLiaisons },
+    { id:'messagerie', label:'Messagerie', render: renderMessagerie },
+    { id:'parametres', label:'Paramètres', render: renderParametres },
+  ],
+};
+
+const PAGE_TITLES = {
+  bulletin:'Mon bulletin', absences:'Mes absences', emploi:'Emploi du temps',
+  enseignements:'Mes classes', 'saisir-note':'Saisir une note', 'declarer-absence':'Déclarer une absence',
+  enfants:'Mes enfants', utilisateurs:'Gestion des utilisateurs', classes:'Gestion des classes',
+  matieres:'Gestion des matières', 'enseignements-admin':'Gestion des enseignements',
+  'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant',
+  messagerie:'Messagerie', parametres:'Paramètres',
+};
+
+function enterApp(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-screen').classList.remove('hidden');
+
+  const u = state.user;
+  document.getElementById('role-badge').textContent = u.role;
+  document.getElementById('user-name').textContent = u.prenom + ' ' + u.nom;
+  document.getElementById('user-email').textContent = u.email;
+
+  const nav = document.getElementById('nav-list');
+  nav.innerHTML = '';
+  const items = MENUS[u.role] || [];
+  items.forEach((item, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-item' + (idx === 0 ? ' active' : '');
+    btn.innerHTML = `<span class="dot"></span>${item.label}`;
+    btn.addEventListener('click', () => selectMenu(item.id));
+    btn.dataset.menuId = item.id;
+    nav.appendChild(btn);
+  });
+
+  if(items.length) selectMenu(items[0].id);
+}
+
+function selectMenu(menuId){
+  document.querySelectorAll('.nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.menuId === menuId);
+  });
+  document.getElementById('page-title').textContent = PAGE_TITLES[menuId] || '';
+  const items = MENUS[state.user.role] || [];
+  const item = items.find(i => i.id === menuId);
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="empty-state">Chargement…</div>';
+  if(item) item.render().catch(err => {
+    content.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`;
+  });
+}
+
+/* ============================================================
+   ÉTUDIANT
+   ============================================================ */
+async function renderEtudiantBulletin(){
+  const b = await api('/bulletins/etudiant/' + state.user.id);
+  const content = document.getElementById('content');
+  document.getElementById('page-subtitle').textContent = b.etudiant.prenom + ' ' + b.etudiant.nom;
+
+  const rows = b.matieres.map(m => `
+    <tr>
+      <td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td>
+      <td>${m.coefficient}</td>
+      <td><span class="moy-pill ${moyennePillClass(m.moyenne)}">${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'}</span></td>
+    </tr>`).join('');
+
+  content.innerHTML = `
+    <div class="grid-2">
+      <div class="card">
+        <div class="stat">
+          <div class="label">Moyenne générale</div>
+          <div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} <span style="font-size:16px;color:var(--text-muted);">/ 20</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="stat">
+          <div class="label">Matières notées</div>
+          <div class="big">${b.matieres.length}</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Détail par matière</h2>
+      ${b.matieres.length ? `<table><thead><tr><th>Matière</th><th>Coefficient</th><th>Moyenne</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">Aucune note pour l'instant.</div>`}
+    </div>`;
+}
+
+async function renderEtudiantAbsences(){
+  const absences = await api('/absences');
+  document.getElementById('page-subtitle').textContent = '';
+  renderAbsencesTable(absences, false);
+}
+
+function renderAbsencesTable(absences, showEtudiant){
+  const content = document.getElementById('content');
+  const rows = absences.map(a => `
+    <tr>
+      <td>${new Date(a.date).toLocaleDateString('fr-FR')}</td>
+      ${showEtudiant ? `<td>${escapeHtml(a.etudiant.prenom)} ${escapeHtml(a.etudiant.nom)}</td>` : ''}
+      <td><span class="chip" style="background:${stringToColor(a.enseignement.matiere.nom)}">${escapeHtml(a.enseignement.matiere.nom)}</span></td>
+      <td>${escapeHtml(a.enseignement.classe.nom)}</td>
+      <td>${a.justifiee ? '<span class="badge-justifiee">Justifiée</span>' : '<span class="badge-non-justifiee">Non justifiée</span>'}</td>
+      <td>${escapeHtml(a.motif || '—')}</td>
+    </tr>`).join('');
+  content.innerHTML = `
+    <div class="card">
+      <h2>${absences.length} absence${absences.length > 1 ? 's' : ''}</h2>
+      ${absences.length ? `<table><thead><tr><th>Date</th>${showEtudiant ? '<th>Étudiant</th>' : ''}<th>Matière</th><th>Classe</th><th>Statut</th><th>Motif</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">Aucune absence enregistrée.</div>`}
+    </div>`;
+}
+
+async function renderEmploiDuTemps(){
+  const creneaux = await api('/creneaux');
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+
+  const parJour = {};
+  JOURS_ORDRE.forEach(j => parJour[j] = []);
+  creneaux.forEach(c => { if(parJour[c.jour]) parJour[c.jour].push(c); });
+  Object.values(parJour).forEach(list => list.sort((a,b) => a.heureDebut.localeCompare(b.heureDebut)));
+
+  const cols = JOURS_ORDRE.map(jour => {
+    const blocks = parJour[jour].map(c => `
+      <div class="creneau-block" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)}">
+        <div class="heure">${c.heureDebut} – ${c.heureFin}</div>
+        <div>${escapeHtml(c.enseignement.matiere.nom)}</div>
+        ${c.salle ? `<div class="salle">Salle ${escapeHtml(c.salle)}</div>` : ''}
+      </div>`).join('');
+    return `<div><div class="day-col-head">${jour}</div>${blocks || '<div class="empty-state" style="padding:10px 0;">—</div>'}</div>`;
+  }).join('');
+
+  content.innerHTML = `<div class="card"><h2>Semaine type</h2><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;">${cols}</div></div>`;
+}
+
+/* ============================================================
+   PROFESSEUR
+   ============================================================ */
+async function getMesEnseignements(){
+  const all = await api('/enseignements');
+  return all.filter(e => e.professeur.id === state.user.id);
+}
+
+async function renderProfEnseignements(){
+  const mine = await getMesEnseignements();
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const rows = mine.map(e => `
+    <tr>
+      <td>${escapeHtml(e.classe.nom)}</td>
+      <td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td>
+      <td>${e.matiere.coefficient}</td>
+    </tr>`).join('');
+  content.innerHTML = `
+    <div class="card">
+      <h2>Mes enseignements</h2>
+      ${mine.length ? `<table><thead><tr><th>Classe</th><th>Matière</th><th>Coefficient</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">Aucun enseignement ne vous est encore assigné.</div>`}
+    </div>`;
+}
+
+async function renderProfSaisirNote(){
+  const mine = await getMesEnseignements();
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+
+  const enseignementOptions = mine.map(e => `<option value="${e.id}">${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Nouvelle note</h2>
+      <form class="inline-form" id="note-form">
+        <div class="f" style="min-width:220px;">
+          <label>Enseignement</label>
+          <select name="enseignementId" required>${enseignementOptions || '<option value="">Aucun enseignement</option>'}</select>
+        </div>
+        <div class="f">
+          <label>ID étudiant</label>
+          <input type="number" name="etudiantId" required min="1" />
+        </div>
+        <div class="f">
+          <label>Valeur / 20</label>
+          <input type="number" name="valeur" required min="0" max="20" step="0.25" />
+        </div>
+        <div class="f">
+          <label>Type</label>
+          <select name="type">
+            <option value="CONTROLE">Contrôle</option>
+            <option value="DEVOIR">Devoir</option>
+            <option value="EXAMEN">Examen</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Coefficient</label>
+          <input type="number" name="coefficient" min="0.1" step="0.1" value="1" />
+        </div>
+        <button class="btn-submit" type="submit">Enregistrer la note</button>
+      </form>
+    </div>`;
+
+  document.getElementById('note-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/notes', { method:'POST', body: JSON.stringify({
+        enseignementId: Number(fd.get('enseignementId')),
+        etudiantId: Number(fd.get('etudiantId')),
+        valeur: Number(fd.get('valeur')),
+        type: fd.get('type'),
+        coefficient: Number(fd.get('coefficient')),
+      })});
+      toast('Note enregistrée.');
+      e.target.reset();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+}
+
+async function renderProfDeclarerAbsence(){
+  const mine = await getMesEnseignements();
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+
+  const enseignementOptions = mine.map(e => `<option value="${e.id}">${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Déclarer une absence</h2>
+      <form class="inline-form" id="absence-form">
+        <div class="f" style="min-width:220px;">
+          <label>Enseignement</label>
+          <select name="enseignementId" required>${enseignementOptions || '<option value="">Aucun enseignement</option>'}</select>
+        </div>
+        <div class="f">
+          <label>ID étudiant</label>
+          <input type="number" name="etudiantId" required min="1" />
+        </div>
+        <div class="f">
+          <label>Date</label>
+          <input type="date" name="date" required />
+        </div>
+        <div class="f">
+          <label>Motif</label>
+          <input type="text" name="motif" placeholder="Facultatif" />
+        </div>
+        <button class="btn-submit" type="submit">Déclarer</button>
+      </form>
+    </div>`;
+
+  document.getElementById('absence-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/absences', { method:'POST', body: JSON.stringify({
+        enseignementId: Number(fd.get('enseignementId')),
+        etudiantId: Number(fd.get('etudiantId')),
+        date: new Date(fd.get('date')).toISOString(),
+        motif: fd.get('motif') || undefined,
+      })});
+      toast('Absence déclarée.');
+      e.target.reset();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+}
+
+/* ============================================================
+   PARENT
+   ============================================================ */
+async function renderParentEnfants(){
+  const enfants = await api('/parents/mes-enfants');
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+
+  if(!enfants.length){
+    content.innerHTML = `<div class="card"><div class="empty-state">Aucun enfant n'est encore lié à votre compte. Contactez l'administration.</div></div>`;
+    return;
+  }
+
+  content.innerHTML = enfants.map(c => `
+    <div class="card">
+      <div class="child-card">
+        <div class="name">${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}</div>
+        <div class="actions">
+          <button class="btn-secondary" data-action="bulletin" data-id="${c.id}">Voir le bulletin</button>
+          <button class="btn-secondary" data-action="absences" data-id="${c.id}">Voir les absences</button>
+        </div>
+      </div>
+      <div id="child-detail-${c.id}"></div>
+    </div>`).join('');
+
+  content.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const target = document.getElementById('child-detail-' + id);
+      target.innerHTML = '<div class="empty-state">Chargement…</div>';
+      try{
+        if(btn.dataset.action === 'bulletin'){
+          const b = await api('/bulletins/etudiant/' + id);
+          const rows = b.matieres.map(m => `
+            <tr><td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td><td>${m.coefficient}</td><td><span class="moy-pill ${moyennePillClass(m.moyenne)}">${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'}</span></td></tr>`).join('');
+          target.innerHTML = `<div style="margin-top:14px;">
+            <div class="stat" style="margin-bottom:12px;"><div class="label">Moyenne générale</div><div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / 20</div></div>
+            ${b.matieres.length ? `<table><thead><tr><th>Matière</th><th>Coef.</th><th>Moyenne</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune note.</div>'}
+          </div>`;
+        } else {
+          const absences = await api('/absences');
+          const mine = absences.filter(a => String(a.etudiantId) === String(id));
+          const rows = mine.map(a => `
+            <tr><td>${new Date(a.date).toLocaleDateString('fr-FR')}</td><td><span class="chip" style="background:${stringToColor(a.enseignement.matiere.nom)}">${escapeHtml(a.enseignement.matiere.nom)}</span></td><td>${a.justifiee ? '<span class="badge-justifiee">Justifiée</span>' : '<span class="badge-non-justifiee">Non justifiée</span>'}</td></tr>`).join('');
+          target.innerHTML = `<div style="margin-top:14px;">${mine.length ? `<table><thead><tr><th>Date</th><th>Matière</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune absence.</div>'}</div>`;
+        }
+      }catch(err){ target.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`; }
+    });
+  });
+}
+
+/* ============================================================
+   ADMIN
+   ============================================================ */
+async function renderAdminUsers(){
+  const users = await api('/users');
+  document.getElementById('page-subtitle').textContent = users.length + ' comptes';
+  const content = document.getElementById('content');
+
+  const rows = users.map(u => `
+    <tr>
+      <td>${u.id}</td>
+      <td>${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</td>
+      <td>${escapeHtml(u.email)}</td>
+      <td>
+        <select data-user-role="${u.id}">
+          ${['ETUDIANT','PROFESSEUR','PARENT','ADMIN'].map(r => `<option value="${r}" ${r===u.role?'selected':''}>${r}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="number" data-user-classe="${u.id}" value="${u.classeId ?? ''}" placeholder="—" style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;" /></td>
+      <td style="white-space:nowrap;">
+        <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
+        <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
+      </td>
+    </tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Créer un utilisateur</h2>
+      <form class="inline-form" id="create-user-form">
+        <div class="f"><label>Prénom</label><input type="text" name="prenom" required /></div>
+        <div class="f"><label>Nom</label><input type="text" name="nom" required /></div>
+        <div class="f"><label>Email</label><input type="email" name="email" required /></div>
+        <div class="f"><label>Mot de passe</label><input type="password" name="password" required minlength="8" placeholder="Min. 8 car., Maj+min+chiffre" /></div>
+        <div class="f">
+          <label>Rôle</label>
+          <select name="role">
+            <option value="ETUDIANT">ETUDIANT</option>
+            <option value="PROFESSEUR">PROFESSEUR</option>
+            <option value="PARENT">PARENT</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+        <button class="btn-submit" type="submit">Créer le compte</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Tous les utilisateurs</h2>
+      <table><thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Classe</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+
+  document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/users', { method:'POST', body: JSON.stringify({
+        prenom: fd.get('prenom'), nom: fd.get('nom'), email: fd.get('email'),
+        password: fd.get('password'), role: fd.get('role'),
+      })});
+      toast('Utilisateur créé.');
+      renderAdminUsers();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  content.querySelectorAll('[data-save-user]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.saveUser;
+      const role = content.querySelector(`[data-user-role="${id}"]`).value;
+      const classeRaw = content.querySelector(`[data-user-classe="${id}"]`).value;
+      try{
+        await api('/users/' + id, { method:'PATCH', body: JSON.stringify({
+          role,
+          classeId: classeRaw === '' ? null : Number(classeRaw),
+        })});
+        toast('Utilisateur mis à jour.');
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-delete-user]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.deleteUser;
+      if(!confirm('Supprimer définitivement cet utilisateur (id ' + id + ') ?')) return;
+      try{
+        await api('/users/' + id, { method:'DELETE' });
+        toast('Utilisateur supprimé.');
+        renderAdminUsers();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+}
+
+async function renderAdminClasses(){
+  const classes = await api('/classes');
+  document.getElementById('page-subtitle').textContent = classes.length + ' classes';
+  const content = document.getElementById('content');
+  const rows = classes.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.nom)}</td><td>${escapeHtml(c.anneeScolaire)}</td><td>${c.etudiants ? c.etudiants.length : 0}</td><td><button class="btn-secondary" data-delete-classe="${c.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Créer une classe</h2>
+      <form class="inline-form" id="classe-form">
+        <div class="f"><label>Nom</label><input type="text" name="nom" required placeholder="L1 Info A" /></div>
+        <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
+        <button class="btn-submit" type="submit">Créer</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Classes existantes</h2>
+      ${classes.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Année</th><th>Étudiants</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune classe.</div>'}
+    </div>`;
+
+  document.getElementById('classe-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/classes', { method:'POST', body: JSON.stringify({ nom: fd.get('nom'), anneeScolaire: fd.get('anneeScolaire') })});
+      toast('Classe créée.');
+      renderAdminClasses();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  bindDeleteButtons(content, 'data-delete-classe', '/classes', renderAdminClasses, 'cette classe');
+}
+
+async function renderAdminMatieres(){
+  const matieres = await api('/matieres');
+  document.getElementById('page-subtitle').textContent = matieres.length + ' matières';
+  const content = document.getElementById('content');
+  const rows = matieres.map(m => `<tr><td>${m.id}</td><td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td><td>${m.coefficient}</td><td><button class="btn-secondary" data-delete-matiere="${m.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Créer une matière</h2>
+      <form class="inline-form" id="matiere-form">
+        <div class="f"><label>Nom</label><input type="text" name="nom" required placeholder="Mathématiques" /></div>
+        <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
+        <button class="btn-submit" type="submit">Créer</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Matières existantes</h2>
+      ${matieres.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Coefficient</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune matière.</div>'}
+    </div>`;
+
+  document.getElementById('matiere-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/matieres', { method:'POST', body: JSON.stringify({ nom: fd.get('nom'), coefficient: Number(fd.get('coefficient')) })});
+      toast('Matière créée.');
+      renderAdminMatieres();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  bindDeleteButtons(content, 'data-delete-matiere', '/matieres', renderAdminMatieres, 'cette matière');
+}
+
+async function renderAdminEnseignements(){
+  const [enseignements, classes, matieres, users] = await Promise.all([
+    api('/enseignements'), api('/classes'), api('/matieres'), api('/users'),
+  ]);
+  const profs = users.filter(u => u.role === 'PROFESSEUR');
+  document.getElementById('page-subtitle').textContent = enseignements.length + ' enseignements';
+  const content = document.getElementById('content');
+
+  const rows = enseignements.map(e => `<tr><td>${e.id}</td><td>${escapeHtml(e.classe.nom)}</td><td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td><td>${escapeHtml(e.professeur.prenom)} ${escapeHtml(e.professeur.nom)}</td></tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Lier une classe, une matière et un professeur</h2>
+      <form class="inline-form" id="ens-form">
+        <div class="f"><label>Classe</label><select name="classeId" required>${classes.map(c=>`<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}</select></div>
+        <div class="f"><label>Matière</label><select name="matiereId" required>${matieres.map(m=>`<option value="${m.id}">${escapeHtml(m.nom)}</option>`).join('')}</select></div>
+        <div class="f"><label>Professeur</label><select name="professeurId" required>${profs.map(p=>`<option value="${p.id}">${escapeHtml(p.prenom)} ${escapeHtml(p.nom)}</option>`).join('') || '<option value="">Aucun professeur</option>'}</select></div>
+        <button class="btn-submit" type="submit">Lier</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Enseignements existants</h2>
+      ${enseignements.length ? `<table><thead><tr><th>ID</th><th>Classe</th><th>Matière</th><th>Professeur</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun enseignement.</div>'}
+    </div>`;
+
+  document.getElementById('ens-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/enseignements', { method:'POST', body: JSON.stringify({
+        classeId: Number(fd.get('classeId')), matiereId: Number(fd.get('matiereId')), professeurId: Number(fd.get('professeurId')),
+      })});
+      toast('Enseignement créé.');
+      renderAdminEnseignements();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+}
+
+async function renderAdminCreneaux(){
+  const [creneaux, enseignements] = await Promise.all([api('/creneaux'), api('/enseignements')]);
+  document.getElementById('page-subtitle').textContent = creneaux.length + ' créneaux';
+  const content = document.getElementById('content');
+
+  const rows = creneaux.map(c => `<tr><td>${c.jour}</td><td>${c.heureDebut} – ${c.heureFin}</td><td><span class="chip" style="background:${stringToColor(c.enseignement.matiere.nom)}">${escapeHtml(c.enseignement.matiere.nom)}</span></td><td>${escapeHtml(c.enseignement.classe.nom)}</td><td>${escapeHtml(c.salle || '—')}</td><td><button class="btn-secondary" data-delete-creneau="${c.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Ajouter un créneau</h2>
+      <form class="inline-form" id="creneau-form">
+        <div class="f"><label>Enseignement</label><select name="enseignementId" required>${enseignements.map(e=>`<option value="${e.id}">${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('') || '<option value="">Aucun</option>'}</select></div>
+        <div class="f"><label>Jour</label><select name="jour" required>${JOURS_ORDRE.map(j=>`<option value="${j}">${j}</option>`).join('')}</select></div>
+        <div class="f"><label>Heure début</label><input type="time" name="heureDebut" required /></div>
+        <div class="f"><label>Heure fin</label><input type="time" name="heureFin" required /></div>
+        <div class="f"><label>Salle</label><input type="text" name="salle" placeholder="A101" /></div>
+        <button class="btn-submit" type="submit">Ajouter</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Créneaux existants</h2>
+      ${creneaux.length ? `<table><thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Classe</th><th>Salle</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun créneau.</div>'}
+    </div>`;
+
+  document.getElementById('creneau-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/creneaux', { method:'POST', body: JSON.stringify({
+        enseignementId: Number(fd.get('enseignementId')), jour: fd.get('jour'),
+        heureDebut: fd.get('heureDebut'), heureFin: fd.get('heureFin'), salle: fd.get('salle') || undefined,
+      })});
+      toast('Créneau ajouté.');
+      renderAdminCreneaux();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  bindDeleteButtons(content, 'data-delete-creneau', '/creneaux', renderAdminCreneaux, 'ce créneau');
+}
+
+async function renderAdminLiaisons(){
+  const users = await api('/users');
+  const parents = users.filter(u => u.role === 'PARENT');
+  const enfants = users.filter(u => u.role === 'ETUDIANT');
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Lier un parent à un enfant</h2>
+      <form class="inline-form" id="liaison-form">
+        <div class="f"><label>Parent</label><select name="parentId" required>${parents.map(p=>`<option value="${p.id}">${escapeHtml(p.prenom)} ${escapeHtml(p.nom)} (#${p.id})</option>`).join('') || '<option value="">Aucun parent</option>'}</select></div>
+        <div class="f"><label>Enfant</label><select name="enfantId" required>${enfants.map(en=>`<option value="${en.id}">${escapeHtml(en.prenom)} ${escapeHtml(en.nom)} (#${en.id})</option>`).join('') || '<option value="">Aucun étudiant</option>'}</select></div>
+        <button class="btn-submit" type="submit">Lier</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Voir les enfants d'un parent</h2>
+      <form class="inline-form" id="voir-form">
+        <div class="f"><label>Parent</label><select name="parentId">${parents.map(p=>`<option value="${p.id}">${escapeHtml(p.prenom)} ${escapeHtml(p.nom)} (#${p.id})</option>`).join('') || '<option value="">Aucun parent</option>'}</select></div>
+        <button class="btn-submit" type="submit">Afficher</button>
+      </form>
+      <div id="liaison-result" style="margin-top:14px;"></div>
+    </div>`;
+
+  document.getElementById('liaison-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/parents/liaisons', { method:'POST', body: JSON.stringify({ parentId: Number(fd.get('parentId')), enfantId: Number(fd.get('enfantId')) })});
+      toast('Liaison créée.');
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  document.getElementById('voir-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const parentId = fd.get('parentId');
+    const result = document.getElementById('liaison-result');
+    // Pas de route admin dédiée : on récupère via /users puis on retente la connexion n'est pas possible ici,
+    // donc on affiche une info simple basée sur ce que l'admin peut voir.
+    result.innerHTML = `<div class="empty-state">Utilise la route <code>/parents/mes-enfants</code> connecté en tant que ce parent, ou l'onglet Swagger, pour voir la liste détaillée.</div>`;
+  });
+}
+
+/* ============================================================
+   MESSAGERIE
+   ============================================================ */
+let messagerieSelectedContact = null;
+
+async function renderMessagerie(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const [contacts, recus] = await Promise.all([api('/messages/contacts'), api('/messages/recus')]);
+
+  const unreadByContact = {};
+  recus.forEach(m => {
+    if(!m.lu) unreadByContact[m.expediteur.id] = (unreadByContact[m.expediteur.id] || 0) + 1;
+  });
+
+  const contactItems = contacts.map(c => `
+    <button class="msg-contact" data-contact-id="${c.id}" data-contact-name="${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}">
+      <span class="msg-contact-name">${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}</span>
+      <span class="msg-contact-role">${c.role}</span>
+      ${unreadByContact[c.id] ? `<span class="msg-unread-badge">${unreadByContact[c.id]}</span>` : ''}
+    </button>`).join('');
+
+  content.innerHTML = `
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="msg-layout">
+        <div class="msg-contacts">
+          ${contacts.length ? contactItems : '<div class="empty-state">Aucun autre utilisateur.</div>'}
+        </div>
+        <div class="msg-thread-panel">
+          <div class="msg-thread-header" id="msg-thread-header">Sélectionne une personne pour démarrer une conversation</div>
+          <div class="msg-thread" id="msg-thread"></div>
+          <form class="msg-compose" id="msg-compose-form">
+            <input type="text" name="contenu" placeholder="Écrire un message…" autocomplete="off" disabled />
+            <button class="btn-submit" type="submit" disabled>Envoyer</button>
+          </form>
+        </div>
+      </div>
+    </div>`;
+
+  content.querySelectorAll('[data-contact-id]').forEach(btn => {
+    btn.addEventListener('click', () => openConversation(Number(btn.dataset.contactId), btn.dataset.contactName));
+  });
+
+  document.getElementById('msg-compose-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!messagerieSelectedContact) return;
+    const fd = new FormData(e.target);
+    const contenu = fd.get('contenu').trim();
+    if(!contenu) return;
+    try{
+      await api('/messages', { method:'POST', body: JSON.stringify({ destinataireId: messagerieSelectedContact, contenu }) });
+      e.target.reset();
+      await loadConversation(messagerieSelectedContact);
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  if(messagerieSelectedContact){
+    const stillThere = contacts.find(c => c.id === messagerieSelectedContact);
+    if(stillThere){
+      openConversation(stillThere.id, stillThere.prenom + ' ' + stillThere.nom);
+    } else {
+      messagerieSelectedContact = null;
+    }
+  }
+}
+
+function openConversation(contactId, contactName){
+  messagerieSelectedContact = contactId;
+  document.querySelectorAll('.msg-contact').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.contactId) === contactId);
+  });
+  document.getElementById('msg-thread-header').textContent = contactName;
+  const input = document.querySelector('#msg-compose-form input');
+  const btn = document.querySelector('#msg-compose-form button');
+  input.disabled = false; btn.disabled = false;
+  loadConversation(contactId);
+}
+
+async function loadConversation(contactId){
+  const thread = document.getElementById('msg-thread');
+  thread.innerHTML = '<div class="empty-state">Chargement…</div>';
+  try{
+    const messages = await api('/messages/conversation/' + contactId);
+    thread.innerHTML = messages.length ? messages.map(m => {
+      const mine = m.expediteur.id === state.user.id;
+      return `<div class="msg-bubble-row ${mine ? 'mine' : ''}">
+        <div class="msg-bubble ${mine ? 'mine' : ''}">
+          <div>${escapeHtml(m.contenu)}</div>
+          <div class="msg-bubble-time">${new Date(m.createdAt).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</div>
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty-state">Aucun message pour l\'instant. Écris le premier !</div>';
+    thread.scrollTop = thread.scrollHeight;
+
+    const aLire = messages.filter(m => !m.lu && m.destinataire.id === state.user.id);
+    await Promise.all(aLire.map(m => api('/messages/' + m.id + '/lu', { method:'PATCH' }).catch(() => {})));
+    if(aLire.length){
+      document.querySelectorAll('.msg-contact').forEach(b => {
+        if(Number(b.dataset.contactId) === contactId){
+          const badge = b.querySelector('.msg-unread-badge');
+          if(badge) badge.remove();
+        }
+      });
+    }
+  }catch(err){
+    thread.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/* ============================================================
+   PARAMÈTRES
+   ============================================================ */
+async function renderParametres(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const isAdmin = state.user.role === 'ADMIN';
+
+  let plateformeCard = '';
+  if(isAdmin){
+    const params = await api('/parametres');
+    plateformeCard = `
+      <div class="card">
+        <h2>Paramètres de la plateforme</h2>
+        <form class="inline-form" id="plateforme-form">
+          <div class="f"><label>Nom de l'établissement</label><input type="text" name="nomEtablissement" value="${escapeHtml(params.nomEtablissement)}" required /></div>
+          <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" value="${escapeHtml(params.anneeScolaire)}" required /></div>
+          <div class="f"><label>Barème de notation (sur)</label><input type="number" name="bareme" min="10" max="100" value="${params.bareme}" required /></div>
+          <button class="btn-submit" type="submit">Enregistrer</button>
+        </form>
+      </div>`;
+  }
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Mon compte</h2>
+      <div class="stat" style="margin-bottom:16px;">
+        <div class="label">Connecté en tant que</div>
+        <div style="font-size:14.5px;font-weight:600;">${escapeHtml(state.user.prenom)} ${escapeHtml(state.user.nom)} — ${escapeHtml(state.user.email)} (${state.user.role})</div>
+      </div>
+      <h2 style="margin-top:22px;">Changer mon mot de passe</h2>
+      <form class="inline-form" id="password-form">
+        <div class="f"><label>Mot de passe actuel</label><input type="password" name="ancienMotDePasse" required /></div>
+        <div class="f"><label>Nouveau mot de passe</label><input type="password" name="nouveauMotDePasse" required minlength="8" placeholder="Min. 8 car., Maj+min+chiffre" /></div>
+        <button class="btn-submit" type="submit">Mettre à jour</button>
+      </form>
+    </div>
+    ${plateformeCard}`;
+
+  document.getElementById('password-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/auth/password', { method:'PATCH', body: JSON.stringify({
+        ancienMotDePasse: fd.get('ancienMotDePasse'),
+        nouveauMotDePasse: fd.get('nouveauMotDePasse'),
+      })});
+      toast('Mot de passe mis à jour.');
+      e.target.reset();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  if(isAdmin){
+    document.getElementById('plateforme-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try{
+        await api('/parametres', { method:'PATCH', body: JSON.stringify({
+          nomEtablissement: fd.get('nomEtablissement'),
+          anneeScolaire: fd.get('anneeScolaire'),
+          bareme: Number(fd.get('bareme')),
+        })});
+        toast('Paramètres de la plateforme mis à jour.');
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+if(restoreSession()){
+  enterApp();
+}
+</script>
+</body>
+</html>

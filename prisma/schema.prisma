@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  prenom    String
+  email     String   @unique
+  password  String
+  role      Role     @default(ETUDIANT)
+  createdAt DateTime @default(now())
+
+  classeId  Int?
+  classe    Classe?  @relation("EtudiantsClasse", fields: [classeId], references: [id])
+
+  enseignements Enseignement[] @relation("ProfesseurEnseignements")
+  notes         Note[]         @relation("NotesEtudiant")
+  absences      Absence[]      @relation("AbsencesEtudiant")
+
+  enfants User[] @relation("ParentEnfant")
+  parents User[] @relation("ParentEnfant")
+
+  messagesEnvoyes Message[] @relation("MessagesEnvoyes")
+  messagesRecus   Message[] @relation("MessagesRecus")
+}
+
+enum Role {
+  ETUDIANT
+  PROFESSEUR
+  PARENT
+  ADMIN
+}
+
+model Classe {
+  id            Int      @id @default(autoincrement())
+  nom           String   @unique
+  anneeScolaire String
+  createdAt     DateTime @default(now())
+
+  etudiants     User[]         @relation("EtudiantsClasse")
+  enseignements Enseignement[]
+}
+
+model Matiere {
+  id          Int      @id @default(autoincrement())
+  nom         String   @unique
+  coefficient Float    @default(1)
+  createdAt   DateTime @default(now())
+
+  enseignements Enseignement[]
+}
+
+model Enseignement {
+  id           Int     @id @default(autoincrement())
+  classe       Classe  @relation(fields: [classeId], references: [id])
+  classeId     Int
+  matiere      Matiere @relation(fields: [matiereId], references: [id])
+  matiereId    Int
+  professeur   User    @relation("ProfesseurEnseignements", fields: [professeurId], references: [id])
+  professeurId Int
+
+  @@unique([classeId, matiereId])
+  notes    Note[]
+  absences Absence[]
+  creneaux Creneau[]
+}
+
+enum TypeEvaluation {
+  DEVOIR
+  CONTROLE
+  EXAMEN
+}
+
+model Note {
+  id          Int             @id @default(autoincrement())
+  valeur      Float
+  coefficient Float           @default(1)
+  type        TypeEvaluation  @default(CONTROLE)
+  commentaire String?
+  createdAt   DateTime        @default(now())
+
+  etudiant       User         @relation("NotesEtudiant", fields: [etudiantId], references: [id])
+  etudiantId     Int
+  enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
+  enseignementId Int
+}
+
+model Absence {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  justifiee  Boolean  @default(false)
+  motif      String?
+  createdAt  DateTime @default(now())
+
+  etudiant       User         @relation("AbsencesEtudiant", fields: [etudiantId], references: [id])
+  etudiantId     Int
+  enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
+  enseignementId Int
+}
+
+enum JourSemaine {
+  LUNDI
+  MARDI
+  MERCREDI
+  JEUDI
+  VENDREDI
+  SAMEDI
+}
+
+model Creneau {
+  id         Int         @id @default(autoincrement())
+  jour       JourSemaine
+  heureDebut String
+  heureFin   String
+  salle      String?
+  createdAt  DateTime    @default(now())
+
+  enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
+  enseignementId Int
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  contenu   String
+  lu        Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  expediteur     User @relation("MessagesEnvoyes", fields: [expediteurId], references: [id])
+  expediteurId   Int
+  destinataire   User @relation("MessagesRecus", fields: [destinataireId], references: [id])
+  destinataireId Int
+}
+
+model ParametrePlateforme {
+  id               Int      @id @default(1)
+  nomEtablissement String   @default("EduTchad")
+  anneeScolaire    String   @default("2025-2026")
+  bareme           Int      @default(20)
+  updatedAt        DateTime @updatedAt
+}
