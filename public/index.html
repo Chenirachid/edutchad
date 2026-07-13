@@ -471,6 +471,7 @@ const MENUS = {
     { id:'absences', label:'Mes absences', render: renderEtudiantAbsences },
     { id:'comportement', label:'Mon comportement', render: renderComportement },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
+    { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
   PROFESSEUR: [
@@ -481,6 +482,7 @@ const MENUS = {
     { id:'observations', label:'Observations', render: renderProfObservations },
     { id:'punitions', label:'Punitions', render: renderProfPunitions },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
+    { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
@@ -496,6 +498,7 @@ const MENUS = {
     { id:'creneaux-admin', label:'Emploi du temps', render: renderAdminCreneaux },
     { id:'liaisons', label:'Liaisons parents', render: renderAdminLiaisons },
     { id:'bulletins-pdf', label:'Bulletins PDF', render: renderAdminBulletinsPdf },
+    { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
@@ -504,7 +507,7 @@ const MENUS = {
 const PAGE_TITLES = {
   bulletin:'Mon bulletin', absences:'Mes absences', comportement:'Mon comportement', emploi:'Emploi du temps',
   enseignements:'Mes classes', appel:"Faire l'appel", 'saisir-note':'Saisir une note', 'declarer-absence':'Déclarer une absence',
-  observations:'Observations', punitions:'Punitions',
+  observations:'Observations', punitions:'Punitions', groupes:'Groupes',
   enfants:'Mes enfants', utilisateurs:'Gestion des utilisateurs', classes:'Gestion des classes',
   matieres:'Gestion des matières', 'enseignements-admin':'Gestion des enseignements',
   'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant', 'bulletins-pdf':'Bulletins PDF',
@@ -1335,6 +1338,94 @@ async function loadConversation(contactId){
         }
       });
     }
+  }catch(err){
+    thread.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/* ============================================================
+   GROUPES DE DISCUSSION
+   ============================================================ */
+let groupeSelectedId = null;
+
+async function renderGroupes(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const groupes = await api('/groupes');
+
+  const groupeItems = groupes.map(g => `
+    <button class="msg-contact" data-groupe-id="${g.id}" data-groupe-name="${escapeHtml(g.nom)}">
+      <span class="msg-contact-name">${escapeHtml(g.nom)}</span>
+      <span class="msg-contact-role">${g.type === 'CLASSE' ? 'Classe' : g.type === 'PROFS' ? 'Professeurs' : 'Administration'}</span>
+    </button>`).join('');
+
+  content.innerHTML = `
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="msg-layout">
+        <div class="msg-contacts">
+          ${groupes.length ? groupeItems : '<div class="empty-state">Aucun groupe disponible.</div>'}
+        </div>
+        <div class="msg-thread-panel">
+          <div class="msg-thread-header" id="groupe-thread-header">Sélectionne un groupe pour voir la discussion</div>
+          <div class="msg-thread" id="groupe-thread"></div>
+          <form class="msg-compose" id="groupe-compose-form">
+            <input type="text" name="contenu" placeholder="Écrire un message au groupe…" autocomplete="off" disabled />
+            <button class="btn-submit" type="submit" disabled>Envoyer</button>
+          </form>
+        </div>
+      </div>
+    </div>`;
+
+  content.querySelectorAll('[data-groupe-id]').forEach(btn => {
+    btn.addEventListener('click', () => openGroupe(Number(btn.dataset.groupeId), btn.dataset.groupeName));
+  });
+
+  document.getElementById('groupe-compose-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!groupeSelectedId) return;
+    const fd = new FormData(e.target);
+    const contenu = fd.get('contenu').trim();
+    if(!contenu) return;
+    try{
+      await api('/groupes/' + groupeSelectedId + '/messages', { method:'POST', body: JSON.stringify({ contenu }) });
+      e.target.reset();
+      await loadGroupeMessages(groupeSelectedId);
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  if(groupes.length === 1){
+    openGroupe(groupes[0].id, groupes[0].nom);
+  }
+}
+
+function openGroupe(groupeId, nom){
+  groupeSelectedId = groupeId;
+  document.querySelectorAll('.msg-contact').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.groupeId) === groupeId);
+  });
+  document.getElementById('groupe-thread-header').textContent = nom;
+  const input = document.querySelector('#groupe-compose-form input');
+  const btn = document.querySelector('#groupe-compose-form button');
+  input.disabled = false; btn.disabled = false;
+  loadGroupeMessages(groupeId);
+}
+
+async function loadGroupeMessages(groupeId){
+  const thread = document.getElementById('groupe-thread');
+  thread.innerHTML = '<div class="empty-state">Chargement…</div>';
+  try{
+    const messages = await api('/groupes/' + groupeId + '/messages');
+    thread.innerHTML = messages.length ? messages.map(m => {
+      const mine = m.auteur.id === state.user.id;
+      return `<div class="msg-bubble-row ${mine ? 'mine' : ''}">
+        <div class="msg-bubble ${mine ? 'mine' : ''}">
+          ${!mine ? `<div style="font-size:11px;font-weight:700;opacity:.75;margin-bottom:2px;">${escapeHtml(m.auteur.prenom)} ${escapeHtml(m.auteur.nom)}</div>` : ''}
+          <div>${escapeHtml(m.contenu)}</div>
+          <div class="msg-bubble-time">${new Date(m.createdAt).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</div>
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty-state">Aucun message pour l\'instant. Écris le premier !</div>';
+    thread.scrollTop = thread.scrollHeight;
   }catch(err){
     thread.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
   }

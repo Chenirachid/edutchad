@@ -32,6 +32,8 @@ model User {
   observationsRedigees Observation[] @relation("ObservationsAuteur")
   punitionsRecues      Punition[]    @relation("PunitionsEtudiant")
   punitionsRedigees    Punition[]    @relation("PunitionsAuteur")
+
+  messagesGroupe MessageGroupe[]
 }
 
 enum Role {
@@ -49,6 +51,7 @@ model Classe {
 
   etudiants     User[]         @relation("EtudiantsClasse")
   enseignements Enseignement[]
+  groupe        Groupe?
 }
 
 model Matiere {
@@ -195,4 +198,33 @@ model Punition {
   etudiantId Int
   auteur     User @relation("PunitionsAuteur", fields: [auteurId], references: [id])
   auteurId   Int
+}
+
+enum TypeGroupe {
+  CLASSE
+  PROFS
+  ADMIN
+}
+
+model Groupe {
+  id        Int        @id @default(autoincrement())
+  nom       String
+  type      TypeGroupe
+  createdAt DateTime   @default(now())
+
+  classe   Classe? @relation(fields: [classeId], references: [id])
+  classeId Int?    @unique
+
+  messages MessageGroupe[]
+}
+
+model MessageGroupe {
+  id        Int      @id @default(autoincrement())
+  contenu   String
+  createdAt DateTime @default(now())
+
+  groupe   Groupe @relation(fields: [groupeId], references: [id])
+  groupeId Int
+  auteur   User   @relation(fields: [auteurId], references: [id])
+  auteurId Int
 }
