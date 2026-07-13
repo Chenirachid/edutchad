@@ -208,6 +208,33 @@
   .btn-secondary{padding:7px 13px;border-radius:7px;border:1.5px solid var(--teal-500);background:#fff;color:var(--teal-700);font-size:12.5px;font-weight:600;}
   .btn-secondary:hover{background:var(--teal-100);}
 
+  /* ---------- IMPRESSION BULLETIN ---------- */
+  #print-root{display:none;}
+  .bulletin-sheet{
+    padding:32px 40px;font-family:'Inter',sans-serif;color:#111;
+    page-break-after:always;
+  }
+  .bulletin-sheet:last-child{page-break-after:auto;}
+  .bulletin-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--teal-700);padding-bottom:14px;margin-bottom:22px;}
+  .bulletin-head h1{font-size:20px;margin:0 0 4px;color:var(--teal-900);}
+  .bulletin-head .etab{font-size:12.5px;color:#555;}
+  .bulletin-head .annee{font-size:12px;color:#777;text-align:right;}
+  .bulletin-eleve{font-size:14px;font-weight:600;margin-bottom:4px;}
+  .bulletin-classe{font-size:12.5px;color:#555;margin-bottom:18px;}
+  .bulletin-sheet table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:18px;}
+  .bulletin-sheet th{text-align:left;padding:8px 10px;background:var(--teal-100);color:var(--teal-900);border:1px solid #ddd;}
+  .bulletin-sheet td{padding:7px 10px;border:1px solid #ddd;}
+  .bulletin-moyenne-generale{
+    display:inline-block;padding:10px 18px;border-radius:8px;
+    background:var(--teal-900);color:#fff;font-size:15px;font-weight:700;
+  }
+  .bulletin-footer{margin-top:24px;font-size:11px;color:#999;text-align:right;}
+  @media print{
+    body *{visibility:hidden;}
+    #print-root, #print-root *{visibility:visible;}
+    #print-root{display:block;position:absolute;left:0;top:0;width:100%;}
+  }
+
   /* ---------- MESSAGERIE ---------- */
   .msg-layout{display:flex;height:560px;}
   .msg-contacts{width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:8px;}
@@ -292,6 +319,8 @@
     <main class="content" id="content"></main>
   </div>
 </div>
+
+<div id="print-root"></div>
 
 <script>
 
@@ -446,6 +475,7 @@ const MENUS = {
     { id:'enseignements-admin', label:'Enseignements', render: renderAdminEnseignements },
     { id:'creneaux-admin', label:'Emploi du temps', render: renderAdminCreneaux },
     { id:'liaisons', label:'Liaisons parents', render: renderAdminLiaisons },
+    { id:'bulletins-pdf', label:'Bulletins PDF', render: renderAdminBulletinsPdf },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
@@ -457,7 +487,7 @@ const PAGE_TITLES = {
   observations:'Observations', punitions:'Punitions',
   enfants:'Mes enfants', utilisateurs:'Gestion des utilisateurs', classes:'Gestion des classes',
   matieres:'Gestion des matières', 'enseignements-admin':'Gestion des enseignements',
-  'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant',
+  'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant', 'bulletins-pdf':'Bulletins PDF',
   messagerie:'Messagerie', parametres:'Paramètres',
 };
 
@@ -1420,6 +1450,115 @@ async function renderComportement(){
       <h2>Punitions (${punitions.length})</h2>
       ${punitions.length ? `<table><thead><tr><th>Date</th><th>Type</th><th>Motif</th><th>Durée</th><th>Auteur</th></tr></thead><tbody>${punRows}</tbody></table>` : '<div class="empty-state">Aucune punition.</div>'}
     </div>`;
+}
+
+/* ============================================================
+   BULLETINS PDF (ADMIN)
+   ============================================================ */
+let bulletinsPdfData = null; // { classe, bulletins, parametres }
+
+async function renderAdminBulletinsPdf(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const classes = await api('/classes');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Générer les bulletins d'une classe</h2>
+      <form class="inline-form" id="bulletins-pdf-form">
+        <div class="f" style="min-width:220px;">
+          <label>Classe</label>
+          <select name="classeId" required>${classes.map(c=>`<option value="${c.id}">${escapeHtml(c.nom)} (${escapeHtml(c.anneeScolaire)})</option>`).join('') || '<option value="">Aucune classe</option>'}</select>
+        </div>
+        <button class="btn-submit" type="submit">Charger les bulletins</button>
+      </form>
+    </div>
+    <div id="bulletins-pdf-liste"></div>`;
+
+  document.getElementById('bulletins-pdf-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    await loadBulletinsPdfClasse(Number(fd.get('classeId')));
+  });
+}
+
+async function loadBulletinsPdfClasse(classeId){
+  const zone = document.getElementById('bulletins-pdf-liste');
+  zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
+  try{
+    const [data, parametres] = await Promise.all([
+      api('/bulletins/classe/' + classeId),
+      api('/parametres'),
+    ]);
+    bulletinsPdfData = { ...data, parametres };
+
+    if(!data.bulletins.length){
+      zone.innerHTML = `<div class="card"><div class="empty-state">Aucun étudiant dans cette classe.</div></div>`;
+      return;
+    }
+
+    const rows = data.bulletins.map((b, idx) => `
+      <tr>
+        <td>${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)}</td>
+        <td><span class="moy-pill ${moyennePillClass(b.moyenneGenerale)}">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'}</span></td>
+        <td><button class="btn-secondary" data-print-bulletin="${idx}">Aperçu / Imprimer</button></td>
+      </tr>`).join('');
+
+    zone.innerHTML = `
+      <div class="card">
+        <h2>${escapeHtml(data.classe.nom)} — ${data.bulletins.length} bulletin${data.bulletins.length > 1 ? 's' : ''}</h2>
+        <button class="btn-submit" id="print-all-bulletins-btn" style="margin-bottom:16px;">Imprimer tous les bulletins de la classe</button>
+        <table><thead><tr><th>Étudiant</th><th>Moyenne générale</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      </div>`;
+
+    zone.querySelectorAll('[data-print-bulletin]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const b = bulletinsPdfData.bulletins[Number(btn.dataset.printBulletin)];
+        printBulletins([b]);
+      });
+    });
+
+    document.getElementById('print-all-bulletins-btn').addEventListener('click', () => {
+      printBulletins(bulletinsPdfData.bulletins);
+    });
+  }catch(err){
+    zone.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`;
+  }
+}
+
+function buildBulletinSheetHTML(bulletin){
+  const { classe, parametres } = bulletinsPdfData;
+  const rows = bulletin.matieres.map(m => `
+    <tr>
+      <td>${escapeHtml(m.nom)}</td>
+      <td>${m.coefficient}</td>
+      <td>${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'}</td>
+    </tr>`).join('');
+
+  return `
+    <div class="bulletin-sheet">
+      <div class="bulletin-head">
+        <div>
+          <h1>${escapeHtml(parametres.nomEtablissement)}</h1>
+          <div class="etab">Bulletin scolaire</div>
+        </div>
+        <div class="annee">
+          Année scolaire ${escapeHtml(parametres.anneeScolaire)}<br/>
+          Édité le ${new Date().toLocaleDateString('fr-FR')}
+        </div>
+      </div>
+      <div class="bulletin-eleve">${escapeHtml(bulletin.etudiant.prenom)} ${escapeHtml(bulletin.etudiant.nom)}</div>
+      <div class="bulletin-classe">Classe : ${escapeHtml(classe.nom)} (${escapeHtml(classe.anneeScolaire)})</div>
+      ${bulletin.matieres.length ? `<table><thead><tr><th>Matière</th><th>Coefficient</th><th>Moyenne</th></tr></thead><tbody>${rows}</tbody></table>` : '<p style="font-size:13px;color:#777;">Aucune note enregistrée.</p>'}
+      <div class="bulletin-moyenne-generale">Moyenne générale : ${bulletin.moyenneGenerale !== null ? bulletin.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme}</div>
+      <div class="bulletin-footer">${escapeHtml(parametres.nomEtablissement)} — Document généré automatiquement</div>
+    </div>`;
+}
+
+function printBulletins(bulletins){
+  const printRoot = document.getElementById('print-root');
+  printRoot.innerHTML = bulletins.map(b => buildBulletinSheetHTML(b)).join('');
+  window.print();
 }
 
 /* ============================================================
