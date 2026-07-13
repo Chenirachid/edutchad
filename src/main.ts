@@ -22,13 +22,13 @@ async function bootstrap() {
   );
   app.enableCors();
 
-  // Sert le frontend (public/index.html, public/cheni-logo.svg) à la racine du site
+  // Sert le frontend (public/index.html, public/educheni-logo.svg) à la racine du site
   app.useStaticAssets(join(process.cwd(), 'public'));
 
   const config = new DocumentBuilder()
-    .setTitle('Cheni API')
+    .setTitle('EduCheni API')
     .setDescription(
-      "API de la plateforme universitaire Cheni (type Pronote) — gestion des classes, matières, notes, absences, emploi du temps et bulletins.",
+      "API de la plateforme universitaire EduCheni (type Pronote) — gestion des classes, matières, notes, absences, emploi du temps et bulletins.",
     )
     .setVersion('1.0')
     .addBearerAuth(

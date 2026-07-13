@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Cheni</title>
-<link rel="icon" type="image/svg+xml" href="cheni-logo.svg" />
+<title>EduCheni</title>
+<link rel="icon" type="image/svg+xml" href="educheni-logo.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -237,7 +237,7 @@
   <div class="login-card">
     <div class="login-brand">
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <span>Cheni</span>
+      <span>EduCheni</span>
     </div>
     <p class="login-sub">Connecte-toi à ton espace.</p>
     <div class="login-error" id="login-error"></div>
@@ -263,7 +263,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <span>Cheni</span>
+      <span>EduCheni</span>
     </div>
     <nav id="nav-list"></nav>
     <div class="sidebar-footer">
@@ -301,17 +301,17 @@ let state = { token: null, user: null };
    ============================================================ */
 function saveSession(token, user){
   state.token = token; state.user = user;
-  localStorage.setItem('cheni_token', token);
-  localStorage.setItem('cheni_user', JSON.stringify(user));
+  localStorage.setItem('educheni_token', token);
+  localStorage.setItem('educheni_user', JSON.stringify(user));
 }
 function clearSession(){
   state.token = null; state.user = null;
-  localStorage.removeItem('cheni_token');
-  localStorage.removeItem('cheni_user');
+  localStorage.removeItem('educheni_token');
+  localStorage.removeItem('educheni_user');
 }
 function restoreSession(){
-  const t = localStorage.getItem('cheni_token');
-  const u = localStorage.getItem('cheni_user');
+  const t = localStorage.getItem('educheni_token');
+  const u = localStorage.getItem('educheni_user');
   if(t && u){ state.token = t; state.user = JSON.parse(u); return true; }
   return false;
 }

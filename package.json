@@ -1,7 +1,7 @@
 {
-  "name": "cheni-backend",
+  "name": "educheni-backend",
   "version": "0.0.1",
-  "description": "API de la plateforme Cheni",
+  "description": "API de la plateforme EduCheni",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
