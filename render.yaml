@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: npm install && npx prisma generate && npx prisma migrate deploy && npm run build
+    buildCommand: npm install && npx prisma generate && npx prisma migrate deploy && npm run build && echo "--- CONTENU DE dist/ ---" && find dist -maxdepth 2
     startCommand: node dist/main
     envVars:
       - key: DATABASE_URL
