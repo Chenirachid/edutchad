@@ -288,6 +288,9 @@
       </div>
       <button class="btn-primary" type="submit">Se connecter</button>
     </form>
+    <p style="text-align:center;margin:14px 0 0;">
+      <a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Mot de passe oublié ?</a>
+    </p>
     <div class="login-hint">
       Connecté à <code id="api-base-display"></code>
     </div>
@@ -407,6 +410,18 @@ function stringToColor(str){
   return `hsl(${hue}, 55%, 45%)`;
 }
 
+function generateRandomPassword(){
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghijkmnopqrstuvwxyz';
+  const digits = '23456789';
+  const all = upper + lower + digits;
+  let pwd = upper[Math.floor(Math.random() * upper.length)]
+          + lower[Math.floor(Math.random() * lower.length)]
+          + digits[Math.floor(Math.random() * digits.length)];
+  for(let i = 0; i < 7; i++){ pwd += all[Math.floor(Math.random() * all.length)]; }
+  return pwd;
+}
+
 function moyennePillClass(m){
   if(m === null || m === undefined) return '';
   if(m >= 14) return 'moy-good';
@@ -433,6 +448,11 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     errorBox.textContent = err.message.includes('Unauthorized') || err.message.includes('invalides') ? 'Email ou mot de passe incorrect.' : err.message;
     errorBox.style.display = 'block';
   }
+});
+
+document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  alert("Les comptes n'ont pas d'adresse email réelle : seul un administrateur peut réinitialiser ton mot de passe. Contacte-le (via la messagerie, ou en personne) pour qu'il t'en attribue un nouveau depuis son espace « Utilisateurs ».");
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
@@ -938,6 +958,7 @@ async function renderAdminUsers(){
       <td><input type="number" data-user-classe="${u.id}" value="${u.classeId ?? ''}" placeholder="—" style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;" /></td>
       <td style="white-space:nowrap;">
         <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
+        <button class="btn-secondary" data-reset-password="${u.id}" style="margin-left:6px;">Réinitialiser MDP</button>
         <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
       </td>
     </tr>`).join('');
@@ -991,6 +1012,19 @@ async function renderAdminUsers(){
           classeId: classeRaw === '' ? null : Number(classeRaw),
         })});
         toast('Utilisateur mis à jour.');
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-reset-password]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.resetPassword;
+      const suggestion = generateRandomPassword();
+      const nouveau = prompt('Nouveau mot de passe pour cet utilisateur (min. 8 car., majuscule+minuscule+chiffre) :', suggestion);
+      if(!nouveau) return;
+      try{
+        await api('/users/' + id + '/password', { method:'PATCH', body: JSON.stringify({ nouveauMotDePasse: nouveau }) });
+        toast('Mot de passe réinitialisé : ' + nouveau);
       }catch(err){ toast(err.message, 'error'); }
     });
   });

@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { buildBaseEmail } from '../common/email-generator';
 
 const SALT_ROUNDS = 10;
@@ -104,6 +105,16 @@ export class UsersService {
       data: dto,
       select: userSelect,
     });
+  }
+
+  async resetPassword(id: number, dto: ResetPasswordDto) {
+    await this.findOne(id);
+    const hashedPassword = await bcrypt.hash(dto.nouveauMotDePasse, SALT_ROUNDS);
+    await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
+    return { message: 'Mot de passe réinitialisé avec succès' };
   }
 
   async remove(id: number) {
