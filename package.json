@@ -1,7 +1,7 @@
 {
-  "name": "edutchad-backend",
+  "name": "cheni-backend",
   "version": "0.0.1",
-  "description": "API de la plateforme EduTchad",
+  "description": "API de la plateforme Cheni",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

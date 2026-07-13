@@ -15,6 +15,8 @@ import { CreateEnseignementDto } from './dto/create-enseignement.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @ApiTags('Enseignements')
 @ApiBearerAuth('access-token')
@@ -37,6 +39,14 @@ export class EnseignementsController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.enseignementsService.findOne(id);
+  }
+
+  @Get(':id/etudiants')
+  getEtudiants(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.enseignementsService.getEtudiants(id, user);
   }
 
   @Delete(':id')

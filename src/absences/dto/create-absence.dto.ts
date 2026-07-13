@@ -1,14 +1,21 @@
 import {
   IsBoolean,
   IsDateString,
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
+import { TypeAbsence } from '@prisma/client';
 
 export class CreateAbsenceDto {
   @IsDateString()
   date: string;
+
+  @IsOptional()
+  @IsEnum(TypeAbsence)
+  type?: TypeAbsence;
 
   @IsOptional()
   @IsBoolean()
@@ -17,6 +24,11 @@ export class CreateAbsenceDto {
   @IsOptional()
   @IsString()
   motif?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  dureeMinutes?: number;
 
   @IsInt()
   etudiantId: number;

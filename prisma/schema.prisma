@@ -27,6 +27,11 @@ model User {
 
   messagesEnvoyes Message[] @relation("MessagesEnvoyes")
   messagesRecus   Message[] @relation("MessagesRecus")
+
+  observationsRecues   Observation[] @relation("ObservationsEtudiant")
+  observationsRedigees Observation[] @relation("ObservationsAuteur")
+  punitionsRecues      Punition[]    @relation("PunitionsEtudiant")
+  punitionsRedigees    Punition[]    @relation("PunitionsAuteur")
 }
 
 enum Role {
@@ -65,9 +70,10 @@ model Enseignement {
   professeurId Int
 
   @@unique([classeId, matiereId])
-  notes    Note[]
-  absences Absence[]
-  creneaux Creneau[]
+  notes         Note[]
+  absences      Absence[]
+  creneaux      Creneau[]
+  observations  Observation[]
 }
 
 enum TypeEvaluation {
@@ -90,12 +96,19 @@ model Note {
   enseignementId Int
 }
 
+enum TypeAbsence {
+  ABSENCE
+  RETARD
+}
+
 model Absence {
-  id         Int      @id @default(autoincrement())
-  date       DateTime
-  justifiee  Boolean  @default(false)
-  motif      String?
-  createdAt  DateTime @default(now())
+  id           Int          @id @default(autoincrement())
+  type         TypeAbsence  @default(ABSENCE)
+  date         DateTime
+  justifiee    Boolean      @default(false)
+  motif        String?
+  dureeMinutes Int?
+  createdAt    DateTime     @default(now())
 
   etudiant       User         @relation("AbsencesEtudiant", fields: [etudiantId], references: [id])
   etudiantId     Int
@@ -142,4 +155,44 @@ model ParametrePlateforme {
   anneeScolaire    String   @default("2025-2026")
   bareme           Int      @default(20)
   updatedAt        DateTime @updatedAt
+}
+
+enum TypeObservation {
+  POSITIVE
+  NEGATIVE
+  NEUTRE
+}
+
+model Observation {
+  id      Int             @id @default(autoincrement())
+  contenu String
+  type    TypeObservation @default(NEUTRE)
+  date    DateTime        @default(now())
+
+  etudiant       User          @relation("ObservationsEtudiant", fields: [etudiantId], references: [id])
+  etudiantId     Int
+  auteur         User          @relation("ObservationsAuteur", fields: [auteurId], references: [id])
+  auteurId       Int
+  enseignement   Enseignement? @relation(fields: [enseignementId], references: [id])
+  enseignementId Int?
+}
+
+enum TypePunition {
+  AVERTISSEMENT
+  RETENUE
+  EXCLUSION_TEMPORAIRE
+  EXCLUSION_DEFINITIVE
+}
+
+model Punition {
+  id          Int          @id @default(autoincrement())
+  type        TypePunition
+  motif       String
+  date        DateTime     @default(now())
+  dureeHeures Int?
+
+  etudiant   User @relation("PunitionsEtudiant", fields: [etudiantId], references: [id])
+  etudiantId Int
+  auteur     User @relation("PunitionsAuteur", fields: [auteurId], references: [id])
+  auteurId   Int
 }

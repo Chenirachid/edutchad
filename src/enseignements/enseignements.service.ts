@@ -16,6 +16,13 @@ const professeurSelect = {
   createdAt: true,
 } as const;
 
+const etudiantSelect = {
+  id: true,
+  nom: true,
+  prenom: true,
+  email: true,
+} as const;
+
 @Injectable()
 export class EnseignementsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -63,6 +70,26 @@ export class EnseignementsService {
     }
 
     return enseignement;
+  }
+
+  async getEtudiants(id: number, currentUser: { sub: number; role: Role }) {
+    const enseignement = await this.findOne(id);
+
+    if (
+      currentUser.role === Role.PROFESSEUR &&
+      enseignement.professeur.id !== currentUser.sub
+    ) {
+      throw new BadRequestException(
+        "Vous n'enseignez pas dans cette classe/matière",
+      );
+    }
+
+    const classe = await this.prisma.classe.findUnique({
+      where: { id: enseignement.classeId },
+      include: { etudiants: { select: etudiantSelect, orderBy: { nom: 'asc' } } },
+    });
+
+    return classe?.etudiants ?? [];
   }
 
   async remove(id: number) {

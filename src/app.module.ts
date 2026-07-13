@@ -16,6 +16,8 @@ import { ParentsModule } from './parents/parents.module';
 import { UsersModule } from './users/users.module';
 import { MessagesModule } from './messages/messages.module';
 import { ParametresModule } from './parametres/parametres.module';
+import { ObservationsModule } from './observations/observations.module';
+import { PunitionsModule } from './punitions/punitions.module';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { ParametresModule } from './parametres/parametres.module';
     UsersModule,
     MessagesModule,
     ParametresModule,
+    ObservationsModule,
+    PunitionsModule,
   ],
   controllers: [],
   providers: [
