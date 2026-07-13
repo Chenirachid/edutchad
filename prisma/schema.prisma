@@ -34,6 +34,10 @@ model User {
   punitionsRedigees    Punition[]    @relation("PunitionsAuteur")
 
   messagesGroupe MessageGroupe[]
+
+  inscriptionsMatiere InscriptionMatiere[]
+  reunionsOrganisees  Reunion[]            @relation("ReunionsOrganisees")
+  invitationsReunion  InvitationReunion[]  @relation("ReunionsInvite")
 }
 
 enum Role {
@@ -61,6 +65,19 @@ model Matiere {
   createdAt   DateTime @default(now())
 
   enseignements Enseignement[]
+  inscriptions  InscriptionMatiere[]
+}
+
+model InscriptionMatiere {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+
+  etudiant   User    @relation(fields: [etudiantId], references: [id])
+  etudiantId Int
+  matiere    Matiere @relation(fields: [matiereId], references: [id])
+  matiereId  Int
+
+  @@unique([etudiantId, matiereId])
 }
 
 model Enseignement {
@@ -227,4 +244,36 @@ model MessageGroupe {
   groupeId Int
   auteur   User   @relation(fields: [auteurId], references: [id])
   auteurId Int
+}
+
+enum StatutInvitation {
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
+}
+
+model Reunion {
+  id        Int      @id @default(autoincrement())
+  sujet     String
+  lieu      String?
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  organisateur   User @relation("ReunionsOrganisees", fields: [organisateurId], references: [id])
+  organisateurId Int
+
+  invitations InvitationReunion[]
+}
+
+model InvitationReunion {
+  id        Int              @id @default(autoincrement())
+  reponse   StatutInvitation @default(EN_ATTENTE)
+  createdAt DateTime         @default(now())
+
+  reunion   Reunion @relation(fields: [reunionId], references: [id])
+  reunionId Int
+  invite    User    @relation("ReunionsInvite", fields: [inviteId], references: [id])
+  inviteId  Int
+
+  @@unique([reunionId, inviteId])
 }

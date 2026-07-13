@@ -14,6 +14,7 @@ import { Role } from '@prisma/client';
 import { MatieresService } from './matieres.service';
 import { CreateMatiereDto } from './dto/create-matiere.dto';
 import { UpdateMatiereDto } from './dto/update-matiere.dto';
+import { InscrireEtudiantDto } from './dto/inscrire-etudiant.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -39,6 +40,29 @@ export class MatieresController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.matieresService.findOne(id);
+  }
+
+  @Get(':id/etudiants')
+  getEtudiantsInscrits(@Param('id', ParseIntPipe) id: number) {
+    return this.matieresService.getEtudiantsInscrits(id);
+  }
+
+  @Post(':id/etudiants')
+  @Roles(Role.ADMIN)
+  inscrireEtudiant(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: InscrireEtudiantDto,
+  ) {
+    return this.matieresService.inscrireEtudiant(id, dto);
+  }
+
+  @Delete(':id/etudiants/:etudiantId')
+  @Roles(Role.ADMIN)
+  desinscrireEtudiant(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('etudiantId', ParseIntPipe) etudiantId: number,
+  ) {
+    return this.matieresService.desinscrireEtudiant(id, etudiantId);
   }
 
   @Patch(':id')

@@ -19,6 +19,7 @@ import { ParametresModule } from './parametres/parametres.module';
 import { ObservationsModule } from './observations/observations.module';
 import { PunitionsModule } from './punitions/punitions.module';
 import { GroupesModule } from './groupes/groupes.module';
+import { ReunionsModule } from './reunions/reunions.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { GroupesModule } from './groupes/groupes.module';
     ObservationsModule,
     PunitionsModule,
     GroupesModule,
+    ReunionsModule,
   ],
   controllers: [],
   providers: [

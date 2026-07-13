@@ -472,6 +472,7 @@ const MENUS = {
     { id:'comportement', label:'Mon comportement', render: renderComportement },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
+    { id:'reunions', label:'Réunions', render: renderReunions },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
   PROFESSEUR: [
@@ -483,6 +484,7 @@ const MENUS = {
     { id:'punitions', label:'Punitions', render: renderProfPunitions },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
+    { id:'reunions', label:'Réunions', render: renderReunions },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
@@ -499,6 +501,7 @@ const MENUS = {
     { id:'liaisons', label:'Liaisons parents', render: renderAdminLiaisons },
     { id:'bulletins-pdf', label:'Bulletins PDF', render: renderAdminBulletinsPdf },
     { id:'groupes', label:'Groupes', render: renderGroupes },
+    { id:'reunions', label:'Réunions', render: renderReunions },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
@@ -507,7 +510,7 @@ const MENUS = {
 const PAGE_TITLES = {
   bulletin:'Mon bulletin', absences:'Mes absences', comportement:'Mon comportement', emploi:'Emploi du temps',
   enseignements:'Mes classes', appel:"Faire l'appel", 'saisir-note':'Saisir une note', 'declarer-absence':'Déclarer une absence',
-  observations:'Observations', punitions:'Punitions', groupes:'Groupes',
+  observations:'Observations', punitions:'Punitions', groupes:'Groupes', reunions:'Réunions',
   enfants:'Mes enfants', utilisateurs:'Gestion des utilisateurs', classes:'Gestion des classes',
   matieres:'Gestion des matières', 'enseignements-admin':'Gestion des enseignements',
   'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant', 'bulletins-pdf':'Bulletins PDF',
@@ -1096,7 +1099,58 @@ async function renderAdminMatieres(){
     <div class="card">
       <h2>Matières existantes</h2>
       ${matieres.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Coefficient</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune matière.</div>'}
+    </div>
+    <div class="card">
+      <h2>Inscrire un élève à une matière (optionnelle)</h2>
+      <form class="inline-form" id="inscription-matiere-form">
+        <div class="f">
+          <label>Matière</label>
+          <select name="matiereId" id="inscription-matiere-select">${matieres.map(m=>`<option value="${m.id}">${escapeHtml(m.nom)}</option>`).join('') || '<option value="">Aucune matière</option>'}</select>
+        </div>
+        <div class="f"><label>ID étudiant</label><input type="number" name="etudiantId" required min="1" /></div>
+        <button class="btn-submit" type="submit">Inscrire</button>
+        <button class="btn-secondary" type="button" id="voir-inscrits-btn">Voir les inscrits</button>
+      </form>
+      <div id="inscrits-liste" style="margin-top:14px;"></div>
     </div>`;
+
+  document.getElementById('inscription-matiere-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const matiereId = fd.get('matiereId');
+    try{
+      await api('/matieres/' + matiereId + '/etudiants', { method:'POST', body: JSON.stringify({ etudiantId: Number(fd.get('etudiantId')) })});
+      toast('Élève inscrit à la matière.');
+      await afficherInscrits(matiereId);
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  document.getElementById('voir-inscrits-btn').addEventListener('click', () => {
+    afficherInscrits(document.getElementById('inscription-matiere-select').value);
+  });
+
+  async function afficherInscrits(matiereId){
+    const zone = document.getElementById('inscrits-liste');
+    zone.innerHTML = '<div class="empty-state">Chargement…</div>';
+    try{
+      const etudiants = await api('/matieres/' + matiereId + '/etudiants');
+      zone.innerHTML = etudiants.length ? `<table><thead><tr><th>Étudiant</th><th></th></tr></thead><tbody>${etudiants.map(et => `
+        <tr><td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td><td><button class="btn-secondary" data-desinscrire="${et.id}" style="border-color:var(--danger);color:var(--danger);">Désinscrire</button></td></tr>`).join('')}</tbody></table>`
+        : '<div class="empty-state">Aucun élève inscrit à cette matière.</div>';
+
+      zone.querySelectorAll('[data-desinscrire]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try{
+            await api('/matieres/' + matiereId + '/etudiants/' + btn.dataset.desinscrire, { method:'DELETE' });
+            toast('Élève désinscrit.');
+            afficherInscrits(matiereId);
+          }catch(err){ toast(err.message, 'error'); }
+        });
+      });
+    }catch(err){
+      zone.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
 
   document.getElementById('matiere-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1684,6 +1738,104 @@ function printBulletins(bulletins){
   const printRoot = document.getElementById('print-root');
   printRoot.innerHTML = bulletins.map(b => buildBulletinSheetHTML(b)).join('');
   window.print();
+}
+
+/* ============================================================
+   RÉUNIONS
+   ============================================================ */
+const STATUT_INVITATION_LABELS = { EN_ATTENTE:'En attente', ACCEPTEE:'Acceptée', REFUSEE:'Refusée' };
+const STATUT_INVITATION_COLORS = { EN_ATTENTE:'var(--warning)', ACCEPTEE:'var(--success)', REFUSEE:'var(--danger)' };
+
+async function renderReunions(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const isAdmin = state.user.role === 'ADMIN';
+  const reunions = await api('/reunions');
+
+  let creationCard = '';
+  if(isAdmin){
+    const users = await api('/users');
+    const invitables = users.filter(u => u.id !== state.user.id);
+    creationCard = `
+      <div class="card">
+        <h2>Créer une réunion</h2>
+        <form class="inline-form" id="reunion-form">
+          <div class="f" style="min-width:220px;flex:2;"><label>Sujet</label><input type="text" name="sujet" required placeholder="Ex : Conseil de classe L1 Info A" /></div>
+          <div class="f"><label>Lieu (facultatif)</label><input type="text" name="lieu" placeholder="Salle des professeurs" /></div>
+          <div class="f"><label>Date et heure</label><input type="datetime-local" name="date" required /></div>
+        </form>
+        <div style="margin-top:12px;">
+          <label style="font-size:11.5px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px;">Invités</label>
+          <select id="reunion-invites" multiple size="6" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+            ${invitables.map(u => `<option value="${u.id}">${escapeHtml(u.prenom)} ${escapeHtml(u.nom)} (${u.role})</option>`).join('')}
+          </select>
+          <p style="font-size:11.5px;color:var(--text-muted);margin:6px 0 0;">Maintiens Ctrl / Cmd pour sélectionner plusieurs invités.</p>
+        </div>
+        <button class="btn-submit" id="reunion-submit-btn" style="margin-top:14px;">Créer la réunion</button>
+      </div>`;
+  }
+
+  const rows = reunions.map(r => {
+    const monInvitation = r.invitations.find(i => i.invite.id === state.user.id);
+    const invitesHtml = r.invitations.map(i => `
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;">
+        <span>${escapeHtml(i.invite.prenom)} ${escapeHtml(i.invite.nom)}</span>
+        <span style="color:${STATUT_INVITATION_COLORS[i.reponse]};font-weight:600;">${STATUT_INVITATION_LABELS[i.reponse]}</span>
+      </div>`).join('');
+
+    return `
+      <div class="card">
+        <h2>${escapeHtml(r.sujet)}</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin:-8px 0 12px;">
+          ${new Date(r.date).toLocaleString('fr-FR', { dateStyle:'full', timeStyle:'short' })}
+          ${r.lieu ? ' — ' + escapeHtml(r.lieu) : ''}
+          — organisée par ${escapeHtml(r.organisateur.prenom)} ${escapeHtml(r.organisateur.nom)}
+        </p>
+        ${!isAdmin && monInvitation ? `
+          <div class="inline-form" style="margin-bottom:14px;">
+            <span style="font-size:13px;">Ta réponse : <strong style="color:${STATUT_INVITATION_COLORS[monInvitation.reponse]}">${STATUT_INVITATION_LABELS[monInvitation.reponse]}</strong></span>
+            <button class="btn-secondary" data-reponse-reunion="${r.id}" data-reponse-valeur="ACCEPTEE" style="border-color:var(--success);color:var(--success);">Accepter</button>
+            <button class="btn-secondary" data-reponse-reunion="${r.id}" data-reponse-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);">Refuser</button>
+          </div>` : ''}
+        <div style="border-top:1px solid var(--border);padding-top:10px;">
+          <div style="font-size:11.5px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">Invités (${r.invitations.length})</div>
+          ${invitesHtml}
+        </div>
+        ${isAdmin ? `<button class="btn-secondary" data-delete-reunion="${r.id}" style="border-color:var(--danger);color:var(--danger);margin-top:12px;">Supprimer la réunion</button>` : ''}
+      </div>`;
+  }).join('');
+
+  content.innerHTML = `${creationCard}${reunions.length ? rows : '<div class="card"><div class="empty-state">Aucune réunion pour l\'instant.</div></div>'}`;
+
+  if(isAdmin){
+    document.getElementById('reunion-submit-btn').addEventListener('click', async () => {
+      const form = document.getElementById('reunion-form');
+      const fd = new FormData(form);
+      const inviteIds = Array.from(document.getElementById('reunion-invites').selectedOptions).map(o => Number(o.value));
+      if(!fd.get('sujet') || !fd.get('date')){ toast('Sujet et date requis.', 'error'); return; }
+      if(!inviteIds.length){ toast('Sélectionne au moins un invité.', 'error'); return; }
+      try{
+        await api('/reunions', { method:'POST', body: JSON.stringify({
+          sujet: fd.get('sujet'), lieu: fd.get('lieu') || undefined,
+          date: new Date(fd.get('date')).toISOString(), inviteIds,
+        })});
+        toast('Réunion créée.');
+        renderReunions();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+
+    bindDeleteButtons(content, 'data-delete-reunion', '/reunions', renderReunions, 'cette réunion');
+  }
+
+  content.querySelectorAll('[data-reponse-reunion]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try{
+        await api('/reunions/' + btn.dataset.reponseReunion + '/reponse', { method:'PATCH', body: JSON.stringify({ reponse: btn.dataset.reponseValeur })});
+        toast('Réponse enregistrée.');
+        renderReunions();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
 }
 
 /* ============================================================
