@@ -1,13 +1,14 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { buildBaseEmail } from '../common/email-generator';
 
 const SALT_ROUNDS = 10;
 
@@ -25,14 +26,21 @@ const userSelect = {
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateUserDto) {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (existing) {
-      throw new ConflictException('Un compte existe déjà avec cet email');
+  private async generateUniqueEmail(prenom: string, nom: string, role: Role) {
+    const base = buildBaseEmail(prenom, nom, role);
+    const [localPart, domain] = base.split('@');
+    let email = base;
+    let counter = 1;
+
+    while (await this.prisma.user.findUnique({ where: { email } })) {
+      counter++;
+      email = `${localPart}${counter}@${domain}`;
     }
 
+    return email;
+  }
+
+  async create(dto: CreateUserDto) {
     if (dto.classeId) {
       const classe = await this.prisma.classe.findUnique({
         where: { id: dto.classeId },
@@ -42,15 +50,17 @@ export class UsersService {
       }
     }
 
+    const role = dto.role ?? Role.ETUDIANT;
+    const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
     return this.prisma.user.create({
       data: {
         nom: dto.nom,
         prenom: dto.prenom,
-        email: dto.email,
+        email,
         password: hashedPassword,
-        role: dto.role,
+        role,
         classeId: dto.classeId,
       },
       select: userSelect,

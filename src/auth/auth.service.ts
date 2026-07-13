@@ -1,17 +1,18 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtPayload } from './types/jwt-payload.type';
+import { buildBaseEmail } from '../common/email-generator';
 
 const SALT_ROUNDS = 10;
 
@@ -22,24 +23,32 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(dto: RegisterDto) {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+  private async generateUniqueEmail(prenom: string, nom: string, role: Role) {
+    const base = buildBaseEmail(prenom, nom, role);
+    const [localPart, domain] = base.split('@');
+    let email = base;
+    let counter = 1;
 
-    if (existing) {
-      throw new ConflictException('Un compte existe déjà avec cet email');
+    while (await this.prisma.user.findUnique({ where: { email } })) {
+      counter++;
+      email = `${localPart}${counter}@${domain}`;
     }
 
+    return email;
+  }
+
+  async register(dto: RegisterDto) {
+    const role = dto.role ?? Role.ETUDIANT;
+    const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
     const user = await this.prisma.user.create({
       data: {
         nom: dto.nom,
         prenom: dto.prenom,
-        email: dto.email,
+        email,
         password: hashedPassword,
-        role: dto.role,
+        role,
       },
     });
 

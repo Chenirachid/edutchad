@@ -945,10 +945,10 @@ async function renderAdminUsers(){
   content.innerHTML = `
     <div class="card">
       <h2>Créer un utilisateur</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">L'adresse email est générée automatiquement (prénom.nom@... selon le rôle).</p>
       <form class="inline-form" id="create-user-form">
         <div class="f"><label>Prénom</label><input type="text" name="prenom" required /></div>
         <div class="f"><label>Nom</label><input type="text" name="nom" required /></div>
-        <div class="f"><label>Email</label><input type="email" name="email" required /></div>
         <div class="f"><label>Mot de passe</label><input type="password" name="password" required minlength="8" placeholder="Min. 8 car., Maj+min+chiffre" /></div>
         <div class="f">
           <label>Rôle</label>
@@ -971,11 +971,11 @@ async function renderAdminUsers(){
     e.preventDefault();
     const fd = new FormData(e.target);
     try{
-      await api('/users', { method:'POST', body: JSON.stringify({
-        prenom: fd.get('prenom'), nom: fd.get('nom'), email: fd.get('email'),
+      const created = await api('/users', { method:'POST', body: JSON.stringify({
+        prenom: fd.get('prenom'), nom: fd.get('nom'),
         password: fd.get('password'), role: fd.get('role'),
       })});
-      toast('Utilisateur créé.');
+      toast(`Utilisateur créé — email : ${created.email}`);
       renderAdminUsers();
     }catch(err){ toast(err.message, 'error'); }
   });
