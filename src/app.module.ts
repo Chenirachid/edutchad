@@ -22,6 +22,8 @@ import { GroupesModule } from './groupes/groupes.module';
 import { ReunionsModule } from './reunions/reunions.module';
 import { CahiersTexteModule } from './cahiers-texte/cahiers-texte.module';
 import { FraisScolariteModule } from './frais-scolarite/frais-scolarite.module';
+import { InscriptionsAdministrativesModule } from './inscriptions-administratives/inscriptions-administratives.module';
+import { MentionsBulletinModule } from './mentions-bulletin/mentions-bulletin.module';
 
 @Module({
   imports: [
@@ -42,6 +44,7 @@ import { FraisScolariteModule } from './frais-scolarite/frais-scolarite.module';
     NotesModule,
     AbsencesModule,
     CreneauxModule,
+    MentionsBulletinModule,
     BulletinsModule,
     ParentsModule,
     UsersModule,
@@ -53,6 +56,7 @@ import { FraisScolariteModule } from './frais-scolarite/frais-scolarite.module';
     ReunionsModule,
     CahiersTexteModule,
     FraisScolariteModule,
+    InscriptionsAdministrativesModule,
   ],
   controllers: [],
   providers: [

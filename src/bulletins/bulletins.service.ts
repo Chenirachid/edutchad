@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { MentionsBulletinService } from '../mentions-bulletin/mentions-bulletin.service';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 type MatiereMoyenne = {
@@ -16,12 +17,15 @@ type MatiereMoyenne = {
 
 @Injectable()
 export class BulletinsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mentionsBulletinService: MentionsBulletinService,
+  ) {}
 
   async getBulletinEtudiant(etudiantId: number, currentUser: JwtPayload) {
     const etudiant = await this.prisma.user.findUnique({
       where: { id: etudiantId },
-      select: { id: true, nom: true, prenom: true, classeId: true },
+      select: { id: true, nom: true, prenom: true, numeroEtudiant: true, classeId: true },
     });
 
     if (!etudiant) {
@@ -53,7 +57,7 @@ export class BulletinsService {
     const classe = await this.prisma.classe.findUnique({
       where: { id: classeId },
       include: {
-        etudiants: { select: { id: true, nom: true, prenom: true, classeId: true } },
+        etudiants: { select: { id: true, nom: true, prenom: true, numeroEtudiant: true, classeId: true } },
       },
     });
 
@@ -108,6 +112,7 @@ export class BulletinsService {
     id: number;
     nom: string;
     prenom: string;
+    numeroEtudiant?: string | null;
   }) {
     const notes = await this.prisma.note.findMany({
       where: { etudiantId: etudiant.id },
@@ -153,11 +158,25 @@ export class BulletinsService {
       0,
     );
 
+    const parametres = await this.prisma.parametrePlateforme.findUnique({ where: { id: 1 } });
+    const anneeScolaire = parametres?.anneeScolaire ?? '2025-2026';
+    const mentionEntry = await this.mentionsBulletinService.getPourEtudiant(
+      etudiant.id,
+      anneeScolaire,
+    );
+
     return {
-      etudiant: { id: etudiant.id, nom: etudiant.nom, prenom: etudiant.prenom },
+      etudiant: {
+        id: etudiant.id,
+        nom: etudiant.nom,
+        prenom: etudiant.prenom,
+        numeroEtudiant: etudiant.numeroEtudiant ?? null,
+      },
       matieres,
       moyenneGenerale:
         sommeCoefGenerale > 0 ? arrondi(sommeGenerale / sommeCoefGenerale) : null,
+      mention: mentionEntry?.mention ?? 'EN_ATTENTE',
+      appreciation: mentionEntry?.appreciation ?? null,
     };
   }
 }

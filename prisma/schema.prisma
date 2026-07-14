@@ -41,6 +41,9 @@ model User {
   invitationsReunion  InvitationReunion[]  @relation("ReunionsInvite")
 
   fraisScolarite FraisScolarite?
+
+  inscriptionsAdministratives InscriptionAdministrative[]
+  mentionsBulletin            MentionBulletin[]
 }
 
 enum Role {
@@ -313,4 +316,43 @@ model Versement {
 
   frais   FraisScolarite @relation(fields: [fraisId], references: [id])
   fraisId Int
+}
+
+enum StatutInscriptionAdmin {
+  EN_ATTENTE
+  VALIDEE
+  REFUSEE
+}
+
+model InscriptionAdministrative {
+  id             Int                    @id @default(autoincrement())
+  anneeScolaire  String
+  statut         StatutInscriptionAdmin @default(EN_ATTENTE)
+  dateValidation DateTime?
+  createdAt      DateTime               @default(now())
+
+  etudiant   User @relation(fields: [etudiantId], references: [id])
+  etudiantId Int
+
+  @@unique([etudiantId, anneeScolaire])
+}
+
+enum Mention {
+  EN_ATTENTE
+  ADMIS
+  AJOURNE
+}
+
+model MentionBulletin {
+  id            Int      @id @default(autoincrement())
+  anneeScolaire String
+  mention       Mention  @default(EN_ATTENTE)
+  appreciation  String?
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  etudiant   User @relation(fields: [etudiantId], references: [id])
+  etudiantId Int
+
+  @@unique([etudiantId, anneeScolaire])
 }

@@ -522,6 +522,7 @@ const MENUS = {
   ],
   ADMIN: [
     { id:'utilisateurs', label:'Utilisateurs', render: renderAdminUsers },
+    { id:'inscriptions', label:'Inscriptions', render: renderAdminInscriptions },
     { id:'classes', label:'Classes', render: renderAdminClasses },
     { id:'matieres', label:'Matières', render: renderAdminMatieres },
     { id:'enseignements-admin', label:'Enseignements', render: renderAdminEnseignements },
@@ -541,7 +542,7 @@ const MENUS = {
 const PAGE_TITLES = {
   bulletin:'Mon bulletin', absences:'Mes absences', comportement:'Mon comportement', emploi:'Emploi du temps',
   enseignements:'Mes classes', appel:"Faire l'appel", 'saisir-note':'Saisir une note', 'declarer-absence':'Déclarer une absence',
-  observations:'Observations', punitions:'Punitions', groupes:'Groupes', reunions:'Réunions', 'cahier-texte':'Cahier de texte',
+  observations:'Observations', punitions:'Punitions', groupes:'Groupes', reunions:'Réunions', 'cahier-texte':'Cahier de texte', inscriptions:'Inscriptions',
   enfants:'Mes enfants', utilisateurs:'Gestion des utilisateurs', classes:'Gestion des classes',
   matieres:'Gestion des matières', 'enseignements-admin':'Gestion des enseignements',
   'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant', 'bulletins-pdf':'Bulletins PDF',
@@ -1764,15 +1765,48 @@ async function loadBulletinsPdfClasse(classeId){
       <tr>
         <td>${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)}</td>
         <td><span class="moy-pill ${moyennePillClass(b.moyenneGenerale)}">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'}</span></td>
-        <td><button class="btn-secondary" data-print-bulletin="${idx}">Aperçu / Imprimer</button></td>
+        <td>
+          <select data-mention-id="${idx}" style="padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;">
+            <option value="EN_ATTENTE" ${(b.mention||'EN_ATTENTE')==='EN_ATTENTE'?'selected':''}>En attente</option>
+            <option value="ADMIS" ${b.mention==='ADMIS'?'selected':''}>Admis(e)</option>
+            <option value="AJOURNE" ${b.mention==='AJOURNE'?'selected':''}>Ajourné(e)</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" data-appreciation-id="${idx}" value="${escapeHtml(b.appreciation || '')}" placeholder="Appréciation" style="width:170px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;" />
+        </td>
+        <td>
+          <button class="btn-secondary" data-save-mention="${idx}">Enregistrer</button>
+          <button class="btn-secondary" data-print-bulletin="${idx}">Aperçu / Imprimer</button>
+        </td>
       </tr>`).join('');
 
     zone.innerHTML = `
       <div class="card">
         <h2>${escapeHtml(data.classe.nom)} — ${data.bulletins.length} bulletin${data.bulletins.length > 1 ? 's' : ''}</h2>
         <button class="btn-submit" id="print-all-bulletins-btn" style="margin-bottom:16px;">Imprimer tous les bulletins de la classe</button>
-        <table><thead><tr><th>Étudiant</th><th>Moyenne générale</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+        <table><thead><tr><th>Étudiant</th><th>Moyenne générale</th><th>Mention</th><th>Appréciation</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       </div>`;
+
+    zone.querySelectorAll('[data-save-mention]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = Number(btn.dataset.saveMention);
+        const b = bulletinsPdfData.bulletins[idx];
+        if(!b.etudiant.numeroEtudiant){ toast("Cet étudiant n'a pas de numéro étudiant.", 'error'); return; }
+        const mention = zone.querySelector(`[data-mention-id="${idx}"]`).value;
+        const appreciation = zone.querySelector(`[data-appreciation-id="${idx}"]`).value;
+        try{
+          await api('/mentions-bulletin', { method:'POST', body: JSON.stringify({
+            numeroEtudiant: b.etudiant.numeroEtudiant,
+            anneeScolaire: bulletinsPdfData.parametres.anneeScolaire,
+            mention, appreciation: appreciation || undefined,
+          })});
+          b.mention = mention;
+          b.appreciation = appreciation || null;
+          toast('Mention/appréciation enregistrée.');
+        }catch(err){ toast(err.message, 'error'); }
+      });
+    });
 
     zone.querySelectorAll('[data-print-bulletin]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1789,6 +1823,9 @@ async function loadBulletinsPdfClasse(classeId){
   }
 }
 
+const MENTION_LABELS = { EN_ATTENTE:'En attente', ADMIS:'Admis(e)', AJOURNE:'Ajourné(e)' };
+const MENTION_COLORS = { EN_ATTENTE:'#999', ADMIS:'var(--success)', AJOURNE:'var(--danger)' };
+
 function buildBulletinSheetHTML(bulletin){
   const { classe, parametres } = bulletinsPdfData;
   const rows = bulletin.matieres.map(m => `
@@ -1797,6 +1834,8 @@ function buildBulletinSheetHTML(bulletin){
       <td>${m.coefficient}</td>
       <td>${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'}</td>
     </tr>`).join('');
+
+  const mention = bulletin.mention || 'EN_ATTENTE';
 
   return `
     <div class="bulletin-sheet">
@@ -1813,7 +1852,21 @@ function buildBulletinSheetHTML(bulletin){
       <div class="bulletin-eleve">${escapeHtml(bulletin.etudiant.prenom)} ${escapeHtml(bulletin.etudiant.nom)}</div>
       <div class="bulletin-classe">Classe : ${escapeHtml(classe.nom)} (${escapeHtml(classe.anneeScolaire)})</div>
       ${bulletin.matieres.length ? `<table><thead><tr><th>Matière</th><th>Coefficient</th><th>Moyenne</th></tr></thead><tbody>${rows}</tbody></table>` : '<p style="font-size:13px;color:#777;">Aucune note enregistrée.</p>'}
-      <div class="bulletin-moyenne-generale">Moyenne générale : ${bulletin.moyenneGenerale !== null ? bulletin.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme}</div>
+      <div style="display:flex;align-items:center;gap:16px;margin:14px 0;">
+        <div class="bulletin-moyenne-generale">Moyenne générale : ${bulletin.moyenneGenerale !== null ? bulletin.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme}</div>
+        <div style="font-weight:700;font-size:14px;color:${MENTION_COLORS[mention]};border:2px solid ${MENTION_COLORS[mention]};padding:8px 16px;border-radius:8px;">${MENTION_LABELS[mention]}</div>
+      </div>
+      ${bulletin.appreciation ? `<div style="font-size:13px;font-style:italic;color:#444;margin:10px 0 20px;padding:12px 14px;background:var(--teal-100);border-radius:8px;">« ${escapeHtml(bulletin.appreciation)} »</div>` : ''}
+      <div class="certificat-signature" style="margin-top:40px;">
+        <div class="certificat-date">Fait le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}</div>
+        <div class="certificat-cachet" style="width:100px;height:100px;">
+          <div class="certificat-cachet-inner" style="width:80px;height:80px;">
+            <div class="etab-nom">${escapeHtml(parametres.nomEtablissement)}</div>
+            <div class="etoile" style="font-size:13px;">★</div>
+            <div class="valide" style="font-size:7px;">CACHET OFFICIEL</div>
+          </div>
+        </div>
+      </div>
       <div class="bulletin-footer">${escapeHtml(parametres.nomEtablissement)} — Document généré automatiquement</div>
     </div>`;
 }
@@ -2117,6 +2170,78 @@ async function renderCahierTexte(){
 
     bindDeleteButtons(content, 'data-delete-cahier', '/cahiers-texte', renderCahierTexte, 'cette entrée');
   }
+}
+
+/* ============================================================
+   INSCRIPTIONS (ADMINISTRATIVE vs PÉDAGOGIQUE)
+   ============================================================ */
+const STATUT_INSCRIPTION_LABELS = { EN_ATTENTE:'En attente', VALIDEE:'Validée', REFUSEE:'Refusée' };
+const STATUT_INSCRIPTION_COLORS = { EN_ATTENTE:'var(--warning)', VALIDEE:'var(--success)', REFUSEE:'var(--danger)' };
+
+async function renderAdminInscriptions(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const inscriptions = await api('/inscriptions-administratives');
+
+  const rows = inscriptions.map(i => `
+    <tr>
+      <td><code style="font-size:12px;">${escapeHtml(i.etudiant.numeroEtudiant || '—')}</code></td>
+      <td>${escapeHtml(i.etudiant.prenom)} ${escapeHtml(i.etudiant.nom)}</td>
+      <td>${escapeHtml(i.anneeScolaire)}</td>
+      <td><span class="moy-pill" style="background:transparent;border:1.5px solid ${STATUT_INSCRIPTION_COLORS[i.statut]};color:${STATUT_INSCRIPTION_COLORS[i.statut]};">${STATUT_INSCRIPTION_LABELS[i.statut]}</span></td>
+      <td>
+        <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="VALIDEE" style="border-color:var(--success);color:var(--success);">Valider</button>
+        <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>
+      </td>
+    </tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Inscription administrative</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Validation officielle du dossier de l'élève pour l'année scolaire — indépendante de son affectation en classe/matières.</p>
+      <form class="inline-form" id="inscription-admin-form">
+        <div class="f"><label>Numéro étudiant</label><input type="text" name="numeroEtudiant" required placeholder="ETU-00007" /></div>
+        <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
+        <button class="btn-submit" type="submit">Enregistrer</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Dossiers (${inscriptions.length})</h2>
+      ${inscriptions.length ? `<table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune inscription administrative enregistrée.</div>'}
+    </div>
+    <div class="card">
+      <h2>Inscription pédagogique</h2>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">L'inscription pédagogique (affectation à une classe, aux matières, et donc à l'emploi du temps) se gère depuis les onglets existants :</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-secondary" id="aller-utilisateurs-btn">Affecter un élève à une classe →</button>
+        <button class="btn-secondary" id="aller-matieres-btn">Inscrire un élève à une matière →</button>
+      </div>
+    </div>`;
+
+  document.getElementById('inscription-admin-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/inscriptions-administratives', { method:'POST', body: JSON.stringify({
+        numeroEtudiant: fd.get('numeroEtudiant'), anneeScolaire: fd.get('anneeScolaire'),
+      })});
+      toast('Inscription administrative enregistrée.');
+      renderAdminInscriptions();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  content.querySelectorAll('[data-statut-inscription]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try{
+        await api('/inscriptions-administratives/' + btn.dataset.statutInscription + '/statut', { method:'PATCH', body: JSON.stringify({ statut: btn.dataset.valeur })});
+        toast('Statut mis à jour.');
+        renderAdminInscriptions();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  document.getElementById('aller-utilisateurs-btn').addEventListener('click', () => selectMenu('utilisateurs'));
+  document.getElementById('aller-matieres-btn').addEventListener('click', () => selectMenu('matieres'));
 }
 
 /* ============================================================
