@@ -647,6 +647,14 @@ async function getMesEnseignements(){
   return all.filter(e => e.professeur.id === state.user.id);
 }
 
+async function getMesEtudiants(){
+  const mine = await getMesEnseignements();
+  const listes = await Promise.all(mine.map(e => api('/enseignements/' + e.id + '/etudiants')));
+  const parId = new Map();
+  listes.flat().forEach(et => parId.set(et.id, et));
+  return Array.from(parId.values()).sort((a, b) => a.nom.localeCompare(b.nom));
+}
+
 async function renderProfEnseignements(){
   const mine = await getMesEnseignements();
   document.getElementById('page-subtitle').textContent = '';
@@ -877,11 +885,11 @@ async function renderProfDeclarerAbsence(){
       <form class="inline-form" id="absence-form">
         <div class="f" style="min-width:220px;">
           <label>Enseignement</label>
-          <select name="enseignementId" required>${enseignementOptions || '<option value="">Aucun enseignement</option>'}</select>
+          <select name="enseignementId" id="absence-enseignement-select" required>${enseignementOptions || '<option value="">Aucun enseignement</option>'}</select>
         </div>
-        <div class="f">
-          <label>ID étudiant</label>
-          <input type="number" name="etudiantId" required min="1" />
+        <div class="f" style="min-width:220px;">
+          <label>Étudiant</label>
+          <select name="etudiantId" id="absence-etudiant-select" required></select>
         </div>
         <div class="f">
           <label>Date</label>
@@ -894,6 +902,24 @@ async function renderProfDeclarerAbsence(){
         <button class="btn-submit" type="submit">Déclarer</button>
       </form>
     </div>`;
+
+  async function chargerEtudiantsAbsence(){
+    const enseignementId = document.getElementById('absence-enseignement-select').value;
+    const select = document.getElementById('absence-etudiant-select');
+    if(!enseignementId){ select.innerHTML = '<option value="">Aucun enseignement</option>'; return; }
+    select.innerHTML = '<option value="">Chargement…</option>';
+    try{
+      const etudiants = await api('/enseignements/' + enseignementId + '/etudiants');
+      select.innerHTML = etudiants.length
+        ? etudiants.map(et => `<option value="${et.id}">${escapeHtml(et.numeroEtudiant || '—')} — ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('')
+        : '<option value="">Aucun étudiant dans cette classe</option>';
+    }catch(err){
+      select.innerHTML = '<option value="">Erreur de chargement</option>';
+    }
+  }
+
+  document.getElementById('absence-enseignement-select').addEventListener('change', chargerEtudiantsAbsence);
+  if(mine.length) await chargerEtudiantsAbsence();
 
   document.getElementById('absence-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1515,7 +1541,7 @@ const TYPE_PUNITION_LABELS = { AVERTISSEMENT:'Avertissement', RETENUE:'Retenue',
 async function renderProfObservations(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const observations = await api('/observations');
+  const [observations, mesEtudiants] = await Promise.all([api('/observations'), getMesEtudiants()]);
 
   const rows = observations.map(o => `
     <tr>
@@ -1530,7 +1556,10 @@ async function renderProfObservations(){
     <div class="card">
       <h2>Ajouter une observation</h2>
       <form class="inline-form" id="observation-form">
-        <div class="f"><label>ID étudiant</label><input type="number" name="etudiantId" required min="1" /></div>
+        <div class="f" style="min-width:220px;">
+          <label>Étudiant</label>
+          <select name="etudiantId" required>${mesEtudiants.map(et => `<option value="${et.id}">${escapeHtml(et.numeroEtudiant || '—')} — ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('') || '<option value="">Aucun étudiant</option>'}</select>
+        </div>
         <div class="f">
           <label>Type</label>
           <select name="type">
@@ -1566,7 +1595,7 @@ async function renderProfObservations(){
 async function renderProfPunitions(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const punitions = await api('/punitions');
+  const [punitions, mesEtudiants] = await Promise.all([api('/punitions'), getMesEtudiants()]);
 
   const rows = punitions.map(p => `
     <tr>
@@ -1582,7 +1611,10 @@ async function renderProfPunitions(){
     <div class="card">
       <h2>Ajouter une punition</h2>
       <form class="inline-form" id="punition-form">
-        <div class="f"><label>ID étudiant</label><input type="number" name="etudiantId" required min="1" /></div>
+        <div class="f" style="min-width:220px;">
+          <label>Étudiant</label>
+          <select name="etudiantId" required>${mesEtudiants.map(et => `<option value="${et.id}">${escapeHtml(et.numeroEtudiant || '—')} — ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('') || '<option value="">Aucun étudiant</option>'}</select>
+        </div>
         <div class="f">
           <label>Type</label>
           <select name="type">
