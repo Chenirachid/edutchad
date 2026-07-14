@@ -13,6 +13,7 @@ export class StudentsService {
         prenom: true,
         email: true,
         role: true,
+        numeroEtudiant: true,
         classeId: true,
         createdAt: true,
       },

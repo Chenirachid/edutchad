@@ -956,6 +956,7 @@ async function renderAdminUsers(){
       <td>${u.id}</td>
       <td>${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</td>
       <td>${escapeHtml(u.email)}</td>
+      <td>${u.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(u.numeroEtudiant)}</code>` : '—'}</td>
       <td>
         <select data-user-role="${u.id}">
           ${['ETUDIANT','PROFESSEUR','PARENT','ADMIN'].map(r => `<option value="${r}" ${r===u.role?'selected':''}>${r}</option>`).join('')}
@@ -991,7 +992,7 @@ async function renderAdminUsers(){
     </div>
     <div class="card">
       <h2>Tous les utilisateurs</h2>
-      <table><thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Classe</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>N° étudiant</th><th>Rôle</th><th>Classe</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 
   document.getElementById('create-user-form').addEventListener('submit', async (e) => {
@@ -1107,7 +1108,7 @@ async function renderAdminMatieres(){
           <label>Matière</label>
           <select name="matiereId" id="inscription-matiere-select">${matieres.map(m=>`<option value="${m.id}">${escapeHtml(m.nom)}</option>`).join('') || '<option value="">Aucune matière</option>'}</select>
         </div>
-        <div class="f"><label>ID étudiant</label><input type="number" name="etudiantId" required min="1" /></div>
+        <div class="f"><label>Numéro étudiant</label><input type="text" name="numeroEtudiant" required placeholder="ETU-00007" /></div>
         <button class="btn-submit" type="submit">Inscrire</button>
         <button class="btn-secondary" type="button" id="voir-inscrits-btn">Voir les inscrits</button>
       </form>
@@ -1119,7 +1120,7 @@ async function renderAdminMatieres(){
     const fd = new FormData(e.target);
     const matiereId = fd.get('matiereId');
     try{
-      await api('/matieres/' + matiereId + '/etudiants', { method:'POST', body: JSON.stringify({ etudiantId: Number(fd.get('etudiantId')) })});
+      await api('/matieres/' + matiereId + '/etudiants', { method:'POST', body: JSON.stringify({ numeroEtudiant: fd.get('numeroEtudiant') })});
       toast('Élève inscrit à la matière.');
       await afficherInscrits(matiereId);
     }catch(err){ toast(err.message, 'error'); }

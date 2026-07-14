@@ -18,6 +18,7 @@ const etudiantSelect = {
   nom: true,
   prenom: true,
   email: true,
+  numeroEtudiant: true,
   classeId: true,
 } as const;
 
@@ -69,17 +70,19 @@ export class MatieresService {
 
   async inscrireEtudiant(matiereId: number, dto: InscrireEtudiantDto) {
     await this.findOne(matiereId);
-    const etudiant = await this.prisma.user.findUnique({ where: { id: dto.etudiantId } });
+    const etudiant = await this.prisma.user.findUnique({
+      where: { numeroEtudiant: dto.numeroEtudiant },
+    });
     if (!etudiant) {
-      throw new NotFoundException(`Étudiant ${dto.etudiantId} introuvable`);
+      throw new NotFoundException(`Aucun étudiant avec le numéro ${dto.numeroEtudiant}`);
     }
     if (etudiant.role !== 'ETUDIANT') {
-      throw new BadRequestException(`L'utilisateur ${dto.etudiantId} n'a pas le rôle ETUDIANT`);
+      throw new BadRequestException(`${dto.numeroEtudiant} n'a pas le rôle ETUDIANT`);
     }
 
     await this.prisma.inscriptionMatiere.upsert({
-      where: { etudiantId_matiereId: { etudiantId: dto.etudiantId, matiereId } },
-      create: { etudiantId: dto.etudiantId, matiereId },
+      where: { etudiantId_matiereId: { etudiantId: etudiant.id, matiereId } },
+      create: { etudiantId: etudiant.id, matiereId },
       update: {},
     });
 

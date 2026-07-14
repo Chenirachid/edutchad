@@ -9,7 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { buildBaseEmail } from '../common/email-generator';
+import { buildBaseEmail, formatNumeroEtudiant } from '../common/email-generator';
 
 const SALT_ROUNDS = 10;
 
@@ -19,6 +19,7 @@ const userSelect = {
   prenom: true,
   email: true,
   role: true,
+  numeroEtudiant: true,
   classeId: true,
   createdAt: true,
 } as const;
@@ -55,7 +56,7 @@ export class UsersService {
     const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         nom: dto.nom,
         prenom: dto.prenom,
@@ -64,8 +65,17 @@ export class UsersService {
         role,
         classeId: dto.classeId,
       },
-      select: userSelect,
     });
+
+    if (role === Role.ETUDIANT) {
+      return this.prisma.user.update({
+        where: { id: user.id },
+        data: { numeroEtudiant: formatNumeroEtudiant(user.id) },
+        select: userSelect,
+      });
+    }
+
+    return this.prisma.user.findUnique({ where: { id: user.id }, select: userSelect });
   }
 
   findAll() {

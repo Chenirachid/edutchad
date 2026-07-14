@@ -38,3 +38,11 @@ export function buildBaseEmail(prenom: string, nom: string, role: Role): string 
   const base = `${normalizeEmailPart(prenom)}.${normalizeEmailPart(nom)}`;
   return `${base}@${domainForRole(role)}`;
 }
+
+/**
+ * Formate un numéro étudiant lisible à partir de l'id technique interne :
+ * ETU-00007
+ */
+export function formatNumeroEtudiant(id: number): string {
+  return `ETU-${String(id).padStart(5, '0')}`;
+}

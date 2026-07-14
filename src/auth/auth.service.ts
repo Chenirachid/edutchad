@@ -12,7 +12,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtPayload } from './types/jwt-payload.type';
-import { buildBaseEmail } from '../common/email-generator';
+import { buildBaseEmail, formatNumeroEtudiant } from '../common/email-generator';
 
 const SALT_ROUNDS = 10;
 
@@ -42,7 +42,7 @@ export class AuthService {
     const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
-    const user = await this.prisma.user.create({
+    let user = await this.prisma.user.create({
       data: {
         nom: dto.nom,
         prenom: dto.prenom,
@@ -51,6 +51,13 @@ export class AuthService {
         role,
       },
     });
+
+    if (role === Role.ETUDIANT) {
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { numeroEtudiant: formatNumeroEtudiant(user.id) },
+      });
+    }
 
     return this.buildAuthResponse(user);
   }
@@ -99,6 +106,7 @@ export class AuthService {
     prenom: string;
     email: string;
     role: JwtPayload['role'];
+    numeroEtudiant?: string | null;
   }) {
     const payload: JwtPayload = {
       sub: user.id,
@@ -114,6 +122,7 @@ export class AuthService {
         prenom: user.prenom,
         email: user.email,
         role: user.role,
+        numeroEtudiant: user.numeroEtudiant ?? null,
       },
     };
   }

@@ -1,6 +1,7 @@
-import { IsInt } from 'class-validator';
+import { IsString, MinLength } from 'class-validator';
 
 export class InscrireEtudiantDto {
-  @IsInt()
-  etudiantId: number;
+  @IsString()
+  @MinLength(1)
+  numeroEtudiant: string;
 }
