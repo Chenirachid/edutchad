@@ -39,6 +39,8 @@ model User {
   inscriptionsMatiere InscriptionMatiere[]
   reunionsOrganisees  Reunion[]            @relation("ReunionsOrganisees")
   invitationsReunion  InvitationReunion[]  @relation("ReunionsInvite")
+
+  fraisScolarite FraisScolarite?
 }
 
 enum Role {
@@ -289,4 +291,26 @@ model CahierTexte {
 
   enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
   enseignementId Int
+}
+
+model FraisScolarite {
+  id            Int      @id @default(autoincrement())
+  montantTotal  Float
+  anneeScolaire String
+  createdAt     DateTime @default(now())
+
+  etudiant   User @relation(fields: [etudiantId], references: [id])
+  etudiantId Int  @unique
+
+  versements Versement[]
+}
+
+model Versement {
+  id        Int      @id @default(autoincrement())
+  montant   Float
+  moyen     String?
+  date      DateTime @default(now())
+
+  frais   FraisScolarite @relation(fields: [fraisId], references: [id])
+  fraisId Int
 }

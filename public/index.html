@@ -229,6 +229,32 @@
     background:var(--teal-900);color:#fff;font-size:15px;font-weight:700;
   }
   .bulletin-footer{margin-top:24px;font-size:11px;color:#999;text-align:right;}
+
+  /* ---------- CERTIFICAT DE SCOLARITÉ ---------- */
+  .certificat-sheet{padding:50px 60px;font-family:'Inter',sans-serif;color:#111;page-break-after:always;}
+  .certificat-sheet:last-child{page-break-after:auto;}
+  .certificat-entete{text-align:center;margin-bottom:36px;}
+  .certificat-entete h1{font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-900);margin:0 0 4px;}
+  .certificat-entete .etab{font-size:13px;color:#555;}
+  .certificat-titre{text-align:center;font-size:22px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:40px 0;color:var(--teal-900);border-top:2px solid var(--teal-700);border-bottom:2px solid var(--teal-700);padding:16px 0;}
+  .certificat-corps{font-size:15px;line-height:2;margin:30px 0;text-align:justify;}
+  .certificat-corps strong{color:var(--teal-900);}
+  .certificat-signature{display:flex;justify-content:space-between;align-items:flex-end;margin-top:70px;}
+  .certificat-date{font-size:13px;color:#555;}
+  .certificat-cachet{
+    position:relative;width:130px;height:130px;border-radius:50%;
+    border:3px double #1a4d3a;display:flex;align-items:center;justify-content:center;
+    transform:rotate(-12deg);opacity:.85;
+  }
+  .certificat-cachet-inner{
+    width:104px;height:104px;border-radius:50%;border:1px solid #1a4d3a;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;color:#1a4d3a;font-weight:700;
+  }
+  .certificat-cachet-inner .etab-nom{font-size:9px;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;padding:0 8px;}
+  .certificat-cachet-inner .etoile{font-size:16px;margin:3px 0;}
+  .certificat-cachet-inner .valide{font-size:8px;letter-spacing:.1em;}
+  .certificat-mention{margin-top:14px;font-size:11px;color:#999;text-align:center;}
   @media print{
     body *{visibility:hidden;}
     #print-root, #print-root *{visibility:visible;}
@@ -502,6 +528,8 @@ const MENUS = {
     { id:'creneaux-admin', label:'Emploi du temps', render: renderAdminCreneaux },
     { id:'liaisons', label:'Liaisons parents', render: renderAdminLiaisons },
     { id:'bulletins-pdf', label:'Bulletins PDF', render: renderAdminBulletinsPdf },
+    { id:'certificats', label:'Certificats', render: renderAdminCertificats },
+    { id:'frais', label:'Frais scolaires', render: renderAdminFrais },
     { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
     { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'reunions', label:'Réunions', render: renderReunions },
@@ -517,6 +545,7 @@ const PAGE_TITLES = {
   enfants:'Mes enfants', utilisateurs:'Gestion des utilisateurs', classes:'Gestion des classes',
   matieres:'Gestion des matières', 'enseignements-admin':'Gestion des enseignements',
   'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant', 'bulletins-pdf':'Bulletins PDF',
+  certificats:'Certificats de scolarité', frais:'Frais scolaires',
   messagerie:'Messagerie', parametres:'Paramètres',
 };
 
@@ -1793,6 +1822,137 @@ function printBulletins(bulletins){
   const printRoot = document.getElementById('print-root');
   printRoot.innerHTML = bulletins.map(b => buildBulletinSheetHTML(b)).join('');
   window.print();
+}
+
+/* ============================================================
+   CERTIFICATS DE SCOLARITÉ (ADMIN)
+   ============================================================ */
+async function renderAdminCertificats(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const [users, classes] = await Promise.all([api('/users'), api('/classes')]);
+  const etudiants = users.filter(u => u.role === 'ETUDIANT');
+  const classeParId = new Map(classes.map(c => [c.id, c]));
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Générer un certificat de scolarité</h2>
+      <form class="inline-form" id="certificat-form">
+        <div class="f" style="min-width:280px;">
+          <label>Étudiant</label>
+          <select name="etudiantId" required>${etudiants.map(et => `<option value="${et.id}">${escapeHtml(et.numeroEtudiant || '—')} — ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('') || '<option value="">Aucun étudiant</option>'}</select>
+        </div>
+        <button class="btn-submit" type="submit">Aperçu / Imprimer</button>
+      </form>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:14px 0 0;">Dans la boîte de dialogue d'impression, choisis « Enregistrer au format PDF » pour obtenir un fichier PDF.</p>
+    </div>`;
+
+  document.getElementById('certificat-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const etudiant = etudiants.find(et => String(et.id) === fd.get('etudiantId'));
+    if(!etudiant){ toast('Étudiant introuvable.', 'error'); return; }
+    const classe = etudiant.classeId ? classeParId.get(etudiant.classeId) : null;
+    try{
+      const parametres = await api('/parametres');
+      printCertificat(etudiant, classe, parametres);
+    }catch(err){ toast(err.message, 'error'); }
+  });
+}
+
+function printCertificat(etudiant, classe, parametres){
+  const printRoot = document.getElementById('print-root');
+  printRoot.innerHTML = `
+    <div class="certificat-sheet">
+      <div class="certificat-entete">
+        <h1>${escapeHtml(parametres.nomEtablissement)}</h1>
+        <div class="etab">Année scolaire ${escapeHtml(parametres.anneeScolaire)}</div>
+      </div>
+      <div class="certificat-titre">Certificat de scolarité</div>
+      <div class="certificat-corps">
+        Je soussigné(e), responsable administratif de <strong>${escapeHtml(parametres.nomEtablissement)}</strong>,
+        certifie que <strong>${escapeHtml(etudiant.prenom)} ${escapeHtml(etudiant.nom)}</strong>
+        (numéro étudiant <strong>${escapeHtml(etudiant.numeroEtudiant || '—')}</strong>)
+        est régulièrement inscrit(e) en qualité d'élève${classe ? ` de la classe <strong>${escapeHtml(classe.nom)}</strong>` : ''}
+        au sein de notre établissement pour l'année scolaire <strong>${escapeHtml(parametres.anneeScolaire)}</strong>.
+        <br/><br/>
+        Ce certificat est délivré à l'intéressé(e) pour servir et valoir ce que de droit.
+      </div>
+      <div class="certificat-signature">
+        <div class="certificat-date">Fait le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}</div>
+        <div class="certificat-cachet">
+          <div class="certificat-cachet-inner">
+            <div class="etab-nom">${escapeHtml(parametres.nomEtablissement)}</div>
+            <div class="etoile">★</div>
+            <div class="valide">CACHET OFFICIEL</div>
+          </div>
+        </div>
+      </div>
+      <div class="certificat-mention">Document généré automatiquement par ${escapeHtml(parametres.nomEtablissement)}</div>
+    </div>`;
+  window.print();
+}
+
+/* ============================================================
+   FRAIS SCOLAIRES (ADMIN)
+   ============================================================ */
+async function renderAdminFrais(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const frais = await api('/frais-scolarite');
+
+  const rows = frais.map(f => `
+    <tr>
+      <td>${escapeHtml(f.etudiant.numeroEtudiant || '—')}</td>
+      <td>${escapeHtml(f.etudiant.prenom)} ${escapeHtml(f.etudiant.nom)}</td>
+      <td>${escapeHtml(f.anneeScolaire)}</td>
+      <td>${f.montantTotal.toLocaleString('fr-FR')}</td>
+      <td>${f.totalVerse.toLocaleString('fr-FR')}</td>
+      <td><span class="moy-pill ${f.soldeRestant <= 0 ? 'moy-good' : f.soldeRestant < f.montantTotal ? 'moy-mid' : 'moy-low'}">${f.soldeRestant.toLocaleString('fr-FR')}</span></td>
+      <td><button class="btn-secondary" data-ajouter-versement="${f.id}">Ajouter un versement</button></td>
+    </tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Définir les frais d'un étudiant</h2>
+      <form class="inline-form" id="frais-form">
+        <div class="f"><label>Numéro étudiant</label><input type="text" name="numeroEtudiant" required placeholder="ETU-00007" /></div>
+        <div class="f"><label>Montant total</label><input type="number" name="montantTotal" required min="0" step="0.01" /></div>
+        <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
+        <button class="btn-submit" type="submit">Enregistrer</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Suivi des paiements (${frais.length})</h2>
+      ${frais.length ? `<table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Montant total</th><th>Versé</th><th>Solde restant</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun frais enregistré.</div>'}
+    </div>`;
+
+  document.getElementById('frais-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/frais-scolarite', { method:'POST', body: JSON.stringify({
+        numeroEtudiant: fd.get('numeroEtudiant'),
+        montantTotal: Number(fd.get('montantTotal')),
+        anneeScolaire: fd.get('anneeScolaire'),
+      })});
+      toast('Frais scolaires enregistrés.');
+      renderAdminFrais();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  content.querySelectorAll('[data-ajouter-versement]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const montant = prompt('Montant du versement :');
+      if(!montant || isNaN(Number(montant))) return;
+      const moyen = prompt('Moyen de paiement (facultatif) :', 'Espèces') || undefined;
+      try{
+        await api('/frais-scolarite/' + btn.dataset.ajouterVersement + '/versements', { method:'POST', body: JSON.stringify({ montant: Number(montant), moyen })});
+        toast('Versement enregistré.');
+        renderAdminFrais();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
 }
 
 /* ============================================================

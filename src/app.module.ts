@@ -21,6 +21,7 @@ import { PunitionsModule } from './punitions/punitions.module';
 import { GroupesModule } from './groupes/groupes.module';
 import { ReunionsModule } from './reunions/reunions.module';
 import { CahiersTexteModule } from './cahiers-texte/cahiers-texte.module';
+import { FraisScolariteModule } from './frais-scolarite/frais-scolarite.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CahiersTexteModule } from './cahiers-texte/cahiers-texte.module';
     GroupesModule,
     ReunionsModule,
     CahiersTexteModule,
+    FraisScolariteModule,
   ],
   controllers: [],
   providers: [
