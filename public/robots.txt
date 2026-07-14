@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api-docs
+Disallow: /auth
+Disallow: /users
+Disallow: /students
+
+Sitemap: https://edutchad.onrender.com/sitemap.xml
