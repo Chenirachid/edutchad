@@ -21,6 +21,7 @@ const etudiantSelect = {
   nom: true,
   prenom: true,
   email: true,
+  numeroEtudiant: true,
 } as const;
 
 @Injectable()

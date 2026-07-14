@@ -677,11 +677,11 @@ async function renderProfSaisirNote(){
       <form class="inline-form" id="note-form">
         <div class="f" style="min-width:220px;">
           <label>Enseignement</label>
-          <select name="enseignementId" required>${enseignementOptions || '<option value="">Aucun enseignement</option>'}</select>
+          <select name="enseignementId" id="note-enseignement-select" required>${enseignementOptions || '<option value="">Aucun enseignement</option>'}</select>
         </div>
-        <div class="f">
-          <label>ID étudiant</label>
-          <input type="number" name="etudiantId" required min="1" />
+        <div class="f" style="min-width:220px;">
+          <label>Étudiant</label>
+          <select name="etudiantId" id="note-etudiant-select" required></select>
         </div>
         <div class="f">
           <label>Valeur / 20</label>
@@ -702,6 +702,24 @@ async function renderProfSaisirNote(){
         <button class="btn-submit" type="submit">Enregistrer la note</button>
       </form>
     </div>`;
+
+  async function chargerEtudiantsNote(){
+    const enseignementId = document.getElementById('note-enseignement-select').value;
+    const select = document.getElementById('note-etudiant-select');
+    if(!enseignementId){ select.innerHTML = '<option value="">Aucun enseignement</option>'; return; }
+    select.innerHTML = '<option value="">Chargement…</option>';
+    try{
+      const etudiants = await api('/enseignements/' + enseignementId + '/etudiants');
+      select.innerHTML = etudiants.length
+        ? etudiants.map(et => `<option value="${et.id}">${escapeHtml(et.numeroEtudiant || '—')} — ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('')
+        : '<option value="">Aucun étudiant dans cette classe</option>';
+    }catch(err){
+      select.innerHTML = '<option value="">Erreur de chargement</option>';
+    }
+  }
+
+  document.getElementById('note-enseignement-select').addEventListener('change', chargerEtudiantsNote);
+  if(mine.length) await chargerEtudiantsNote();
 
   document.getElementById('note-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -772,6 +790,7 @@ async function loadAppelListe(){
 
     const rows = etudiants.map(et => `
       <tr>
+        <td><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code></td>
         <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
         <td>
           <select data-statut-id="${et.id}" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
@@ -792,7 +811,7 @@ async function loadAppelListe(){
       <div class="card">
         <h2>Appel — ${etudiants.length} étudiant${etudiants.length > 1 ? 's' : ''}</h2>
         <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Choisis <strong>Absent</strong> ou <strong>Retard</strong> pour chaque étudiant concerné. Les autres restent « Présent ».</p>
-        <table><thead><tr><th>Étudiant</th><th>Statut</th><th>Motif</th><th>Retard (min)</th></tr></thead><tbody>${rows}</tbody></table>
+        <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Statut</th><th>Motif</th><th>Retard (min)</th></tr></thead><tbody>${rows}</tbody></table>
         <button class="btn-submit" id="appel-submit-btn" style="margin-top:16px;">Valider l'appel</button>
       </div>`;
 
