@@ -76,6 +76,18 @@
     border-radius:12px;padding:18px 10px;color:#EAF6F6;font-size:12.5px;font-weight:600;
   }
   .landing-feature-icon{font-size:24px;margin-bottom:8px;}
+  .lang-switcher{display:flex;gap:4px;justify-content:center;margin-bottom:22px;}
+  .lang-btn{
+    padding:5px 12px;border-radius:7px;border:1px solid rgba(255,255,255,.25);
+    background:transparent;color:#CFE9E8;font-size:11.5px;font-weight:700;letter-spacing:.03em;
+  }
+  .lang-btn:hover{background:rgba(255,255,255,.08);}
+  .lang-btn.active{background:var(--teal-500);color:#04302F;border-color:var(--teal-500);}
+  .lang-switcher-app{margin-bottom:0;}
+  html[dir="rtl"] body{font-family:'Inter',Tahoma,sans-serif;}
+  html[dir="rtl"] .msg-bubble-row.mine{justify-content:flex-start;}
+  html[dir="rtl"] .msg-bubble.mine{border-radius:14px 14px 14px 3px;}
+  html[dir="rtl"] .msg-bubble{border-radius:14px 14px 3px 14px;}
   @media (max-width:640px){.landing-titre{font-size:26px;}.landing-features{grid-template-columns:repeat(2,1fr);}}
 
   /* ---------- LOGIN ---------- */
@@ -338,16 +350,21 @@
       <div class="logo-mark landing-logo"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span>EduCheni</span>
     </div>
-    <h1 class="landing-titre">La plateforme scolaire tout-en-un</h1>
-    <p class="landing-sous-titre">Notes, absences, emploi du temps, bulletins, messagerie et bien plus — pour les élèves, professeurs, parents et administrateurs, réunis au même endroit.</p>
+    <div class="lang-switcher">
+      <button class="lang-btn" data-lang-btn="fr">FR</button>
+      <button class="lang-btn" data-lang-btn="en">EN</button>
+      <button class="lang-btn" data-lang-btn="ar">AR</button>
+    </div>
+    <h1 class="landing-titre" id="landing-titre-el">La plateforme scolaire tout-en-un</h1>
+    <p class="landing-sous-titre" id="landing-sous-titre-el">Notes, absences, emploi du temps, bulletins, messagerie et bien plus — pour les élèves, professeurs, parents et administrateurs, réunis au même endroit.</p>
     <button class="btn-primary landing-cta" id="landing-cta-btn">Se connecter</button>
     <div class="landing-features">
-      <div class="landing-feature"><div class="landing-feature-icon">📊</div><div>Notes &amp; bulletins</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">🗓️</div><div>Emploi du temps</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">✅</div><div>Absences &amp; retards</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">💬</div><div>Messagerie &amp; groupes</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">📄</div><div>Certificats &amp; frais</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">📚</div><div>Cahier de texte</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">📊</div><div id="landing-f1">Notes &amp; bulletins</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">🗓️</div><div id="landing-f2">Emploi du temps</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">✅</div><div id="landing-f3">Absences &amp; retards</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">💬</div><div id="landing-f4">Messagerie &amp; groupes</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">📄</div><div id="landing-f5">Certificats &amp; frais</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">📚</div><div id="landing-f6">Cahier de texte</div></div>
     </div>
   </div>
 </div>
@@ -359,18 +376,18 @@
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span>EduCheni</span>
     </div>
-    <p class="login-sub">Connecte-toi à ton espace.</p>
+    <p class="login-sub" id="login-sous-titre-el">Connecte-toi à ton espace.</p>
     <div class="login-error" id="login-error"></div>
     <form id="login-form">
       <div class="field">
-        <label>Email</label>
+        <label id="login-email-label">Email</label>
         <input type="email" id="login-email" required autocomplete="username" />
       </div>
       <div class="field">
-        <label>Mot de passe</label>
+        <label id="login-password-label">Mot de passe</label>
         <input type="password" id="login-password" required autocomplete="current-password" />
       </div>
-      <button class="btn-primary" type="submit">Se connecter</button>
+      <button class="btn-primary" type="submit" id="login-submit-btn">Se connecter</button>
     </form>
     <p style="text-align:center;margin:14px 0 0;">
       <a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Mot de passe oublié ?</a>
@@ -379,7 +396,7 @@
       <a href="#" id="back-to-landing-link" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">← Retour à l'accueil</a>
     </p>
     <div class="login-hint">
-      Connecté à <code id="api-base-display"></code>
+      <span id="login-connecte-a-label">Connecté à</span> <code id="api-base-display"></code>
     </div>
   </div>
 </div>
@@ -393,6 +410,11 @@
     </div>
     <div id="nav-list" class="topnav-items"></div>
     <div class="topnav-user">
+      <div class="lang-switcher lang-switcher-app">
+        <button class="lang-btn" data-lang-btn="fr">FR</button>
+        <button class="lang-btn" data-lang-btn="en">EN</button>
+        <button class="lang-btn" data-lang-btn="ar">AR</button>
+      </div>
       <span class="role-badge" id="role-badge"></span>
       <span class="user-line" id="user-name"></span>
       <span class="user-email" id="user-email"></span>
@@ -424,6 +446,154 @@ const API_BASE = window.location.origin;
 document.getElementById('api-base-display').textContent = API_BASE;
 
 let state = { token: null, user: null };
+
+/* ============================================================
+   INTERNATIONALISATION (FR / EN / AR)
+   ============================================================ */
+const I18N = {
+  fr: {
+    landing_titre: 'La plateforme scolaire tout-en-un',
+    landing_sous_titre: 'Notes, absences, emploi du temps, bulletins, messagerie et bien plus — pour les élèves, professeurs, parents et administrateurs, réunis au même endroit.',
+    landing_cta: 'Se connecter',
+    landing_f1: 'Notes & bulletins', landing_f2: 'Emploi du temps', landing_f3: 'Absences & retards',
+    landing_f4: 'Messagerie & groupes', landing_f5: 'Certificats & frais', landing_f6: 'Cahier de texte',
+    login_sous_titre: 'Connecte-toi à ton espace.',
+    login_email: 'Email', login_password: 'Mot de passe', login_submit: 'Se connecter',
+    login_mdp_oublie: 'Mot de passe oublié ?', login_retour_accueil: "← Retour à l'accueil",
+    login_connecte_a: 'Connecté à',
+    logout: 'Se déconnecter',
+    nav_bulletin: 'Mon bulletin', nav_absences: 'Mes absences', nav_comportement: 'Mon comportement',
+    nav_emploi: 'Emploi du temps', nav_groupes: 'Groupes', nav_reunions: 'Réunions', nav_messagerie: 'Messagerie',
+    nav_enseignements: 'Mes classes', nav_appel: "Faire l'appel", nav_saisir_note: 'Saisir une note',
+    nav_declarer_absence: 'Déclarer une absence', nav_observations: 'Observations', nav_punitions: 'Punitions',
+    nav_cahier_texte: 'Cahier de texte', nav_parametres: 'Paramètres', nav_enfants: 'Mes enfants',
+    nav_utilisateurs: 'Utilisateurs', nav_inscriptions: 'Inscriptions', nav_classes: 'Classes',
+    nav_matieres: 'Matières', nav_enseignements_admin: 'Enseignements', nav_creneaux_admin: 'Emploi du temps',
+    nav_liaisons: 'Liaisons parents', nav_bulletins_pdf: 'Bulletins PDF', nav_certificats: 'Certificats',
+    nav_frais: 'Frais scolaires',
+    title_bulletin: 'Mon bulletin', title_absences: 'Mes absences', title_comportement: 'Mon comportement',
+    title_emploi: 'Emploi du temps', title_enseignements: 'Mes classes', title_appel: "Faire l'appel",
+    title_saisir_note: 'Saisir une note', title_declarer_absence: 'Déclarer une absence',
+    title_observations: 'Observations', title_punitions: 'Punitions', title_groupes: 'Groupes',
+    title_reunions: 'Réunions', title_cahier_texte: 'Cahier de texte', title_inscriptions: 'Inscriptions',
+    title_enfants: 'Mes enfants', title_utilisateurs: 'Gestion des utilisateurs', title_classes: 'Gestion des classes',
+    title_matieres: 'Gestion des matières', title_enseignements_admin: 'Gestion des enseignements',
+    title_creneaux_admin: "Gestion de l'emploi du temps", title_liaisons: 'Liaisons parent-enfant',
+    title_bulletins_pdf: 'Bulletins PDF', title_certificats: 'Certificats de scolarité', title_frais: 'Frais scolaires',
+    title_messagerie: 'Messagerie', title_parametres: 'Paramètres',
+  },
+  en: {
+    landing_titre: 'The all-in-one school platform',
+    landing_sous_titre: 'Grades, absences, timetable, report cards, messaging and more — for students, teachers, parents and administrators, all in one place.',
+    landing_cta: 'Sign in',
+    landing_f1: 'Grades & report cards', landing_f2: 'Timetable', landing_f3: 'Absences & lateness',
+    landing_f4: 'Messaging & groups', landing_f5: 'Certificates & fees', landing_f6: 'Class logbook',
+    login_sous_titre: 'Sign in to your account.',
+    login_email: 'Email', login_password: 'Password', login_submit: 'Sign in',
+    login_mdp_oublie: 'Forgot password?', login_retour_accueil: '← Back to home',
+    login_connecte_a: 'Connected to',
+    logout: 'Log out',
+    nav_bulletin: 'My report card', nav_absences: 'My absences', nav_comportement: 'My behaviour',
+    nav_emploi: 'Timetable', nav_groupes: 'Groups', nav_reunions: 'Meetings', nav_messagerie: 'Messages',
+    nav_enseignements: 'My classes', nav_appel: 'Take attendance', nav_saisir_note: 'Enter a grade',
+    nav_declarer_absence: 'Report an absence', nav_observations: 'Remarks', nav_punitions: 'Sanctions',
+    nav_cahier_texte: 'Class logbook', nav_parametres: 'Settings', nav_enfants: 'My children',
+    nav_utilisateurs: 'Users', nav_inscriptions: 'Enrolments', nav_classes: 'Classes',
+    nav_matieres: 'Subjects', nav_enseignements_admin: 'Teaching assignments', nav_creneaux_admin: 'Timetable',
+    nav_liaisons: 'Parent links', nav_bulletins_pdf: 'Report cards (PDF)', nav_certificats: 'Certificates',
+    nav_frais: 'School fees',
+    title_bulletin: 'My report card', title_absences: 'My absences', title_comportement: 'My behaviour',
+    title_emploi: 'Timetable', title_enseignements: 'My classes', title_appel: 'Take attendance',
+    title_saisir_note: 'Enter a grade', title_declarer_absence: 'Report an absence',
+    title_observations: 'Remarks', title_punitions: 'Sanctions', title_groupes: 'Groups',
+    title_reunions: 'Meetings', title_cahier_texte: 'Class logbook', title_inscriptions: 'Enrolments',
+    title_enfants: 'My children', title_utilisateurs: 'User management', title_classes: 'Class management',
+    title_matieres: 'Subject management', title_enseignements_admin: 'Teaching assignments management',
+    title_creneaux_admin: 'Timetable management', title_liaisons: 'Parent-child links',
+    title_bulletins_pdf: 'Report cards (PDF)', title_certificats: 'School certificates', title_frais: 'School fees',
+    title_messagerie: 'Messages', title_parametres: 'Settings',
+  },
+  ar: {
+    landing_titre: 'منصة مدرسية شاملة',
+    landing_sous_titre: 'الدرجات، الغيابات، الجدول الزمني، كشوف النقاط، المراسلة، وأكثر من ذلك — للتلاميذ والأساتذة وأولياء الأمور والإداريين، في مكان واحد.',
+    landing_cta: 'تسجيل الدخول',
+    landing_f1: 'الدرجات والكشوف', landing_f2: 'الجدول الزمني', landing_f3: 'الغيابات والتأخيرات',
+    landing_f4: 'المراسلة والمجموعات', landing_f5: 'الشهادات والرسوم', landing_f6: 'دفتر النصوص',
+    login_sous_titre: 'سجّل الدخول إلى حسابك.',
+    login_email: 'البريد الإلكتروني', login_password: 'كلمة المرور', login_submit: 'تسجيل الدخول',
+    login_mdp_oublie: 'نسيت كلمة المرور؟', login_retour_accueil: '→ العودة إلى الرئيسية',
+    login_connecte_a: 'متصل بـ',
+    logout: 'تسجيل الخروج',
+    nav_bulletin: 'كشف نقاطي', nav_absences: 'غياباتي', nav_comportement: 'سلوكي',
+    nav_emploi: 'الجدول الزمني', nav_groupes: 'المجموعات', nav_reunions: 'الاجتماعات', nav_messagerie: 'الرسائل',
+    nav_enseignements: 'أقسامي', nav_appel: 'أخذ الحضور', nav_saisir_note: 'إدخال نقطة',
+    nav_declarer_absence: 'تسجيل غياب', nav_observations: 'ملاحظات', nav_punitions: 'عقوبات',
+    nav_cahier_texte: 'دفتر النصوص', nav_parametres: 'الإعدادات', nav_enfants: 'أبنائي',
+    nav_utilisateurs: 'المستخدمون', nav_inscriptions: 'التسجيلات', nav_classes: 'الأقسام',
+    nav_matieres: 'المواد', nav_enseignements_admin: 'التكليفات التعليمية', nav_creneaux_admin: 'الجدول الزمني',
+    nav_liaisons: 'روابط أولياء الأمور', nav_bulletins_pdf: 'كشوف النقاط PDF', nav_certificats: 'الشهادات',
+    nav_frais: 'الرسوم المدرسية',
+    title_bulletin: 'كشف نقاطي', title_absences: 'غياباتي', title_comportement: 'سلوكي',
+    title_emploi: 'الجدول الزمني', title_enseignements: 'أقسامي', title_appel: 'أخذ الحضور',
+    title_saisir_note: 'إدخال نقطة', title_declarer_absence: 'تسجيل غياب',
+    title_observations: 'ملاحظات', title_punitions: 'عقوبات', title_groupes: 'المجموعات',
+    title_reunions: 'الاجتماعات', title_cahier_texte: 'دفتر النصوص', title_inscriptions: 'التسجيلات',
+    title_enfants: 'أبنائي', title_utilisateurs: 'إدارة المستخدمين', title_classes: 'إدارة الأقسام',
+    title_matieres: 'إدارة المواد', title_enseignements_admin: 'إدارة التكليفات التعليمية',
+    title_creneaux_admin: 'إدارة الجدول الزمني', title_liaisons: 'روابط أولياء الأمور بالأبناء',
+    title_bulletins_pdf: 'كشوف النقاط PDF', title_certificats: 'الشهادات المدرسية', title_frais: 'الرسوم المدرسية',
+    title_messagerie: 'الرسائل', title_parametres: 'الإعدادات',
+  },
+};
+
+function t(key){
+  const lang = state.lang || 'fr';
+  return (I18N[lang] && I18N[lang][key]) || I18N.fr[key] || key;
+}
+
+function setLangue(lang){
+  state.lang = lang;
+  localStorage.setItem('educheni_lang', lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  applyStaticTranslations();
+  document.querySelectorAll('[data-lang-btn]').forEach(b => b.classList.toggle('active', b.dataset.langBtn === lang));
+  if(state.token && state.user){
+    const items = MENUS[state.user.role] || [];
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      const item = items.find(i => i.id === btn.dataset.menuId);
+      if(item) btn.textContent = t('nav_' + item.id.replace(/-/g,'_'));
+    });
+    const activeBtn = document.querySelector('.nav-item.active');
+    if(activeBtn){
+      const item = items.find(i => i.id === activeBtn.dataset.menuId);
+      if(item){
+        document.getElementById('page-title').textContent = t('title_' + item.id.replace(/-/g,'_'));
+        item.render();
+      }
+    }
+    document.getElementById('logout-btn').textContent = t('logout');
+  }
+}
+
+function applyStaticTranslations(){
+  document.getElementById('landing-titre-el').textContent = t('landing_titre');
+  document.getElementById('landing-sous-titre-el').textContent = t('landing_sous_titre');
+  document.getElementById('landing-cta-btn').textContent = t('landing_cta');
+  document.getElementById('landing-f1').textContent = t('landing_f1');
+  document.getElementById('landing-f2').textContent = t('landing_f2');
+  document.getElementById('landing-f3').textContent = t('landing_f3');
+  document.getElementById('landing-f4').textContent = t('landing_f4');
+  document.getElementById('landing-f5').textContent = t('landing_f5');
+  document.getElementById('landing-f6').textContent = t('landing_f6');
+  document.getElementById('login-sous-titre-el').textContent = t('login_sous_titre');
+  document.getElementById('login-email-label').textContent = t('login_email');
+  document.getElementById('login-password-label').textContent = t('login_password');
+  document.getElementById('login-submit-btn').textContent = t('login_submit');
+  document.getElementById('forgot-password-link').textContent = t('login_mdp_oublie');
+  document.getElementById('back-to-landing-link').textContent = t('login_retour_accueil');
+  document.getElementById('login-connecte-a-label').textContent = t('login_connecte_a');
+}
 
 /* ============================================================
    HELPERS
@@ -537,6 +707,10 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   }
 });
 
+document.querySelectorAll('[data-lang-btn]').forEach(btn => {
+  btn.addEventListener('click', () => setLangue(btn.dataset.langBtn));
+});
+
 document.getElementById('landing-cta-btn').addEventListener('click', () => {
   document.getElementById('landing-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
@@ -632,6 +806,7 @@ function enterApp(){
   document.getElementById('role-badge').textContent = u.role;
   document.getElementById('user-name').textContent = u.prenom + ' ' + u.nom;
   document.getElementById('user-email').textContent = u.email;
+  document.getElementById('logout-btn').textContent = t('logout');
 
   const nav = document.getElementById('nav-list');
   nav.innerHTML = '';
@@ -639,7 +814,7 @@ function enterApp(){
   items.forEach((item, idx) => {
     const btn = document.createElement('button');
     btn.className = 'nav-item' + (idx === 0 ? ' active' : '');
-    btn.innerHTML = `<span class="dot"></span>${item.label}`;
+    btn.textContent = t('nav_' + item.id.replace(/-/g,'_'));
     btn.addEventListener('click', () => selectMenu(item.id));
     btn.dataset.menuId = item.id;
     nav.appendChild(btn);
@@ -652,7 +827,7 @@ function selectMenu(menuId){
   document.querySelectorAll('.nav-item').forEach(b => {
     b.classList.toggle('active', b.dataset.menuId === menuId);
   });
-  document.getElementById('page-title').textContent = PAGE_TITLES[menuId] || '';
+  document.getElementById('page-title').textContent = t('title_' + menuId.replace(/-/g,'_'));
   const items = MENUS[state.user.role] || [];
   const item = items.find(i => i.id === menuId);
   const content = document.getElementById('content');
@@ -2389,6 +2564,13 @@ async function renderParametres(){
 /* ============================================================
    INIT
    ============================================================ */
+const langueSauvegardee = localStorage.getItem('educheni_lang') || 'fr';
+state.lang = langueSauvegardee;
+document.documentElement.lang = langueSauvegardee;
+document.documentElement.dir = langueSauvegardee === 'ar' ? 'rtl' : 'ltr';
+applyStaticTranslations();
+document.querySelectorAll('[data-lang-btn]').forEach(b => b.classList.toggle('active', b.dataset.langBtn === langueSauvegardee));
+
 if(restoreSession()){
   enterApp();
 }
