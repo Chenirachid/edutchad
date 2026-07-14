@@ -15,6 +15,8 @@ import { JwtPayload } from './types/jwt-payload.type';
 import { buildBaseEmail, formatNumeroEtudiant } from '../common/email-generator';
 
 const SALT_ROUNDS = 10;
+const MAX_TENTATIVES = 5;
+const DUREE_VERROU_MINUTES = 15;
 
 @Injectable()
 export class AuthService {
@@ -71,10 +73,45 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
+    if (user.verrouJusqua && user.verrouJusqua > new Date()) {
+      const minutesRestantes = Math.ceil(
+        (user.verrouJusqua.getTime() - Date.now()) / 60000,
+      );
+      throw new UnauthorizedException(
+        `Compte temporairement verrouillé suite à plusieurs échecs. Réessayez dans ${minutesRestantes} minute(s).`,
+      );
+    }
+
     const passwordMatches = await bcrypt.compare(dto.password, user.password);
 
     if (!passwordMatches) {
+      const tentatives = user.tentativesEchouees + 1;
+      const verrouille = tentatives >= MAX_TENTATIVES;
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          tentativesEchouees: verrouille ? 0 : tentatives,
+          verrouJusqua: verrouille
+            ? new Date(Date.now() + DUREE_VERROU_MINUTES * 60_000)
+            : null,
+        },
+      });
+
+      if (verrouille) {
+        throw new UnauthorizedException(
+          `Trop de tentatives échouées. Compte verrouillé ${DUREE_VERROU_MINUTES} minutes.`,
+        );
+      }
+
       throw new UnauthorizedException('Identifiants invalides');
+    }
+
+    if (user.tentativesEchouees > 0 || user.verrouJusqua) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { tentativesEchouees: 0, verrouJusqua: null },
+      });
     }
 
     return this.buildAuthResponse(user);
