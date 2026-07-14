@@ -470,7 +470,7 @@ const I18N = {
     nav_utilisateurs: 'Utilisateurs', nav_inscriptions: 'Inscriptions', nav_classes: 'Classes',
     nav_matieres: 'Matières', nav_enseignements_admin: 'Enseignements', nav_creneaux_admin: 'Emploi du temps',
     nav_liaisons: 'Liaisons parents', nav_bulletins_pdf: 'Bulletins PDF', nav_certificats: 'Certificats',
-    nav_frais: 'Frais scolaires',
+    nav_frais: 'Frais scolaires', nav_demandes_suppression: 'Demandes de suppression',
     title_bulletin: 'Mon bulletin', title_absences: 'Mes absences', title_comportement: 'Mon comportement',
     title_emploi: 'Emploi du temps', title_enseignements: 'Mes classes', title_appel: "Faire l'appel",
     title_saisir_note: 'Saisir une note', title_declarer_absence: 'Déclarer une absence',
@@ -480,6 +480,7 @@ const I18N = {
     title_matieres: 'Gestion des matières', title_enseignements_admin: 'Gestion des enseignements',
     title_creneaux_admin: "Gestion de l'emploi du temps", title_liaisons: 'Liaisons parent-enfant',
     title_bulletins_pdf: 'Bulletins PDF', title_certificats: 'Certificats de scolarité', title_frais: 'Frais scolaires',
+    title_demandes_suppression: 'Demandes de suppression',
     title_messagerie: 'Messagerie', title_parametres: 'Paramètres',
   },
   en: {
@@ -501,7 +502,7 @@ const I18N = {
     nav_utilisateurs: 'Users', nav_inscriptions: 'Enrolments', nav_classes: 'Classes',
     nav_matieres: 'Subjects', nav_enseignements_admin: 'Teaching assignments', nav_creneaux_admin: 'Timetable',
     nav_liaisons: 'Parent links', nav_bulletins_pdf: 'Report cards (PDF)', nav_certificats: 'Certificates',
-    nav_frais: 'School fees',
+    nav_frais: 'School fees', nav_demandes_suppression: 'Deletion requests',
     title_bulletin: 'My report card', title_absences: 'My absences', title_comportement: 'My behaviour',
     title_emploi: 'Timetable', title_enseignements: 'My classes', title_appel: 'Take attendance',
     title_saisir_note: 'Enter a grade', title_declarer_absence: 'Report an absence',
@@ -511,6 +512,7 @@ const I18N = {
     title_matieres: 'Subject management', title_enseignements_admin: 'Teaching assignments management',
     title_creneaux_admin: 'Timetable management', title_liaisons: 'Parent-child links',
     title_bulletins_pdf: 'Report cards (PDF)', title_certificats: 'School certificates', title_frais: 'School fees',
+    title_demandes_suppression: 'Deletion requests',
     title_messagerie: 'Messages', title_parametres: 'Settings',
   },
   ar: {
@@ -532,7 +534,7 @@ const I18N = {
     nav_utilisateurs: 'المستخدمون', nav_inscriptions: 'التسجيلات', nav_classes: 'الأقسام',
     nav_matieres: 'المواد', nav_enseignements_admin: 'التكليفات التعليمية', nav_creneaux_admin: 'الجدول الزمني',
     nav_liaisons: 'روابط أولياء الأمور', nav_bulletins_pdf: 'كشوف النقاط PDF', nav_certificats: 'الشهادات',
-    nav_frais: 'الرسوم المدرسية',
+    nav_frais: 'الرسوم المدرسية', nav_demandes_suppression: 'طلبات الحذف',
     title_bulletin: 'كشف نقاطي', title_absences: 'غياباتي', title_comportement: 'سلوكي',
     title_emploi: 'الجدول الزمني', title_enseignements: 'أقسامي', title_appel: 'أخذ الحضور',
     title_saisir_note: 'إدخال نقطة', title_declarer_absence: 'تسجيل غياب',
@@ -542,6 +544,7 @@ const I18N = {
     title_matieres: 'إدارة المواد', title_enseignements_admin: 'إدارة التكليفات التعليمية',
     title_creneaux_admin: 'إدارة الجدول الزمني', title_liaisons: 'روابط أولياء الأمور بالأبناء',
     title_bulletins_pdf: 'كشوف النقاط PDF', title_certificats: 'الشهادات المدرسية', title_frais: 'الرسوم المدرسية',
+    title_demandes_suppression: 'طلبات الحذف',
     title_messagerie: 'الرسائل', title_parametres: 'الإعدادات',
   },
 };
@@ -785,6 +788,10 @@ const MENUS = {
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
 };
+MENUS.CHEF_PROJET = [
+  ...MENUS.ADMIN,
+  { id:'demandes-suppression', label:'Demandes de suppression', render: renderDemandesSuppression },
+];
 
 const PAGE_TITLES = {
   bulletin:'Mon bulletin', absences:'Mes absences', comportement:'Mon comportement', emploi:'Emploi du temps',
@@ -793,7 +800,7 @@ const PAGE_TITLES = {
   enfants:'Mes enfants', utilisateurs:'Gestion des utilisateurs', classes:'Gestion des classes',
   matieres:'Gestion des matières', 'enseignements-admin':'Gestion des enseignements',
   'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant', 'bulletins-pdf':'Bulletins PDF',
-  certificats:'Certificats de scolarité', frais:'Frais scolaires',
+  certificats:'Certificats de scolarité', frais:'Frais scolaires', 'demandes-suppression':'Demandes de suppression',
   messagerie:'Messagerie', parametres:'Paramètres',
 };
 
@@ -1286,7 +1293,7 @@ async function renderAdminUsers(){
       <td>${u.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(u.numeroEtudiant)}</code>` : '—'}</td>
       <td>
         <select data-user-role="${u.id}">
-          ${['ETUDIANT','PROFESSEUR','PARENT','ADMIN'].map(r => `<option value="${r}" ${r===u.role?'selected':''}>${r}</option>`).join('')}
+          ${['ETUDIANT','PROFESSEUR','PARENT','ADMIN','CHEF_PROJET'].map(r => `<option value="${r}" ${r===u.role?'selected':''}>${r}</option>`).join('')}
         </select>
       </td>
       <td><input type="number" data-user-classe="${u.id}" value="${u.classeId ?? ''}" placeholder="—" style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;" /></td>
@@ -1312,6 +1319,7 @@ async function renderAdminUsers(){
             <option value="PROFESSEUR">PROFESSEUR</option>
             <option value="PARENT">PARENT</option>
             <option value="ADMIN">ADMIN</option>
+            <option value="CHEF_PROJET">CHEF_PROJET</option>
           </select>
         </div>
         <button class="btn-submit" type="submit">Créer le compte</button>
@@ -1368,8 +1376,12 @@ async function renderAdminUsers(){
       const id = btn.dataset.deleteUser;
       if(!confirm('Supprimer définitivement cet utilisateur (id ' + id + ') ?')) return;
       try{
-        await api('/users/' + id, { method:'DELETE' });
-        toast('Utilisateur supprimé.');
+        const resultat = await api('/users/' + id, { method:'DELETE' });
+        if(resultat && resultat.enAttente){
+          toast(resultat.message);
+        } else {
+          toast('Utilisateur supprimé.');
+        }
         renderAdminUsers();
       }catch(err){ toast(err.message, 'error'); }
     });
@@ -2491,6 +2503,54 @@ async function renderAdminInscriptions(){
 
   document.getElementById('aller-utilisateurs-btn').addEventListener('click', () => selectMenu('utilisateurs'));
   document.getElementById('aller-matieres-btn').addEventListener('click', () => selectMenu('matieres'));
+}
+
+/* ============================================================
+   DEMANDES DE SUPPRESSION ADMIN (CHEF DE PROJET)
+   ============================================================ */
+const STATUT_DEMANDE_LABELS = { EN_ATTENTE:'En attente', APPROUVEE:'Approuvée', REJETEE:'Rejetée' };
+const STATUT_DEMANDE_COLORS = { EN_ATTENTE:'var(--warning)', APPROUVEE:'var(--success)', REJETEE:'var(--danger)' };
+
+async function renderDemandesSuppression(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const demandes = await api('/demandes-suppression-admin');
+
+  const rows = demandes.map(d => `
+    <tr>
+      <td>${new Date(d.createdAt).toLocaleString('fr-FR', { dateStyle:'medium', timeStyle:'short' })}</td>
+      <td>${escapeHtml(d.cible.prenom)} ${escapeHtml(d.cible.nom)} <span style="color:var(--text-muted);font-size:11.5px;">(${escapeHtml(d.cible.email)})</span></td>
+      <td>${escapeHtml(d.demandeur.prenom)} ${escapeHtml(d.demandeur.nom)}</td>
+      <td><span class="moy-pill" style="background:transparent;border:1.5px solid ${STATUT_DEMANDE_COLORS[d.statut]};color:${STATUT_DEMANDE_COLORS[d.statut]};">${STATUT_DEMANDE_LABELS[d.statut]}</span></td>
+      <td>
+        ${d.statut === 'EN_ATTENTE' ? `
+          <button class="btn-secondary" data-traiter-demande="${d.id}" data-decision="APPROUVEE" style="border-color:var(--danger);color:var(--danger);">Approuver (supprimer)</button>
+          <button class="btn-secondary" data-traiter-demande="${d.id}" data-decision="REJETEE" style="margin-left:6px;">Rejeter</button>
+        ` : `<span style="font-size:12px;color:var(--text-muted);">Traitée${d.traitePar ? ' par ' + escapeHtml(d.traitePar.prenom) + ' ' + escapeHtml(d.traitePar.nom) : ''}</span>`}
+      </td>
+    </tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Demandes de suppression de comptes admin (${demandes.length})</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Quand un admin tente de supprimer un autre compte admin, la demande apparaît ici pour ta validation.</p>
+      ${demandes.length ? `<table><thead><tr><th>Date</th><th>Compte visé</th><th>Demandé par</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune demande pour l\'instant.</div>'}
+    </div>`;
+
+  content.querySelectorAll('[data-traiter-demande]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const decision = btn.dataset.decision;
+      const message = decision === 'APPROUVEE'
+        ? 'Confirmer : ce compte admin sera définitivement supprimé.'
+        : 'Confirmer le rejet de cette demande ?';
+      if(!confirm(message)) return;
+      try{
+        await api('/demandes-suppression-admin/' + btn.dataset.traiterDemande, { method:'PATCH', body: JSON.stringify({ decision })});
+        toast(decision === 'APPROUVEE' ? 'Compte supprimé.' : 'Demande rejetée.');
+        renderDemandesSuppression();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
 }
 
 /* ============================================================

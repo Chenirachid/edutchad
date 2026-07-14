@@ -46,6 +46,10 @@ model User {
 
   inscriptionsAdministratives InscriptionAdministrative[]
   mentionsBulletin            MentionBulletin[]
+
+  demandesSuppressionCible     DemandeSuppressionAdmin[] @relation("DemandeCible")
+  demandesSuppressionEmises    DemandeSuppressionAdmin[] @relation("DemandeDemandeur")
+  demandesSuppressionTraitees  DemandeSuppressionAdmin[] @relation("DemandeTraitant")
 }
 
 enum Role {
@@ -53,6 +57,7 @@ enum Role {
   PROFESSEUR
   PARENT
   ADMIN
+  CHEF_PROJET
 }
 
 model Classe {
@@ -357,4 +362,24 @@ model MentionBulletin {
   etudiantId Int
 
   @@unique([etudiantId, anneeScolaire])
+}
+
+enum StatutDemande {
+  EN_ATTENTE
+  APPROUVEE
+  REJETEE
+}
+
+model DemandeSuppressionAdmin {
+  id        Int           @id @default(autoincrement())
+  statut    StatutDemande @default(EN_ATTENTE)
+  createdAt DateTime      @default(now())
+  traiteLe  DateTime?
+
+  cible       User  @relation("DemandeCible", fields: [cibleId], references: [id])
+  cibleId     Int
+  demandeur   User  @relation("DemandeDemandeur", fields: [demandeurId], references: [id])
+  demandeurId Int
+  traitePar   User? @relation("DemandeTraitant", fields: [traiteParId], references: [id])
+  traiteParId Int?
 }

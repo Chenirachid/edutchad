@@ -24,6 +24,7 @@ import { CahiersTexteModule } from './cahiers-texte/cahiers-texte.module';
 import { FraisScolariteModule } from './frais-scolarite/frais-scolarite.module';
 import { InscriptionsAdministrativesModule } from './inscriptions-administratives/inscriptions-administratives.module';
 import { MentionsBulletinModule } from './mentions-bulletin/mentions-bulletin.module';
+import { DemandesSuppressionModule } from './demandes-suppression/demandes-suppression.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { MentionsBulletinModule } from './mentions-bulletin/mentions-bulletin.mo
     CahiersTexteModule,
     FraisScolariteModule,
     InscriptionsAdministrativesModule,
+    DemandesSuppressionModule,
   ],
   controllers: [],
   providers: [

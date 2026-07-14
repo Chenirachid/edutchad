@@ -10,6 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { buildBaseEmail, formatNumeroEtudiant } from '../common/email-generator';
+import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 const SALT_ROUNDS = 10;
 
@@ -127,8 +128,38 @@ export class UsersService {
     return { message: 'Mot de passe réinitialisé avec succès' };
   }
 
-  async remove(id: number) {
-    await this.findOne(id);
+  async remove(id: number, currentUser: JwtPayload) {
+    const cible = await this.findOne(id);
+
+    if (cible.role === Role.ADMIN && currentUser.role !== Role.CHEF_PROJET) {
+      const demande = await this.prisma.demandeSuppressionAdmin.create({
+        data: { cibleId: id, demandeurId: currentUser.sub },
+      });
+
+      const chefs = await this.prisma.user.findMany({
+        where: { role: Role.CHEF_PROJET },
+      });
+
+      await Promise.all(
+        chefs.map((chef) =>
+          this.prisma.message.create({
+            data: {
+              contenu: `Demande de suppression du compte admin ${cible.prenom} ${cible.nom} (${cible.email}), demandée par le user #${currentUser.sub}. Rends-toi dans « Demandes de suppression » pour valider ou refuser.`,
+              expediteurId: currentUser.sub,
+              destinataireId: chef.id,
+            },
+          }),
+        ),
+      );
+
+      return {
+        enAttente: true,
+        message:
+          'La suppression de ce compte admin nécessite la validation du chef de projet. Une demande lui a été envoyée.',
+        demandeId: demande.id,
+      };
+    }
+
     return this.prisma.user.delete({ where: { id }, select: userSelect });
   }
 }
