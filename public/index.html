@@ -41,6 +41,33 @@
   button{font-family:inherit;cursor:pointer;}
   input,select{font-family:inherit;}
 
+  /* ---------- ACCUEIL ---------- */
+  #landing-screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(18,184,176,.18), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(11,114,133,.2), transparent 50%),
+      var(--teal-900);
+    padding:40px 20px;
+  }
+  .landing-content{max-width:640px;text-align:center;}
+  .landing-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:28px;}
+  .landing-logo{width:44px;height:44px;border-radius:13px;}
+  .landing-brand span{font-size:24px;font-weight:700;color:#fff;}
+  .landing-titre{font-size:34px;font-weight:700;color:#fff;margin:0 0 16px;line-height:1.25;font-family:'Poppins',sans-serif;}
+  .landing-sous-titre{font-size:15.5px;color:#CFE9E8;line-height:1.6;margin:0 0 32px;}
+  .landing-cta{width:auto;padding:14px 40px;font-size:15px;border-radius:11px;}
+  .landing-features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;}
+  .landing-feature{
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;padding:18px 10px;color:#EAF6F6;font-size:12.5px;font-weight:600;
+  }
+  .landing-feature-icon{font-size:24px;margin-bottom:8px;}
+  @media (max-width:640px){.landing-titre{font-size:26px;}.landing-features{grid-template-columns:repeat(2,1fr);}}
+
   /* ---------- LOGIN ---------- */
   #login-screen{
     min-height:100vh;
@@ -294,8 +321,29 @@
 </head>
 <body>
 
+<!-- ================= ACCUEIL ================= -->
+<div id="landing-screen">
+  <div class="landing-content">
+    <div class="landing-brand">
+      <div class="logo-mark landing-logo"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span>EduCheni</span>
+    </div>
+    <h1 class="landing-titre">La plateforme scolaire tout-en-un</h1>
+    <p class="landing-sous-titre">Notes, absences, emploi du temps, bulletins, messagerie et bien plus — pour les élèves, professeurs, parents et administrateurs, réunis au même endroit.</p>
+    <button class="btn-primary landing-cta" id="landing-cta-btn">Se connecter</button>
+    <div class="landing-features">
+      <div class="landing-feature"><div class="landing-feature-icon">📊</div><div>Notes &amp; bulletins</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">🗓️</div><div>Emploi du temps</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">✅</div><div>Absences &amp; retards</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">💬</div><div>Messagerie &amp; groupes</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">📄</div><div>Certificats &amp; frais</div></div>
+      <div class="landing-feature"><div class="landing-feature-icon">📚</div><div>Cahier de texte</div></div>
+    </div>
+  </div>
+</div>
+
 <!-- ================= LOGIN ================= -->
-<div id="login-screen">
+<div id="login-screen" class="hidden">
   <div class="login-card">
     <div class="login-brand">
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -316,6 +364,9 @@
     </form>
     <p style="text-align:center;margin:14px 0 0;">
       <a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Mot de passe oublié ?</a>
+    </p>
+    <p style="text-align:center;margin:8px 0 0;">
+      <a href="#" id="back-to-landing-link" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">← Retour à l'accueil</a>
     </p>
     <div class="login-hint">
       Connecté à <code id="api-base-display"></code>
@@ -476,6 +527,17 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   }
 });
 
+document.getElementById('landing-cta-btn').addEventListener('click', () => {
+  document.getElementById('landing-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+});
+
+document.getElementById('back-to-landing-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('landing-screen').classList.remove('hidden');
+});
+
 document.getElementById('forgot-password-link').addEventListener('click', (e) => {
   e.preventDefault();
   alert("Les comptes n'ont pas d'adresse email réelle : seul un administrateur peut réinitialiser ton mot de passe. Contacte-le (via la messagerie, ou en personne) pour qu'il t'en attribue un nouveau depuis son espace « Utilisateurs ».");
@@ -484,7 +546,8 @@ document.getElementById('forgot-password-link').addEventListener('click', (e) =>
 document.getElementById('logout-btn').addEventListener('click', () => {
   clearSession();
   document.getElementById('app-screen').classList.add('hidden');
-  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('landing-screen').classList.remove('hidden');
   document.getElementById('login-form').reset();
 });
 
@@ -551,6 +614,7 @@ const PAGE_TITLES = {
 };
 
 function enterApp(){
+  document.getElementById('landing-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app-screen').classList.remove('hidden');
 
