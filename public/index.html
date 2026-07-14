@@ -470,6 +470,7 @@ const MENUS = {
     { id:'bulletin', label:'Mon bulletin', render: renderEtudiantBulletin },
     { id:'absences', label:'Mes absences', render: renderEtudiantAbsences },
     { id:'comportement', label:'Mon comportement', render: renderComportement },
+    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'reunions', label:'Réunions', render: renderReunions },
@@ -482,6 +483,7 @@ const MENUS = {
     { id:'declarer-absence', label:'Déclarer une absence', render: renderProfDeclarerAbsence },
     { id:'observations', label:'Observations', render: renderProfObservations },
     { id:'punitions', label:'Punitions', render: renderProfPunitions },
+    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'reunions', label:'Réunions', render: renderReunions },
@@ -500,6 +502,7 @@ const MENUS = {
     { id:'creneaux-admin', label:'Emploi du temps', render: renderAdminCreneaux },
     { id:'liaisons', label:'Liaisons parents', render: renderAdminLiaisons },
     { id:'bulletins-pdf', label:'Bulletins PDF', render: renderAdminBulletinsPdf },
+    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
     { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'reunions', label:'Réunions', render: renderReunions },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
@@ -510,7 +513,7 @@ const MENUS = {
 const PAGE_TITLES = {
   bulletin:'Mon bulletin', absences:'Mes absences', comportement:'Mon comportement', emploi:'Emploi du temps',
   enseignements:'Mes classes', appel:"Faire l'appel", 'saisir-note':'Saisir une note', 'declarer-absence':'Déclarer une absence',
-  observations:'Observations', punitions:'Punitions', groupes:'Groupes', reunions:'Réunions',
+  observations:'Observations', punitions:'Punitions', groupes:'Groupes', reunions:'Réunions', 'cahier-texte':'Cahier de texte',
   enfants:'Mes enfants', utilisateurs:'Gestion des utilisateurs', classes:'Gestion des classes',
   matieres:'Gestion des matières', 'enseignements-admin':'Gestion des enseignements',
   'creneaux-admin':'Gestion de l\'emploi du temps', liaisons:'Liaisons parent-enfant', 'bulletins-pdf':'Bulletins PDF',
@@ -1888,6 +1891,72 @@ async function renderReunions(){
       }catch(err){ toast(err.message, 'error'); }
     });
   });
+}
+
+/* ============================================================
+   CAHIER DE TEXTE
+   ============================================================ */
+async function renderCahierTexte(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const isProf = state.user.role === 'PROFESSEUR';
+  const entrees = await api('/cahiers-texte');
+
+  let creationCard = '';
+  if(isProf){
+    const mine = await getMesEnseignements();
+    const enseignementOptions = mine.map(e => `<option value="${e.id}">${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('');
+    creationCard = `
+      <div class="card">
+        <h2>Nouvelle entrée</h2>
+        <form class="inline-form" id="cahier-texte-form">
+          <div class="f" style="min-width:220px;">
+            <label>Classe / matière</label>
+            <select name="enseignementId" required>${enseignementOptions || '<option value="">Aucun enseignement</option>'}</select>
+          </div>
+          <div class="f"><label>Date</label><input type="date" name="date" required value="${new Date().toISOString().slice(0,10)}" /></div>
+          <div class="f" style="min-width:260px;flex:2;"><label>Contenu du cours</label><input type="text" name="contenu" required placeholder="Ex : Chapitre 3 — les fractions" /></div>
+          <div class="f" style="min-width:220px;flex:1;"><label>Devoirs (facultatif)</label><input type="text" name="devoirs" placeholder="Ex : Exercices 4 à 8 p.32" /></div>
+          <button class="btn-submit" type="submit">Ajouter</button>
+        </form>
+      </div>`;
+  }
+
+  const rows = entrees.map(e => `
+    <tr>
+      <td>${new Date(e.date).toLocaleDateString('fr-FR')}</td>
+      <td>${escapeHtml(e.enseignement.classe.nom)}</td>
+      <td><span class="chip" style="background:${stringToColor(e.enseignement.matiere.nom)}">${escapeHtml(e.enseignement.matiere.nom)}</span></td>
+      <td>${escapeHtml(e.contenu)}</td>
+      <td>${e.devoirs ? escapeHtml(e.devoirs) : '—'}</td>
+      ${isProf ? `<td><button class="btn-secondary" data-delete-cahier="${e.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td>` : ''}
+    </tr>`).join('');
+
+  content.innerHTML = `
+    ${creationCard}
+    <div class="card">
+      <h2>${entrees.length} entrée${entrees.length > 1 ? 's' : ''}</h2>
+      ${entrees.length ? `<table><thead><tr><th>Date</th><th>Classe</th><th>Matière</th><th>Contenu</th><th>Devoirs</th>${isProf ? '<th></th>' : ''}</tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune entrée pour l\'instant.</div>'}
+    </div>`;
+
+  if(isProf){
+    document.getElementById('cahier-texte-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try{
+        await api('/cahiers-texte', { method:'POST', body: JSON.stringify({
+          enseignementId: Number(fd.get('enseignementId')),
+          date: new Date(fd.get('date')).toISOString(),
+          contenu: fd.get('contenu'),
+          devoirs: fd.get('devoirs') || undefined,
+        })});
+        toast('Entrée ajoutée au cahier de texte.');
+        renderCahierTexte();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+
+    bindDeleteButtons(content, 'data-delete-cahier', '/cahiers-texte', renderCahierTexte, 'cette entrée');
+  }
 }
 
 /* ============================================================

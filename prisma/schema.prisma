@@ -95,6 +95,7 @@ model Enseignement {
   absences      Absence[]
   creneaux      Creneau[]
   observations  Observation[]
+  cahiersTexte  CahierTexte[]
 }
 
 enum TypeEvaluation {
@@ -277,4 +278,15 @@ model InvitationReunion {
   inviteId  Int
 
   @@unique([reunionId, inviteId])
+}
+
+model CahierTexte {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  contenu   String
+  devoirs   String?
+  createdAt DateTime @default(now())
+
+  enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
+  enseignementId Int
 }

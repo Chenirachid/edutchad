@@ -20,6 +20,7 @@ import { ObservationsModule } from './observations/observations.module';
 import { PunitionsModule } from './punitions/punitions.module';
 import { GroupesModule } from './groupes/groupes.module';
 import { ReunionsModule } from './reunions/reunions.module';
+import { CahiersTexteModule } from './cahiers-texte/cahiers-texte.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ReunionsModule } from './reunions/reunions.module';
     PunitionsModule,
     GroupesModule,
     ReunionsModule,
+    CahiersTexteModule,
   ],
   controllers: [],
   providers: [
