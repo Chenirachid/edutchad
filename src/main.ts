@@ -47,7 +47,8 @@ async function bootstrap() {
   });
 
   // Sert le frontend (public/index.html, public/educheni-logo.svg) à la racine du site
-  app.useStaticAssets(join(process.cwd(), 'public'));
+  // dotfiles: 'allow' est nécessaire pour que /.well-known/security.txt soit servi
+  app.useStaticAssets(join(process.cwd(), 'public'), { dotfiles: 'allow' });
 
   const config = new DocumentBuilder()
     .setTitle('EduCheni API')
