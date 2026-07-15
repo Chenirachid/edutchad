@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCreneauDto } from './dto/create-creneau.dto';
@@ -110,8 +110,17 @@ export class CreneauxService {
       });
     }
 
-    // ADMIN (et PARENT en attendant le lien parent-enfant)
-    return this.prisma.creneau.findMany({ include: includeContext });
+    if (currentUser.role === Role.CHEF_PROJET) {
+      throw new ForbiddenException(
+        "Le chef de projet n'a pas accès à l'emploi du temps — cela relève du chef d'établissement.",
+      );
+    }
+
+    // ADMIN, VIE_SCOLAIRE, CHEF_ETABLISSEMENT, PARENT : classes de leur propre établissement
+    return this.prisma.creneau.findMany({
+      where: { enseignement: { classe: { etablissementId: currentUser.etablissementId } } },
+      include: includeContext,
+    });
   }
 
   async findOne(id: number) {

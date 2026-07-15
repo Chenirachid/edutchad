@@ -32,8 +32,8 @@ export class EnseignementsController {
   }
 
   @Get()
-  findAll() {
-    return this.enseignementsService.findAll();
+  findAll(@CurrentUser() user: JwtPayload) {
+    return this.enseignementsService.findAll(user);
   }
 
   @Get(':id')

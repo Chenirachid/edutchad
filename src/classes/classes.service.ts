@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClasseDto } from './dto/create-classe.dto';
@@ -36,10 +36,13 @@ export class ClassesService {
   }
 
   findAll(currentUser: JwtPayload) {
-    const where: Prisma.ClasseWhereInput =
-      currentUser.role === Role.CHEF_PROJET
-        ? {}
-        : { etablissementId: currentUser.etablissementId };
+    if (currentUser.role === Role.CHEF_PROJET) {
+      throw new ForbiddenException(
+        "Le chef de projet n'a pas accès aux classes — cela relève du chef d'établissement.",
+      );
+    }
+
+    const where: Prisma.ClasseWhereInput = { etablissementId: currentUser.etablissementId };
 
     return this.prisma.classe.findMany({
       where,

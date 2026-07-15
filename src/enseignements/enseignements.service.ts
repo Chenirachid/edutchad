@@ -1,11 +1,13 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEnseignementDto } from './dto/create-enseignement.dto';
+import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 const professeurSelect = {
   id: true,
@@ -54,8 +56,19 @@ export class EnseignementsService {
     });
   }
 
-  findAll() {
+  findAll(currentUser: JwtPayload) {
+    if (currentUser.role === Role.CHEF_PROJET) {
+      throw new ForbiddenException(
+        "Le chef de projet n'a pas accès aux enseignements — cela relève du chef d'établissement.",
+      );
+    }
+
+    const where: Prisma.EnseignementWhereInput = {
+      classe: { etablissementId: currentUser.etablissementId },
+    };
+
     return this.prisma.enseignement.findMany({
+      where,
       include: { classe: true, matiere: true, professeur: { select: professeurSelect } },
     });
   }

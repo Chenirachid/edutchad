@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMatiereDto } from './dto/create-matiere.dto';
@@ -46,10 +46,13 @@ export class MatieresService {
   }
 
   findAll(currentUser: JwtPayload) {
-    const where: Prisma.MatiereWhereInput =
-      currentUser.role === Role.CHEF_PROJET
-        ? {}
-        : { etablissementId: currentUser.etablissementId };
+    if (currentUser.role === Role.CHEF_PROJET) {
+      throw new ForbiddenException(
+        "Le chef de projet n'a pas accès aux matières — cela relève du chef d'établissement.",
+      );
+    }
+
+    const where: Prisma.MatiereWhereInput = { etablissementId: currentUser.etablissementId };
 
     return this.prisma.matiere.findMany({ where });
   }

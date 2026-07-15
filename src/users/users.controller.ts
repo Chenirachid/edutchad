@@ -25,7 +25,7 @@ import type { JwtPayload } from '../auth/types/jwt-payload.type';
 @ApiBearerAuth('access-token')
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN)
+@Roles(Role.ADMIN, Role.CHEF_PROJET)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

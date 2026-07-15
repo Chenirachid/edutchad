@@ -17,9 +17,6 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<{ user: JwtPayload }>();
     const user = request.user;
 
-    // Le chef de projet a accès à tout ce qui est réservé à l'ADMIN, sans exception
-    if (user?.role === Role.CHEF_PROJET) return true;
-
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }

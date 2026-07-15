@@ -87,11 +87,6 @@ export class GroupesService {
       }
     }
 
-    if (user.role === Role.CHEF_PROJET) {
-      const tousLesGroupes = await this.prisma.groupe.findMany();
-      for (const g of tousLesGroupes) groupes.push(g);
-    }
-
     return groupes;
   }
 
@@ -99,7 +94,6 @@ export class GroupesService {
     const groupe = await this.prisma.groupe.findUnique({ where: { id: groupeId } });
     if (!groupe) throw new NotFoundException(`Groupe ${groupeId} introuvable`);
 
-    if (user.role === Role.CHEF_PROJET) return groupe;
     if (
       (user.role === Role.ADMIN || user.role === Role.VIE_SCOLAIRE) &&
       groupe.etablissementId === user.etablissementId

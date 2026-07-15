@@ -134,7 +134,7 @@ export class UsersService {
   findAll(currentUser: JwtPayload) {
     const where: Prisma.UserWhereInput =
       currentUser.role === Role.CHEF_PROJET
-        ? {}
+        ? { role: Role.CHEF_ETABLISSEMENT }
         : { etablissementId: currentUser.etablissementId };
 
     return this.prisma.user.findMany({

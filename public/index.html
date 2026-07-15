@@ -779,8 +779,9 @@ const MENUS = {
 };
 MENUS.CHEF_PROJET = [
   { id:'etablissements', label:'Établissements', render: renderEtablissements },
-  ...MENUS.ADMIN,
+  { id:'utilisateurs', label:'Utilisateurs', render: renderAdminUsers },
   { id:'demandes-suppression', label:'Demandes de suppression', render: renderDemandesSuppression },
+  { id:'messagerie', label:'Messagerie', render: renderMessagerie },
 ];
 MENUS.CHEF_ETABLISSEMENT = [
   ...MENUS.ADMIN,
