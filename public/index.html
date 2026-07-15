@@ -1283,6 +1283,7 @@ async function renderParentEnfants(){
    ============================================================ */
 async function renderAdminUsers(){
   const users = await api('/users');
+  const etablissementsListe = state.user.role === 'CHEF_PROJET' ? await api('/etablissements') : [];
   document.getElementById('page-subtitle').textContent = users.length + ' comptes';
   const content = document.getElementById('content');
 
@@ -1324,7 +1325,7 @@ async function renderAdminUsers(){
           </select>
         </div>
         ${state.user.role === 'CHEF_PROJET' ? `
-        <div class="f"><label>ID Établissement</label><input type="number" name="etablissementId" placeholder="Voir onglet Établissements" /></div>
+        <div class="f"><label>Établissement</label><select name="etablissementId"><option value="">— Aucun (compte CHEF_PROJET) —</option>${etablissementsListe.map(e => `<option value="${e.id}">${escapeHtml(e.nom)}</option>`).join('')}</select></div>
         ` : ''}
         <button class="btn-submit" type="submit">Créer le compte</button>
       </form>
@@ -1395,6 +1396,7 @@ async function renderAdminUsers(){
 
 async function renderAdminClasses(){
   const classes = await api('/classes');
+  const etablissementsListe = state.user.role === 'CHEF_PROJET' ? await api('/etablissements') : [];
   document.getElementById('page-subtitle').textContent = classes.length + ' classes';
   const content = document.getElementById('content');
   const rows = classes.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.nom)}</td><td>${escapeHtml(c.anneeScolaire)}</td><td>${c.etudiants ? c.etudiants.length : 0}</td><td><button class="btn-secondary" data-delete-classe="${c.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
@@ -1405,7 +1407,7 @@ async function renderAdminClasses(){
       <form class="inline-form" id="classe-form">
         <div class="f"><label>Nom</label><input type="text" name="nom" required placeholder="L1 Info A" /></div>
         <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
-        ${state.user.role === 'CHEF_PROJET' ? '<div class="f"><label>ID Établissement</label><input type="number" name="etablissementId" required /></div>' : ''}
+        ${state.user.role === 'CHEF_PROJET' ? `<div class="f"><label>Établissement</label><select name="etablissementId" required>${etablissementsListe.map(e => `<option value="${e.id}">${escapeHtml(e.nom)}</option>`).join('') || '<option value="">Aucun établissement — crée-en un d\'abord</option>'}</select></div>` : ''}
         <button class="btn-submit" type="submit">Créer</button>
       </form>
     </div>
@@ -1432,6 +1434,7 @@ async function renderAdminClasses(){
 
 async function renderAdminMatieres(){
   const matieres = await api('/matieres');
+  const etablissementsListe = state.user.role === 'CHEF_PROJET' ? await api('/etablissements') : [];
   document.getElementById('page-subtitle').textContent = matieres.length + ' matières';
   const content = document.getElementById('content');
   const rows = matieres.map(m => `<tr><td>${m.id}</td><td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td><td>${m.coefficient}</td><td><button class="btn-secondary" data-delete-matiere="${m.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
@@ -1442,7 +1445,7 @@ async function renderAdminMatieres(){
       <form class="inline-form" id="matiere-form">
         <div class="f"><label>Nom</label><input type="text" name="nom" required placeholder="Mathématiques" /></div>
         <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
-        ${state.user.role === 'CHEF_PROJET' ? '<div class="f"><label>ID Établissement</label><input type="number" name="etablissementId" required /></div>' : ''}
+        ${state.user.role === 'CHEF_PROJET' ? `<div class="f"><label>Établissement</label><select name="etablissementId" required>${etablissementsListe.map(e => `<option value="${e.id}">${escapeHtml(e.nom)}</option>`).join('') || '<option value="">Aucun établissement — crée-en un d\'abord</option>'}</select></div>` : ''}
         <button class="btn-submit" type="submit">Créer</button>
       </form>
     </div>
@@ -2542,7 +2545,6 @@ async function renderEtablissements(){
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Chaque établissement est totalement indépendant : ses propres classes, matières, utilisateurs et paramètres.</p>
       <form class="inline-form" id="etablissement-form">
         <div class="f"><label>Nom</label><input type="text" name="nom" required placeholder="Collège Pierre Pharma" /></div>
-        <div class="f"><label>Code (identifiant unique)</label><input type="text" name="code" required placeholder="college-pierre-pharma" pattern="[a-z0-9-]+" /></div>
         <button class="btn-submit" type="submit">Créer</button>
       </form>
     </div>
@@ -2552,14 +2554,14 @@ async function renderEtablissements(){
     </div>
     <div class="card">
       <h2>Prochaine étape après création</h2>
-      <p style="font-size:13px;color:var(--text-muted);">Note l'<strong>ID</strong> de l'établissement créé, puis va dans « Utilisateurs » → « Créer un utilisateur » pour créer son premier compte <strong>ADMIN</strong> en indiquant cet ID.</p>
+      <p style="font-size:13px;color:var(--text-muted);">Va dans « Utilisateurs » → « Créer un utilisateur » pour créer son premier compte <strong>ADMIN</strong>, en choisissant cet établissement dans la liste.</p>
     </div>`;
 
   document.getElementById('etablissement-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
     try{
-      await api('/etablissements', { method:'POST', body: JSON.stringify({ nom: fd.get('nom'), code: fd.get('code') })});
+      await api('/etablissements', { method:'POST', body: JSON.stringify({ nom: fd.get('nom') })});
       toast('Établissement créé.');
       renderEtablissements();
     }catch(err){ toast(err.message, 'error'); }

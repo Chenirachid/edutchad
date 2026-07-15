@@ -1,21 +1,30 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEtablissementDto } from './dto/create-etablissement.dto';
+import { slugify } from '../common/email-generator';
 
 @Injectable()
 export class EtablissementsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateEtablissementDto) {
-    const existant = await this.prisma.etablissement.findUnique({
-      where: { code: dto.code },
-    });
-    if (existant) {
-      throw new ConflictException(`Le code "${dto.code}" est déjà utilisé`);
+  private async genererCodeUnique(nom: string) {
+    const base = slugify(nom) || 'etablissement';
+    let code = base;
+    let counter = 1;
+
+    while (await this.prisma.etablissement.findUnique({ where: { code } })) {
+      counter++;
+      code = `${base}-${counter}`;
     }
 
+    return code;
+  }
+
+  async create(dto: CreateEtablissementDto) {
+    const code = await this.genererCodeUnique(dto.nom);
+
     const etablissement = await this.prisma.etablissement.create({
-      data: { nom: dto.nom, code: dto.code },
+      data: { nom: dto.nom, code },
     });
 
     // Crée automatiquement les paramètres par défaut de ce nouvel établissement

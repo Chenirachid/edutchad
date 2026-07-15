@@ -46,3 +46,17 @@ export function buildBaseEmail(prenom: string, nom: string, role: Role): string 
 export function formatNumeroEtudiant(id: number): string {
   return `ETU-${String(id).padStart(5, '0')}`;
 }
+
+/**
+ * Transforme un nom d'établissement en code/slug lisible :
+ * "Collège Pierre Pharma" -> "college-pierre-pharma"
+ */
+export function slugify(nom: string): string {
+  return nom
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
