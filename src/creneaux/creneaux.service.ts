@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCreneauDto } from './dto/create-creneau.dto';
@@ -13,6 +13,49 @@ const includeContext = {
 export class CreneauxService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private chevauchent(debutA: string, finA: string, debutB: string, finB: string) {
+    return debutA < finB && debutB < finA;
+  }
+
+  private async verifierConflits(params: {
+    jour: string;
+    heureDebut: string;
+    heureFin: string;
+    salle?: string | null;
+    professeurId: number;
+    classeId: number;
+    excludeCreneauId?: number;
+  }) {
+    const autresCreneaux = await this.prisma.creneau.findMany({
+      where: {
+        jour: params.jour as never,
+        id: params.excludeCreneauId ? { not: params.excludeCreneauId } : undefined,
+      },
+      include: { enseignement: true },
+    });
+
+    for (const c of autresCreneaux) {
+      if (!this.chevauchent(params.heureDebut, params.heureFin, c.heureDebut, c.heureFin)) {
+        continue;
+      }
+      if (c.enseignement.professeurId === params.professeurId) {
+        throw new ConflictException(
+          `Conflit : ce professeur a déjà un cours ${c.heureDebut}-${c.heureFin} ce jour-là`,
+        );
+      }
+      if (c.enseignement.classeId === params.classeId) {
+        throw new ConflictException(
+          `Conflit : cette classe a déjà un cours ${c.heureDebut}-${c.heureFin} ce jour-là`,
+        );
+      }
+      if (params.salle && c.salle && c.salle === params.salle) {
+        throw new ConflictException(
+          `Conflit : la salle ${params.salle} est déjà occupée ${c.heureDebut}-${c.heureFin} ce jour-là`,
+        );
+      }
+    }
+  }
+
   async create(dto: CreateCreneauDto) {
     const enseignement = await this.prisma.enseignement.findUnique({
       where: { id: dto.enseignementId },
@@ -23,6 +66,15 @@ export class CreneauxService {
         `Enseignement ${dto.enseignementId} introuvable`,
       );
     }
+
+    await this.verifierConflits({
+      jour: dto.jour,
+      heureDebut: dto.heureDebut,
+      heureFin: dto.heureFin,
+      salle: dto.salle,
+      professeurId: enseignement.professeurId,
+      classeId: enseignement.classeId,
+    });
 
     return this.prisma.creneau.create({
       data: dto,
@@ -70,7 +122,20 @@ export class CreneauxService {
   }
 
   async update(id: number, dto: UpdateCreneauDto) {
-    await this.findOne(id);
+    const existant = await this.findOne(id);
+
+    if (dto.jour || dto.heureDebut || dto.heureFin || dto.salle !== undefined) {
+      await this.verifierConflits({
+        jour: dto.jour ?? existant.jour,
+        heureDebut: dto.heureDebut ?? existant.heureDebut,
+        heureFin: dto.heureFin ?? existant.heureFin,
+        salle: dto.salle !== undefined ? dto.salle : existant.salle,
+        professeurId: existant.enseignement.professeurId,
+        classeId: existant.enseignement.classeId,
+        excludeCreneauId: id,
+      });
+    }
+
     return this.prisma.creneau.update({
       where: { id },
       data: dto,

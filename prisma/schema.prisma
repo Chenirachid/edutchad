@@ -137,6 +137,7 @@ model Enseignement {
   creneaux      Creneau[]
   observations  Observation[]
   cahiersTexte  CahierTexte[]
+  epreuves      Epreuve[]
 }
 
 enum TypeEvaluation {
@@ -157,6 +158,25 @@ model Note {
   etudiantId     Int
   enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
   enseignementId Int
+
+  epreuve   Epreuve? @relation(fields: [epreuveId], references: [id])
+  epreuveId Int?
+
+  @@unique([etudiantId, epreuveId])
+}
+
+model Epreuve {
+  id          Int            @id @default(autoincrement())
+  titre       String
+  type        TypeEvaluation @default(CONTROLE)
+  date        DateTime
+  coefficient Float          @default(1)
+  createdAt   DateTime       @default(now())
+
+  enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
+  enseignementId Int
+
+  notes Note[]
 }
 
 enum TypeAbsence {
