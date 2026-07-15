@@ -18,6 +18,8 @@ import { InscrireEtudiantDto } from './dto/inscrire-etudiant.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @ApiTags('Matieres')
 @ApiBearerAuth('access-token')
@@ -28,13 +30,13 @@ export class MatieresController {
 
   @Post()
   @Roles(Role.ADMIN)
-  create(@Body() dto: CreateMatiereDto) {
-    return this.matieresService.create(dto);
+  create(@Body() dto: CreateMatiereDto, @CurrentUser() user: JwtPayload) {
+    return this.matieresService.create(dto, user);
   }
 
   @Get()
-  findAll() {
-    return this.matieresService.findAll();
+  findAll(@CurrentUser() user: JwtPayload) {
+    return this.matieresService.findAll(user);
   }
 
   @Get(':id')

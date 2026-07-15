@@ -41,6 +41,23 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const role = dto.role ?? Role.ETUDIANT;
+
+    let etablissementId: number | null = null;
+    if (role !== Role.CHEF_PROJET) {
+      if (!dto.etablissementId) {
+        throw new BadRequestException(
+          "Un établissement est requis pour ce rôle (etablissementId)",
+        );
+      }
+      const etablissement = await this.prisma.etablissement.findUnique({
+        where: { id: dto.etablissementId },
+      });
+      if (!etablissement) {
+        throw new NotFoundException(`Établissement ${dto.etablissementId} introuvable`);
+      }
+      etablissementId = etablissement.id;
+    }
+
     const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
@@ -51,6 +68,7 @@ export class AuthService {
         email,
         password: hashedPassword,
         role,
+        etablissementId,
       },
     });
 
@@ -144,11 +162,13 @@ export class AuthService {
     email: string;
     role: JwtPayload['role'];
     numeroEtudiant?: string | null;
+    etablissementId: number | null;
   }) {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
+      etablissementId: user.etablissementId,
     };
 
     return {
@@ -160,6 +180,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         numeroEtudiant: user.numeroEtudiant ?? null,
+        etablissementId: user.etablissementId,
       },
     };
   }

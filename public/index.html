@@ -467,7 +467,7 @@ const I18N = {
     nav_enseignements: 'Mes classes', nav_appel: "Faire l'appel", nav_saisir_note: 'Saisir une note',
     nav_declarer_absence: 'Déclarer une absence', nav_observations: 'Observations', nav_punitions: 'Punitions',
     nav_cahier_texte: 'Cahier de texte', nav_parametres: 'Paramètres', nav_enfants: 'Mes enfants',
-    nav_utilisateurs: 'Utilisateurs', nav_inscriptions: 'Inscriptions', nav_classes: 'Classes',
+    nav_utilisateurs: 'Utilisateurs', nav_inscriptions: 'Inscriptions', nav_classes: 'Classes', nav_etablissements: 'Établissements',
     nav_matieres: 'Matières', nav_enseignements_admin: 'Enseignements', nav_creneaux_admin: 'Emploi du temps',
     nav_liaisons: 'Liaisons parents', nav_bulletins_pdf: 'Bulletins PDF', nav_certificats: 'Certificats',
     nav_frais: 'Frais scolaires', nav_demandes_suppression: 'Demandes de suppression',
@@ -480,7 +480,7 @@ const I18N = {
     title_matieres: 'Gestion des matières', title_enseignements_admin: 'Gestion des enseignements',
     title_creneaux_admin: "Gestion de l'emploi du temps", title_liaisons: 'Liaisons parent-enfant',
     title_bulletins_pdf: 'Bulletins PDF', title_certificats: 'Certificats de scolarité', title_frais: 'Frais scolaires',
-    title_demandes_suppression: 'Demandes de suppression',
+    title_demandes_suppression: 'Demandes de suppression', title_etablissements: 'Établissements',
     title_messagerie: 'Messagerie', title_parametres: 'Paramètres',
   },
   en: {
@@ -499,7 +499,7 @@ const I18N = {
     nav_enseignements: 'My classes', nav_appel: 'Take attendance', nav_saisir_note: 'Enter a grade',
     nav_declarer_absence: 'Report an absence', nav_observations: 'Remarks', nav_punitions: 'Sanctions',
     nav_cahier_texte: 'Class logbook', nav_parametres: 'Settings', nav_enfants: 'My children',
-    nav_utilisateurs: 'Users', nav_inscriptions: 'Enrolments', nav_classes: 'Classes',
+    nav_utilisateurs: 'Users', nav_inscriptions: 'Enrolments', nav_classes: 'Classes', nav_etablissements: 'Schools',
     nav_matieres: 'Subjects', nav_enseignements_admin: 'Teaching assignments', nav_creneaux_admin: 'Timetable',
     nav_liaisons: 'Parent links', nav_bulletins_pdf: 'Report cards (PDF)', nav_certificats: 'Certificates',
     nav_frais: 'School fees', nav_demandes_suppression: 'Deletion requests',
@@ -512,7 +512,7 @@ const I18N = {
     title_matieres: 'Subject management', title_enseignements_admin: 'Teaching assignments management',
     title_creneaux_admin: 'Timetable management', title_liaisons: 'Parent-child links',
     title_bulletins_pdf: 'Report cards (PDF)', title_certificats: 'School certificates', title_frais: 'School fees',
-    title_demandes_suppression: 'Deletion requests',
+    title_demandes_suppression: 'Deletion requests', title_etablissements: 'Schools',
     title_messagerie: 'Messages', title_parametres: 'Settings',
   },
   ar: {
@@ -531,7 +531,7 @@ const I18N = {
     nav_enseignements: 'أقسامي', nav_appel: 'أخذ الحضور', nav_saisir_note: 'إدخال نقطة',
     nav_declarer_absence: 'تسجيل غياب', nav_observations: 'ملاحظات', nav_punitions: 'عقوبات',
     nav_cahier_texte: 'دفتر النصوص', nav_parametres: 'الإعدادات', nav_enfants: 'أبنائي',
-    nav_utilisateurs: 'المستخدمون', nav_inscriptions: 'التسجيلات', nav_classes: 'الأقسام',
+    nav_utilisateurs: 'المستخدمون', nav_inscriptions: 'التسجيلات', nav_classes: 'الأقسام', nav_etablissements: 'المؤسسات',
     nav_matieres: 'المواد', nav_enseignements_admin: 'التكليفات التعليمية', nav_creneaux_admin: 'الجدول الزمني',
     nav_liaisons: 'روابط أولياء الأمور', nav_bulletins_pdf: 'كشوف النقاط PDF', nav_certificats: 'الشهادات',
     nav_frais: 'الرسوم المدرسية', nav_demandes_suppression: 'طلبات الحذف',
@@ -544,7 +544,7 @@ const I18N = {
     title_matieres: 'إدارة المواد', title_enseignements_admin: 'إدارة التكليفات التعليمية',
     title_creneaux_admin: 'إدارة الجدول الزمني', title_liaisons: 'روابط أولياء الأمور بالأبناء',
     title_bulletins_pdf: 'كشوف النقاط PDF', title_certificats: 'الشهادات المدرسية', title_frais: 'الرسوم المدرسية',
-    title_demandes_suppression: 'طلبات الحذف',
+    title_demandes_suppression: 'طلبات الحذف', title_etablissements: 'المؤسسات',
     title_messagerie: 'الرسائل', title_parametres: 'الإعدادات',
   },
 };
@@ -789,6 +789,7 @@ const MENUS = {
   ],
 };
 MENUS.CHEF_PROJET = [
+  { id:'etablissements', label:'Établissements', render: renderEtablissements },
   ...MENUS.ADMIN,
   { id:'demandes-suppression', label:'Demandes de suppression', render: renderDemandesSuppression },
 ];
@@ -1322,6 +1323,9 @@ async function renderAdminUsers(){
             <option value="CHEF_PROJET">CHEF_PROJET</option>
           </select>
         </div>
+        ${state.user.role === 'CHEF_PROJET' ? `
+        <div class="f"><label>ID Établissement</label><input type="number" name="etablissementId" placeholder="Voir onglet Établissements" /></div>
+        ` : ''}
         <button class="btn-submit" type="submit">Créer le compte</button>
       </form>
     </div>
@@ -1337,6 +1341,7 @@ async function renderAdminUsers(){
       const created = await api('/users', { method:'POST', body: JSON.stringify({
         prenom: fd.get('prenom'), nom: fd.get('nom'),
         password: fd.get('password'), role: fd.get('role'),
+        etablissementId: fd.get('etablissementId') ? Number(fd.get('etablissementId')) : undefined,
       })});
       toast(`Utilisateur créé — email : ${created.email}`);
       renderAdminUsers();
@@ -1400,6 +1405,7 @@ async function renderAdminClasses(){
       <form class="inline-form" id="classe-form">
         <div class="f"><label>Nom</label><input type="text" name="nom" required placeholder="L1 Info A" /></div>
         <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
+        ${state.user.role === 'CHEF_PROJET' ? '<div class="f"><label>ID Établissement</label><input type="number" name="etablissementId" required /></div>' : ''}
         <button class="btn-submit" type="submit">Créer</button>
       </form>
     </div>
@@ -1412,7 +1418,10 @@ async function renderAdminClasses(){
     e.preventDefault();
     const fd = new FormData(e.target);
     try{
-      await api('/classes', { method:'POST', body: JSON.stringify({ nom: fd.get('nom'), anneeScolaire: fd.get('anneeScolaire') })});
+      await api('/classes', { method:'POST', body: JSON.stringify({
+        nom: fd.get('nom'), anneeScolaire: fd.get('anneeScolaire'),
+        etablissementId: fd.get('etablissementId') ? Number(fd.get('etablissementId')) : undefined,
+      })});
       toast('Classe créée.');
       renderAdminClasses();
     }catch(err){ toast(err.message, 'error'); }
@@ -1433,6 +1442,7 @@ async function renderAdminMatieres(){
       <form class="inline-form" id="matiere-form">
         <div class="f"><label>Nom</label><input type="text" name="nom" required placeholder="Mathématiques" /></div>
         <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
+        ${state.user.role === 'CHEF_PROJET' ? '<div class="f"><label>ID Établissement</label><input type="number" name="etablissementId" required /></div>' : ''}
         <button class="btn-submit" type="submit">Créer</button>
       </form>
     </div>
@@ -1496,7 +1506,10 @@ async function renderAdminMatieres(){
     e.preventDefault();
     const fd = new FormData(e.target);
     try{
-      await api('/matieres', { method:'POST', body: JSON.stringify({ nom: fd.get('nom'), coefficient: Number(fd.get('coefficient')) })});
+      await api('/matieres', { method:'POST', body: JSON.stringify({
+        nom: fd.get('nom'), coefficient: Number(fd.get('coefficient')),
+        etablissementId: fd.get('etablissementId') ? Number(fd.get('etablissementId')) : undefined,
+      })});
       toast('Matière créée.');
       renderAdminMatieres();
     }catch(err){ toast(err.message, 'error'); }
@@ -2503,6 +2516,54 @@ async function renderAdminInscriptions(){
 
   document.getElementById('aller-utilisateurs-btn').addEventListener('click', () => selectMenu('utilisateurs'));
   document.getElementById('aller-matieres-btn').addEventListener('click', () => selectMenu('matieres'));
+}
+
+/* ============================================================
+   ÉTABLISSEMENTS (CHEF DE PROJET)
+   ============================================================ */
+async function renderEtablissements(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const etablissements = await api('/etablissements');
+
+  const rows = etablissements.map(e => `
+    <tr>
+      <td>${e.id}</td>
+      <td>${escapeHtml(e.nom)}</td>
+      <td><code style="font-size:12px;">${escapeHtml(e.code)}</code></td>
+      <td>${e.nbUtilisateurs}</td>
+      <td>${e.nbClasses}</td>
+      <td>${new Date(e.createdAt).toLocaleDateString('fr-FR')}</td>
+    </tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Créer un établissement</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Chaque établissement est totalement indépendant : ses propres classes, matières, utilisateurs et paramètres.</p>
+      <form class="inline-form" id="etablissement-form">
+        <div class="f"><label>Nom</label><input type="text" name="nom" required placeholder="Collège Pierre Pharma" /></div>
+        <div class="f"><label>Code (identifiant unique)</label><input type="text" name="code" required placeholder="college-pierre-pharma" pattern="[a-z0-9-]+" /></div>
+        <button class="btn-submit" type="submit">Créer</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Établissements (${etablissements.length})</h2>
+      ${etablissements.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Code</th><th>Utilisateurs</th><th>Classes</th><th>Créé le</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun établissement pour l\'instant.</div>'}
+    </div>
+    <div class="card">
+      <h2>Prochaine étape après création</h2>
+      <p style="font-size:13px;color:var(--text-muted);">Note l'<strong>ID</strong> de l'établissement créé, puis va dans « Utilisateurs » → « Créer un utilisateur » pour créer son premier compte <strong>ADMIN</strong> en indiquant cet ID.</p>
+    </div>`;
+
+  document.getElementById('etablissement-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/etablissements', { method:'POST', body: JSON.stringify({ nom: fd.get('nom'), code: fd.get('code') })});
+      toast('Établissement créé.');
+      renderEtablissements();
+    }catch(err){ toast(err.message, 'error'); }
+  });
 }
 
 /* ============================================================

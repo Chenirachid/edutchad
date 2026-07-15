@@ -25,7 +25,7 @@ export class BulletinsService {
   async getBulletinEtudiant(etudiantId: number, currentUser: JwtPayload) {
     const etudiant = await this.prisma.user.findUnique({
       where: { id: etudiantId },
-      select: { id: true, nom: true, prenom: true, numeroEtudiant: true, classeId: true },
+      select: { id: true, nom: true, prenom: true, numeroEtudiant: true, classeId: true, etablissementId: true },
     });
 
     if (!etudiant) {
@@ -57,7 +57,7 @@ export class BulletinsService {
     const classe = await this.prisma.classe.findUnique({
       where: { id: classeId },
       include: {
-        etudiants: { select: { id: true, nom: true, prenom: true, numeroEtudiant: true, classeId: true } },
+        etudiants: { select: { id: true, nom: true, prenom: true, numeroEtudiant: true, classeId: true, etablissementId: true } },
       },
     });
 
@@ -113,6 +113,7 @@ export class BulletinsService {
     nom: string;
     prenom: string;
     numeroEtudiant?: string | null;
+    etablissementId?: number | null;
   }) {
     const notes = await this.prisma.note.findMany({
       where: { etudiantId: etudiant.id },
@@ -158,7 +159,9 @@ export class BulletinsService {
       0,
     );
 
-    const parametres = await this.prisma.parametrePlateforme.findUnique({ where: { id: 1 } });
+    const parametres = await this.prisma.parametrePlateforme.findFirst({
+      where: { etablissementId: etudiant.etablissementId ?? null },
+    });
     const anneeScolaire = parametres?.anneeScolaire ?? '2025-2026';
     const mentionEntry = await this.mentionsBulletinService.getPourEtudiant(
       etudiant.id,

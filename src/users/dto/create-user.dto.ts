@@ -30,4 +30,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsInt()
   classeId?: number;
+
+  @IsOptional()
+  @IsInt()
+  etablissementId?: number;
 }

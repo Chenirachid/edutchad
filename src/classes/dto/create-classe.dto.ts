@@ -1,4 +1,4 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsInt, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateClasseDto {
   @IsString()
@@ -7,4 +7,8 @@ export class CreateClasseDto {
 
   @IsString()
   anneeScolaire: string;
+
+  @IsOptional()
+  @IsInt()
+  etablissementId?: number;
 }

@@ -6,6 +6,18 @@ datasource db {
   provider = "postgresql"
 }
 
+model Etablissement {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  utilisateurs User[]
+  classes      Classe[]
+  matieres     Matiere[]
+  parametres   ParametrePlateforme?
+}
+
 model User {
   id                  Int       @id @default(autoincrement())
   nom                 String
@@ -17,6 +29,9 @@ model User {
   createdAt           DateTime  @default(now())
   tentativesEchouees  Int       @default(0)
   verrouJusqua        DateTime?
+
+  etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
+  etablissementId Int?
 
   classeId  Int?
   classe    Classe?  @relation("EtudiantsClasse", fields: [classeId], references: [id])
@@ -62,23 +77,33 @@ enum Role {
 
 model Classe {
   id            Int      @id @default(autoincrement())
-  nom           String   @unique
+  nom           String
   anneeScolaire String
   createdAt     DateTime @default(now())
+
+  etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
+  etablissementId Int?
 
   etudiants     User[]         @relation("EtudiantsClasse")
   enseignements Enseignement[]
   groupe        Groupe?
+
+  @@unique([nom, etablissementId])
 }
 
 model Matiere {
   id          Int      @id @default(autoincrement())
-  nom         String   @unique
+  nom         String
   coefficient Float    @default(1)
   createdAt   DateTime @default(now())
 
+  etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
+  etablissementId Int?
+
   enseignements Enseignement[]
   inscriptions  InscriptionMatiere[]
+
+  @@unique([nom, etablissementId])
 }
 
 model InscriptionMatiere {
@@ -184,11 +209,14 @@ model Message {
 }
 
 model ParametrePlateforme {
-  id               Int      @id @default(1)
-  nomEtablissement String   @default("EduTchad")
+  id               Int      @id @default(autoincrement())
+  nomEtablissement String   @default("EduCheni")
   anneeScolaire    String   @default("2025-2026")
   bareme           Int      @default(20)
   updatedAt        DateTime @updatedAt
+
+  etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
+  etablissementId Int?           @unique
 }
 
 enum TypeObservation {

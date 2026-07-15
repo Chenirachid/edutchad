@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateMatiereDto {
   @IsString()
@@ -8,4 +8,8 @@ export class CreateMatiereDto {
   @IsOptional()
   @IsNumber()
   coefficient?: number;
+
+  @IsOptional()
+  @IsInt()
+  etablissementId?: number;
 }

@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import { Role } from '@prisma/client';
 
 export class RegisterDto {
@@ -19,4 +19,8 @@ export class RegisterDto {
   @IsOptional()
   @IsEnum(Role, { message: 'Rôle invalide' })
   role?: Role;
+
+  @IsOptional()
+  @IsInt()
+  etablissementId?: number;
 }

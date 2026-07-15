@@ -17,6 +17,8 @@ import { UpdateClasseDto } from './dto/update-classe.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @ApiTags('Classes')
 @ApiBearerAuth('access-token')
@@ -27,13 +29,13 @@ export class ClassesController {
 
   @Post()
   @Roles(Role.ADMIN)
-  create(@Body() dto: CreateClasseDto) {
-    return this.classesService.create(dto);
+  create(@Body() dto: CreateClasseDto, @CurrentUser() user: JwtPayload) {
+    return this.classesService.create(dto, user);
   }
 
   @Get()
-  findAll() {
-    return this.classesService.findAll();
+  findAll(@CurrentUser() user: JwtPayload) {
+    return this.classesService.findAll(user);
   }
 
   @Get(':id')

@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,6 +22,7 @@ const userSelect = {
   role: true,
   numeroEtudiant: true,
   classeId: true,
+  etablissementId: true,
   createdAt: true,
 } as const;
 
@@ -43,7 +44,7 @@ export class UsersService {
     return email;
   }
 
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, currentUser: JwtPayload) {
     if (dto.classeId) {
       const classe = await this.prisma.classe.findUnique({
         where: { id: dto.classeId },
@@ -54,6 +55,29 @@ export class UsersService {
     }
 
     const role = dto.role ?? Role.ETUDIANT;
+
+    // Un admin crée toujours dans son propre établissement.
+    // Le chef de projet doit préciser l'établissement (sauf pour créer un autre chef de projet).
+    let etablissementId: number | null = null;
+    if (role !== Role.CHEF_PROJET) {
+      etablissementId =
+        currentUser.role === Role.CHEF_PROJET
+          ? dto.etablissementId ?? null
+          : currentUser.etablissementId;
+
+      if (!etablissementId) {
+        throw new BadRequestException(
+          "Un établissement est requis pour créer ce compte (etablissementId)",
+        );
+      }
+      const etablissement = await this.prisma.etablissement.findUnique({
+        where: { id: etablissementId },
+      });
+      if (!etablissement) {
+        throw new BadRequestException(`Établissement ${etablissementId} introuvable`);
+      }
+    }
+
     const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
@@ -65,6 +89,7 @@ export class UsersService {
         password: hashedPassword,
         role,
         classeId: dto.classeId,
+        etablissementId,
       },
     });
 
@@ -79,8 +104,14 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id: user.id }, select: userSelect });
   }
 
-  findAll() {
+  findAll(currentUser: JwtPayload) {
+    const where: Prisma.UserWhereInput =
+      currentUser.role === Role.CHEF_PROJET
+        ? {}
+        : { etablissementId: currentUser.etablissementId };
+
     return this.prisma.user.findMany({
+      where,
       select: userSelect,
       orderBy: { id: 'asc' },
     });

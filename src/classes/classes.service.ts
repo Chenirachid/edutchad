@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClasseDto } from './dto/create-classe.dto';
 import { UpdateClasseDto } from './dto/update-classe.dto';
+import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 const etudiantSelect = {
   id: true,
@@ -16,12 +18,31 @@ const etudiantSelect = {
 export class ClassesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateClasseDto) {
-    return this.prisma.classe.create({ data: dto });
+  create(dto: CreateClasseDto, currentUser: JwtPayload) {
+    const etablissementId =
+      currentUser.role === Role.CHEF_PROJET
+        ? dto.etablissementId ?? null
+        : currentUser.etablissementId;
+
+    if (!etablissementId) {
+      throw new BadRequestException(
+        "Un établissement est requis pour créer une classe (etablissementId)",
+      );
+    }
+
+    return this.prisma.classe.create({
+      data: { nom: dto.nom, anneeScolaire: dto.anneeScolaire, etablissementId },
+    });
   }
 
-  findAll() {
+  findAll(currentUser: JwtPayload) {
+    const where: Prisma.ClasseWhereInput =
+      currentUser.role === Role.CHEF_PROJET
+        ? {}
+        : { etablissementId: currentUser.etablissementId };
+
     return this.prisma.classe.findMany({
+      where,
       include: { etudiants: { select: etudiantSelect } },
     });
   }

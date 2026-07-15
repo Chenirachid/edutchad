@@ -25,6 +25,7 @@ import { FraisScolariteModule } from './frais-scolarite/frais-scolarite.module';
 import { InscriptionsAdministrativesModule } from './inscriptions-administratives/inscriptions-administratives.module';
 import { MentionsBulletinModule } from './mentions-bulletin/mentions-bulletin.module';
 import { DemandesSuppressionModule } from './demandes-suppression/demandes-suppression.module';
+import { EtablissementsModule } from './etablissements/etablissements.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { DemandesSuppressionModule } from './demandes-suppression/demandes-suppr
     FraisScolariteModule,
     InscriptionsAdministrativesModule,
     DemandesSuppressionModule,
+    EtablissementsModule,
   ],
   controllers: [],
   providers: [

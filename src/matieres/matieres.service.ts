@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMatiereDto } from './dto/create-matiere.dto';
 import { UpdateMatiereDto } from './dto/update-matiere.dto';
 import { InscrireEtudiantDto } from './dto/inscrire-etudiant.dto';
+import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 const professeurSelect = {
   id: true,
@@ -26,12 +28,30 @@ const etudiantSelect = {
 export class MatieresService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateMatiereDto) {
-    return this.prisma.matiere.create({ data: dto });
+  create(dto: CreateMatiereDto, currentUser: JwtPayload) {
+    const etablissementId =
+      currentUser.role === Role.CHEF_PROJET
+        ? dto.etablissementId ?? null
+        : currentUser.etablissementId;
+
+    if (!etablissementId) {
+      throw new BadRequestException(
+        "Un établissement est requis pour créer une matière (etablissementId)",
+      );
+    }
+
+    return this.prisma.matiere.create({
+      data: { nom: dto.nom, coefficient: dto.coefficient, etablissementId },
+    });
   }
 
-  findAll() {
-    return this.prisma.matiere.findMany();
+  findAll(currentUser: JwtPayload) {
+    const where: Prisma.MatiereWhereInput =
+      currentUser.role === Role.CHEF_PROJET
+        ? {}
+        : { etablissementId: currentUser.etablissementId };
+
+    return this.prisma.matiere.findMany({ where });
   }
 
   async findOne(id: number) {
