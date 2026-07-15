@@ -24,6 +24,12 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
+    // Le chef d'établissement a tous les droits d'un ADMIN (mais reste cantonné
+    // à son propre établissement, ce que gère la couche service via etablissementId)
+    if (user?.role === Role.CHEF_ETABLISSEMENT && requiredRoles.includes(Role.ADMIN)) {
+      return true;
+    }
+
     return !!user && requiredRoles.includes(user.role);
   }
 }

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -57,26 +58,51 @@ export class UsersService {
 
     const role = dto.role ?? Role.ETUDIANT;
 
-    // Un admin crée toujours dans son propre établissement.
-    // Le chef de projet doit préciser l'établissement (sauf pour créer un autre chef de projet).
-    let etablissementId: number | null = null;
-    if (role !== Role.CHEF_PROJET) {
-      etablissementId =
-        currentUser.role === Role.CHEF_PROJET
-          ? dto.etablissementId ?? null
-          : currentUser.etablissementId;
-
-      if (!etablissementId) {
-        throw new BadRequestException(
-          "Un établissement est requis pour créer ce compte (etablissementId)",
+    // Hiérarchie de création des comptes, comme dans Pronote :
+    // - CHEF_PROJET ne crée que des chefs d'établissement (un par établissement)
+    // - CHEF_ETABLISSEMENT crée tout le reste de son établissement, y compris les admins
+    // - ADMIN crée tout sauf des comptes admin/chef d'établissement/chef de projet
+    if (currentUser.role === Role.CHEF_PROJET) {
+      if (role !== Role.CHEF_ETABLISSEMENT) {
+        throw new ForbiddenException(
+          "Le chef de projet ne peut créer que des comptes chef d'établissement. Demande au chef d'établissement concerné de créer les autres comptes.",
         );
       }
-      const etablissement = await this.prisma.etablissement.findUnique({
-        where: { id: etablissementId },
-      });
-      if (!etablissement) {
-        throw new BadRequestException(`Établissement ${etablissementId} introuvable`);
+    } else if (currentUser.role === Role.CHEF_ETABLISSEMENT) {
+      if (role === Role.CHEF_PROJET || role === Role.CHEF_ETABLISSEMENT) {
+        throw new ForbiddenException(
+          "Tu ne peux pas créer de compte chef de projet ou chef d'établissement.",
+        );
       }
+    } else if (currentUser.role === Role.ADMIN) {
+      if (
+        role === Role.CHEF_PROJET ||
+        role === Role.CHEF_ETABLISSEMENT ||
+        role === Role.ADMIN
+      ) {
+        throw new ForbiddenException(
+          "Un administrateur ne peut pas créer de compte admin, chef d'établissement ou chef de projet — demande au chef d'établissement.",
+        );
+      }
+    }
+
+    // Établissement : le chef de projet doit préciser lequel (il n'en a pas lui-même) ;
+    // tous les autres créent toujours dans leur propre établissement.
+    const etablissementId =
+      currentUser.role === Role.CHEF_PROJET
+        ? dto.etablissementId ?? null
+        : currentUser.etablissementId;
+
+    if (!etablissementId) {
+      throw new BadRequestException(
+        "Un établissement est requis pour créer ce compte (etablissementId)",
+      );
+    }
+    const etablissement = await this.prisma.etablissement.findUnique({
+      where: { id: etablissementId },
+    });
+    if (!etablissement) {
+      throw new BadRequestException(`Établissement ${etablissementId} introuvable`);
     }
 
     const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
@@ -255,36 +281,56 @@ export class UsersService {
     return this.prisma.user.delete({ where: { id }, select: userSelect });
   }
 
+  private async creerDemandeSuppression(
+    cible: { id: number; prenom: string; nom: string; email: string },
+    currentUser: JwtPayload,
+    destinataires: { id: number }[],
+    libelleRole: string,
+  ) {
+    const demande = await this.prisma.demandeSuppressionAdmin.create({
+      data: { cibleId: cible.id, demandeurId: currentUser.sub },
+    });
+
+    await Promise.all(
+      destinataires.map((dest) =>
+        this.prisma.message.create({
+          data: {
+            contenu: `Demande de suppression du compte ${libelleRole} ${cible.prenom} ${cible.nom} (${cible.email}), demandée par le user #${currentUser.sub}. Rends-toi dans « Demandes de suppression » pour valider ou refuser.`,
+            expediteurId: currentUser.sub,
+            destinataireId: dest.id,
+          },
+        }),
+      ),
+    );
+
+    return {
+      enAttente: true,
+      message: `La suppression de ce compte ${libelleRole} nécessite une validation. Une demande a été envoyée.`,
+      demandeId: demande.id,
+    };
+  }
+
   async remove(id: number, currentUser: JwtPayload) {
     const cible = await this.findOne(id);
 
-    if (cible.role === Role.ADMIN && currentUser.role !== Role.CHEF_PROJET) {
-      const demande = await this.prisma.demandeSuppressionAdmin.create({
-        data: { cibleId: id, demandeurId: currentUser.sub },
+    // Suppression d'un chef d'établissement : seul le chef de projet peut le faire directement,
+    // sinon une demande lui est envoyée.
+    if (cible.role === Role.CHEF_ETABLISSEMENT && currentUser.role !== Role.CHEF_PROJET) {
+      const chefsProjet = await this.prisma.user.findMany({ where: { role: Role.CHEF_PROJET } });
+      return this.creerDemandeSuppression(cible, currentUser, chefsProjet, "chef d'établissement");
+    }
+
+    // Suppression d'un compte admin par un autre admin (pas par le chef d'établissement/projet) :
+    // la demande remonte au chef d'établissement de ce même établissement (ou au chef de projet
+    // si l'établissement n'a pas encore de chef d'établissement désigné).
+    if (cible.role === Role.ADMIN && currentUser.role === Role.ADMIN) {
+      let destinataires = await this.prisma.user.findMany({
+        where: { role: Role.CHEF_ETABLISSEMENT, etablissementId: cible.etablissementId },
       });
-
-      const chefs = await this.prisma.user.findMany({
-        where: { role: Role.CHEF_PROJET },
-      });
-
-      await Promise.all(
-        chefs.map((chef) =>
-          this.prisma.message.create({
-            data: {
-              contenu: `Demande de suppression du compte admin ${cible.prenom} ${cible.nom} (${cible.email}), demandée par le user #${currentUser.sub}. Rends-toi dans « Demandes de suppression » pour valider ou refuser.`,
-              expediteurId: currentUser.sub,
-              destinataireId: chef.id,
-            },
-          }),
-        ),
-      );
-
-      return {
-        enAttente: true,
-        message:
-          'La suppression de ce compte admin nécessite la validation du chef de projet. Une demande lui a été envoyée.',
-        demandeId: demande.id,
-      };
+      if (!destinataires.length) {
+        destinataires = await this.prisma.user.findMany({ where: { role: Role.CHEF_PROJET } });
+      }
+      return this.creerDemandeSuppression(cible, currentUser, destinataires, 'admin');
     }
 
     try {

@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { StatutDemande } from '@prisma/client';
+import { Role, StatutDemande } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { TraiterDemandeDto } from './dto/traiter-demande.dto';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
@@ -14,6 +14,7 @@ const userSelect = {
   prenom: true,
   email: true,
   role: true,
+  etablissementId: true,
 } as const;
 
 const include = {
@@ -26,22 +27,34 @@ const include = {
 export class DemandesSuppressionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return this.prisma.demandeSuppressionAdmin.findMany({
+  async findAll(currentUser: JwtPayload) {
+    const toutes = await this.prisma.demandeSuppressionAdmin.findMany({
       include,
       orderBy: { createdAt: 'desc' },
     });
+
+    if (currentUser.role === Role.CHEF_PROJET) return toutes;
+
+    // Le chef d'établissement ne voit que les demandes concernant son propre établissement
+    return toutes.filter((d) => d.cible.etablissementId === currentUser.etablissementId);
   }
 
   async traiter(id: number, dto: TraiterDemandeDto, currentUser: JwtPayload) {
     const demande = await this.prisma.demandeSuppressionAdmin.findUnique({
       where: { id },
+      include,
     });
     if (!demande) {
       throw new NotFoundException(`Demande ${id} introuvable`);
     }
     if (demande.statut !== StatutDemande.EN_ATTENTE) {
       throw new ForbiddenException('Cette demande a déjà été traitée');
+    }
+    if (
+      currentUser.role !== Role.CHEF_PROJET &&
+      demande.cible.etablissementId !== currentUser.etablissementId
+    ) {
+      throw new ForbiddenException("Cette demande ne concerne pas ton établissement");
     }
 
     if (dto.decision === 'APPROUVEE') {

@@ -21,13 +21,13 @@ import type { JwtPayload } from '../auth/types/jwt-payload.type';
 @ApiBearerAuth('access-token')
 @Controller('demandes-suppression-admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.CHEF_PROJET)
+@Roles(Role.CHEF_PROJET, Role.CHEF_ETABLISSEMENT)
 export class DemandesSuppressionController {
   constructor(private readonly service: DemandesSuppressionService) {}
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(@CurrentUser() user: JwtPayload) {
+    return this.service.findAll(user);
   }
 
   @Patch(':id')
