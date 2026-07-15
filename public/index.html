@@ -51,44 +51,31 @@
   button{font-family:inherit;cursor:pointer;}
   input,select{font-family:inherit;}
 
-  /* ---------- ACCUEIL ---------- */
-  #landing-screen{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:
-      radial-gradient(circle at 15% 20%, rgba(18,184,176,.18), transparent 45%),
-      radial-gradient(circle at 85% 80%, rgba(11,114,133,.2), transparent 50%),
-      var(--teal-900);
-    padding:40px 20px;
+  /* ---------- SÉLECTEUR DE LANGUE (menu déroulant) ---------- */
+  .lang-dropdown-wrap{position:relative;display:flex;justify-content:center;margin-bottom:18px;}
+  .lang-dropdown-btn{
+    display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;
+    border:1px solid var(--border);background:var(--teal-100);color:var(--teal-900);
+    font-size:12px;font-weight:700;letter-spacing:.03em;
   }
-  .landing-content{max-width:640px;text-align:center;}
-  .landing-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:28px;}
-  .landing-logo{width:44px;height:44px;border-radius:13px;}
-  .landing-brand span{font-size:24px;font-weight:700;color:#fff;}
-  .landing-titre{font-size:34px;font-weight:700;color:#fff;margin:0 0 16px;line-height:1.25;font-family:'Poppins',sans-serif;}
-  .landing-sous-titre{font-size:15.5px;color:#CFE9E8;line-height:1.6;margin:0 0 32px;}
-  .landing-cta{width:auto;padding:14px 40px;font-size:15px;border-radius:11px;}
-  .landing-features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;}
-  .landing-feature{
-    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-    border-radius:12px;padding:18px 10px;color:#EAF6F6;font-size:12.5px;font-weight:600;
+  .lang-dropdown-btn:hover{background:var(--teal-100);filter:brightness(.97);}
+  .lang-dropdown-menu{
+    position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);
+    background:var(--surface);border:1px solid var(--border);border-radius:9px;
+    box-shadow:var(--shadow);min-width:140px;overflow:hidden;z-index:50;
   }
-  .landing-feature-icon{font-size:24px;margin-bottom:8px;}
-  .lang-switcher{display:flex;gap:4px;justify-content:center;margin-bottom:22px;}
-  .lang-btn{
-    padding:5px 12px;border-radius:7px;border:1px solid rgba(255,255,255,.25);
-    background:transparent;color:#CFE9E8;font-size:11.5px;font-weight:700;letter-spacing:.03em;
+  .lang-dropdown-item{
+    display:block;width:100%;text-align:left;padding:9px 14px;font-size:13px;
+    background:transparent;border:none;color:var(--text);
   }
-  .lang-btn:hover{background:rgba(255,255,255,.08);}
-  .lang-btn.active{background:var(--teal-500);color:#04302F;border-color:var(--teal-500);}
-  .lang-switcher-app{margin-bottom:0;}
+  .lang-dropdown-item:hover{background:var(--teal-100);}
+  .lang-dropdown-wrap-app{margin-bottom:0;}
+  .lang-dropdown-btn-app{background:rgba(255,255,255,.1);color:#EAF6F6;border-color:rgba(255,255,255,.25);}
+  .lang-dropdown-btn-app:hover{background:rgba(255,255,255,.16);}
   html[dir="rtl"] body{font-family:'Inter',Tahoma,sans-serif;}
   html[dir="rtl"] .msg-bubble-row.mine{justify-content:flex-start;}
   html[dir="rtl"] .msg-bubble.mine{border-radius:14px 14px 14px 3px;}
   html[dir="rtl"] .msg-bubble{border-radius:14px 14px 3px 14px;}
-  @media (max-width:640px){.landing-titre{font-size:26px;}.landing-features{grid-template-columns:repeat(2,1fr);}}
 
   /* ---------- LOGIN ---------- */
   #login-screen{
@@ -346,34 +333,20 @@
 <body>
 
 <!-- ================= ACCUEIL ================= -->
-<div id="landing-screen">
-  <div class="landing-content">
-    <div class="landing-brand">
-      <div class="logo-mark landing-logo"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <span>EduCheni</span>
-    </div>
-    <div class="lang-switcher">
-      <button class="lang-btn" data-lang-btn="fr">FR</button>
-      <button class="lang-btn" data-lang-btn="en">EN</button>
-      <button class="lang-btn" data-lang-btn="ar">AR</button>
-    </div>
-    <h1 class="landing-titre" id="landing-titre-el">La plateforme scolaire tout-en-un</h1>
-    <p class="landing-sous-titre" id="landing-sous-titre-el">Notes, absences, emploi du temps, bulletins, messagerie et bien plus — pour les élèves, professeurs, parents et administrateurs, réunis au même endroit.</p>
-    <button class="btn-primary landing-cta" id="landing-cta-btn">Se connecter</button>
-    <div class="landing-features">
-      <div class="landing-feature"><div class="landing-feature-icon">📊</div><div id="landing-f1">Notes &amp; bulletins</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">🗓️</div><div id="landing-f2">Emploi du temps</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">✅</div><div id="landing-f3">Absences &amp; retards</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">💬</div><div id="landing-f4">Messagerie &amp; groupes</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">📄</div><div id="landing-f5">Certificats &amp; frais</div></div>
-      <div class="landing-feature"><div class="landing-feature-icon">📚</div><div id="landing-f6">Cahier de texte</div></div>
-    </div>
-  </div>
-</div>
-
 <!-- ================= LOGIN ================= -->
-<div id="login-screen" class="hidden">
+<div id="login-screen">
   <div class="login-card">
+    <div class="lang-dropdown-wrap">
+      <button class="lang-dropdown-btn" id="lang-dropdown-btn" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
+        <span id="lang-dropdown-label">FR</span>
+      </button>
+      <div class="lang-dropdown-menu hidden" id="lang-dropdown-menu">
+        <button class="lang-dropdown-item" data-lang-btn="fr">Français</button>
+        <button class="lang-dropdown-item" data-lang-btn="en">English</button>
+        <button class="lang-dropdown-item" data-lang-btn="ar">العربية</button>
+      </div>
+    </div>
     <div class="login-brand">
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span>EduCheni</span>
@@ -394,9 +367,6 @@
     <p style="text-align:center;margin:14px 0 0;">
       <a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Mot de passe oublié ?</a>
     </p>
-    <p style="text-align:center;margin:8px 0 0;">
-      <a href="#" id="back-to-landing-link" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">← Retour à l'accueil</a>
-    </p>
     <div class="login-hint">
       <span id="login-connecte-a-label">Connecté à</span> <code id="api-base-display"></code>
     </div>
@@ -412,10 +382,16 @@
     </div>
     <div id="nav-list" class="topnav-items"></div>
     <div class="topnav-user">
-      <div class="lang-switcher lang-switcher-app">
-        <button class="lang-btn" data-lang-btn="fr">FR</button>
-        <button class="lang-btn" data-lang-btn="en">EN</button>
-        <button class="lang-btn" data-lang-btn="ar">AR</button>
+      <div class="lang-dropdown-wrap lang-dropdown-wrap-app">
+        <button class="lang-dropdown-btn lang-dropdown-btn-app" id="lang-dropdown-btn-app" type="button">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
+          <span id="lang-dropdown-label-app">FR</span>
+        </button>
+        <div class="lang-dropdown-menu hidden" id="lang-dropdown-menu-app">
+          <button class="lang-dropdown-item" data-lang-btn="fr">Français</button>
+          <button class="lang-dropdown-item" data-lang-btn="en">English</button>
+          <button class="lang-dropdown-item" data-lang-btn="ar">العربية</button>
+        </div>
       </div>
       <span class="role-badge" id="role-badge"></span>
       <span class="user-line" id="user-name"></span>
@@ -562,7 +538,12 @@ function setLangue(lang){
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   applyStaticTranslations();
-  document.querySelectorAll('[data-lang-btn]').forEach(b => b.classList.toggle('active', b.dataset.langBtn === lang));
+  const libelle = lang.toUpperCase();
+  const labelLogin = document.getElementById('lang-dropdown-label');
+  const labelApp = document.getElementById('lang-dropdown-label-app');
+  if(labelLogin) labelLogin.textContent = libelle;
+  if(labelApp) labelApp.textContent = libelle;
+  document.querySelectorAll('.lang-dropdown-menu').forEach(m => m.classList.add('hidden'));
   if(state.token && state.user){
     const items = MENUS[state.user.role] || [];
     document.querySelectorAll('.nav-item').forEach(btn => {
@@ -582,21 +563,11 @@ function setLangue(lang){
 }
 
 function applyStaticTranslations(){
-  document.getElementById('landing-titre-el').textContent = t('landing_titre');
-  document.getElementById('landing-sous-titre-el').textContent = t('landing_sous_titre');
-  document.getElementById('landing-cta-btn').textContent = t('landing_cta');
-  document.getElementById('landing-f1').textContent = t('landing_f1');
-  document.getElementById('landing-f2').textContent = t('landing_f2');
-  document.getElementById('landing-f3').textContent = t('landing_f3');
-  document.getElementById('landing-f4').textContent = t('landing_f4');
-  document.getElementById('landing-f5').textContent = t('landing_f5');
-  document.getElementById('landing-f6').textContent = t('landing_f6');
   document.getElementById('login-sous-titre-el').textContent = t('login_sous_titre');
   document.getElementById('login-email-label').textContent = t('login_email');
   document.getElementById('login-password-label').textContent = t('login_password');
   document.getElementById('login-submit-btn').textContent = t('login_submit');
   document.getElementById('forgot-password-link').textContent = t('login_mdp_oublie');
-  document.getElementById('back-to-landing-link').textContent = t('login_retour_accueil');
   document.getElementById('login-connecte-a-label').textContent = t('login_connecte_a');
 }
 
@@ -716,15 +687,20 @@ document.querySelectorAll('[data-lang-btn]').forEach(btn => {
   btn.addEventListener('click', () => setLangue(btn.dataset.langBtn));
 });
 
-document.getElementById('landing-cta-btn').addEventListener('click', () => {
-  document.getElementById('landing-screen').classList.add('hidden');
-  document.getElementById('login-screen').classList.remove('hidden');
-});
-
-document.getElementById('back-to-landing-link').addEventListener('click', (e) => {
-  e.preventDefault();
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('landing-screen').classList.remove('hidden');
+function toggleLangDropdown(btnId, menuId){
+  const btn = document.getElementById(btnId);
+  const menu = document.getElementById(menuId);
+  if(!btn || !menu) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.lang-dropdown-menu').forEach(m => { if(m !== menu) m.classList.add('hidden'); });
+    menu.classList.toggle('hidden');
+  });
+}
+toggleLangDropdown('lang-dropdown-btn', 'lang-dropdown-menu');
+toggleLangDropdown('lang-dropdown-btn-app', 'lang-dropdown-menu-app');
+document.addEventListener('click', () => {
+  document.querySelectorAll('.lang-dropdown-menu').forEach(m => m.classList.add('hidden'));
 });
 
 document.getElementById('forgot-password-link').addEventListener('click', (e) => {
@@ -735,8 +711,7 @@ document.getElementById('forgot-password-link').addEventListener('click', (e) =>
 document.getElementById('logout-btn').addEventListener('click', () => {
   clearSession();
   document.getElementById('app-screen').classList.add('hidden');
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('landing-screen').classList.remove('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('login-form').reset();
 });
 
@@ -864,9 +839,10 @@ function navButtonHtml(item){
 }
 
 function enterApp(){
-  document.getElementById('landing-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app-screen').classList.remove('hidden');
+  const labelApp = document.getElementById('lang-dropdown-label-app');
+  if(labelApp) labelApp.textContent = (state.lang || 'fr').toUpperCase();
 
   const u = state.user;
   document.getElementById('role-badge').textContent = u.role;
@@ -3228,7 +3204,8 @@ state.lang = langueSauvegardee;
 document.documentElement.lang = langueSauvegardee;
 document.documentElement.dir = langueSauvegardee === 'ar' ? 'rtl' : 'ltr';
 applyStaticTranslations();
-document.querySelectorAll('[data-lang-btn]').forEach(b => b.classList.toggle('active', b.dataset.langBtn === langueSauvegardee));
+const labelInitLogin = document.getElementById('lang-dropdown-label');
+if(labelInitLogin) labelInitLogin.textContent = langueSauvegardee.toUpperCase();
 
 if(restoreSession()){
   enterApp();
