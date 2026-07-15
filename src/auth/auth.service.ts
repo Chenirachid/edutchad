@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -12,7 +13,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtPayload } from './types/jwt-payload.type';
-import { buildBaseEmail, formatNumeroEtudiant } from '../common/email-generator';
+import { buildBaseEmail } from '../common/email-generator';
 
 const SALT_ROUNDS = 10;
 const MAX_TENTATIVES = 5;
@@ -42,26 +43,31 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const role = dto.role ?? Role.ETUDIANT;
 
-    let etablissementId: number | null = null;
+    // Aucune auto-inscription publique n'est autorisée, à une seule exception :
+    // amorcer la toute première plateforme en créant le premier compte CHEF_PROJET.
+    // Tout le reste (élèves, profs, parents, admins, vie scolaire) doit être créé
+    // par un administrateur ou un chef de projet déjà authentifié (POST /users).
     if (role !== Role.CHEF_PROJET) {
-      if (!dto.etablissementId) {
-        throw new BadRequestException(
-          "Un établissement est requis pour ce rôle (etablissementId)",
-        );
-      }
-      const etablissement = await this.prisma.etablissement.findUnique({
-        where: { id: dto.etablissementId },
-      });
-      if (!etablissement) {
-        throw new NotFoundException(`Établissement ${dto.etablissementId} introuvable`);
-      }
-      etablissementId = etablissement.id;
+      throw new ForbiddenException(
+        "La création de compte n'est pas libre : demande à ton administrateur ou au chef de projet de créer ton compte.",
+      );
     }
+
+    const chefExistant = await this.prisma.user.findFirst({
+      where: { role: Role.CHEF_PROJET },
+    });
+    if (chefExistant) {
+      throw new ForbiddenException(
+        'Un chef de projet existe déjà. Demande-lui de créer les comptes suivants.',
+      );
+    }
+
+    const etablissementId: number | null = null;
 
     const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
-    let user = await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         nom: dto.nom,
         prenom: dto.prenom,
@@ -71,13 +77,6 @@ export class AuthService {
         etablissementId,
       },
     });
-
-    if (role === Role.ETUDIANT) {
-      user = await this.prisma.user.update({
-        where: { id: user.id },
-        data: { numeroEtudiant: formatNumeroEtudiant(user.id) },
-      });
-    }
 
     return this.buildAuthResponse(user);
   }

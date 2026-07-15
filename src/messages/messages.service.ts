@@ -4,8 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMessageDto } from './dto/create-message.dto';
+import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 const contactSelect = {
   id: true,
@@ -19,8 +21,8 @@ const contactSelect = {
 export class MessagesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async send(expediteurId: number, dto: CreateMessageDto) {
-    if (dto.destinataireId === expediteurId) {
+  async send(currentUser: JwtPayload, dto: CreateMessageDto) {
+    if (dto.destinataireId === currentUser.sub) {
       throw new BadRequestException('Vous ne pouvez pas vous envoyer un message à vous-même');
     }
 
@@ -31,10 +33,19 @@ export class MessagesService {
       throw new NotFoundException(`Utilisateur ${dto.destinataireId} introuvable`);
     }
 
+    if (
+      currentUser.role !== Role.CHEF_PROJET &&
+      destinataire.etablissementId !== currentUser.etablissementId
+    ) {
+      throw new ForbiddenException(
+        "Vous ne pouvez contacter que des personnes de votre établissement",
+      );
+    }
+
     return this.prisma.message.create({
       data: {
         contenu: dto.contenu,
-        expediteurId,
+        expediteurId: currentUser.sub,
         destinataireId: dto.destinataireId,
       },
       include: {
@@ -104,9 +115,14 @@ export class MessagesService {
     });
   }
 
-  contacts(userId: number) {
+  contacts(currentUser: JwtPayload) {
+    const where: Prisma.UserWhereInput =
+      currentUser.role === Role.CHEF_PROJET
+        ? { id: { not: currentUser.sub } }
+        : { id: { not: currentUser.sub }, etablissementId: currentUser.etablissementId };
+
     return this.prisma.user.findMany({
-      where: { id: { not: userId } },
+      where,
       select: contactSelect,
       orderBy: { nom: 'asc' },
     });

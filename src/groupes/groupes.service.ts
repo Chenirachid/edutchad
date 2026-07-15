@@ -23,16 +23,30 @@ export class GroupesService {
     if (!classe) throw new NotFoundException(`Classe ${classeId} introuvable`);
 
     return this.prisma.groupe.create({
-      data: { nom: `Classe ${classe.nom}`, type: TypeGroupe.CLASSE, classeId },
+      data: {
+        nom: `Classe ${classe.nom}`,
+        type: TypeGroupe.CLASSE,
+        classeId,
+        etablissementId: classe.etablissementId,
+      },
     });
   }
 
-  private async getOrCreateSingleton(type: TypeGroupe.PROFS | TypeGroupe.ADMIN) {
-    const existing = await this.prisma.groupe.findFirst({ where: { type, classeId: null } });
+  private async getOrCreateSingleton(
+    type: TypeGroupe.PROFS | TypeGroupe.ADMIN,
+    etablissementId: number | null,
+  ) {
+    const existing = await this.prisma.groupe.findFirst({
+      where: { type, classeId: null, etablissementId },
+    });
     if (existing) return existing;
 
     return this.prisma.groupe.create({
-      data: { nom: type === TypeGroupe.PROFS ? 'Salle des professeurs' : 'Administration', type },
+      data: {
+        nom: type === TypeGroupe.PROFS ? 'Salle des professeurs' : 'Administration',
+        type,
+        etablissementId,
+      },
     });
   }
 
@@ -50,7 +64,7 @@ export class GroupesService {
     }
 
     if (user.role === Role.PROFESSEUR) {
-      groupes.push(await this.getOrCreateSingleton(TypeGroupe.PROFS));
+      groupes.push(await this.getOrCreateSingleton(TypeGroupe.PROFS, user.etablissementId));
       const enseignements = await this.prisma.enseignement.findMany({
         where: { professeurId: user.sub },
         select: { classeId: true },
@@ -62,12 +76,20 @@ export class GroupesService {
     }
 
     if (user.role === Role.ADMIN || user.role === Role.VIE_SCOLAIRE) {
-      groupes.push(await this.getOrCreateSingleton(TypeGroupe.PROFS));
-      groupes.push(await this.getOrCreateSingleton(TypeGroupe.ADMIN));
-      const classes = await this.prisma.classe.findMany({ select: { id: true } });
+      groupes.push(await this.getOrCreateSingleton(TypeGroupe.PROFS, user.etablissementId));
+      groupes.push(await this.getOrCreateSingleton(TypeGroupe.ADMIN, user.etablissementId));
+      const classes = await this.prisma.classe.findMany({
+        where: { etablissementId: user.etablissementId },
+        select: { id: true },
+      });
       for (const c of classes) {
         groupes.push(await this.getOrCreateClasseGroupe(c.id));
       }
+    }
+
+    if (user.role === Role.CHEF_PROJET) {
+      const tousLesGroupes = await this.prisma.groupe.findMany();
+      for (const g of tousLesGroupes) groupes.push(g);
     }
 
     return groupes;
@@ -77,7 +99,12 @@ export class GroupesService {
     const groupe = await this.prisma.groupe.findUnique({ where: { id: groupeId } });
     if (!groupe) throw new NotFoundException(`Groupe ${groupeId} introuvable`);
 
-    if (user.role === Role.ADMIN || user.role === Role.VIE_SCOLAIRE) return groupe;
+    if (user.role === Role.CHEF_PROJET) return groupe;
+    if (
+      (user.role === Role.ADMIN || user.role === Role.VIE_SCOLAIRE) &&
+      groupe.etablissementId === user.etablissementId
+    )
+      return groupe;
 
     if (groupe.type === TypeGroupe.CLASSE) {
       if (user.role === Role.ETUDIANT) {
@@ -95,7 +122,12 @@ export class GroupesService {
       }
     }
 
-    if (groupe.type === TypeGroupe.PROFS && user.role === Role.PROFESSEUR) return groupe;
+    if (
+      groupe.type === TypeGroupe.PROFS &&
+      user.role === Role.PROFESSEUR &&
+      groupe.etablissementId === user.etablissementId
+    )
+      return groupe;
 
     throw new ForbiddenException("Vous n'avez pas accès à ce groupe");
   }

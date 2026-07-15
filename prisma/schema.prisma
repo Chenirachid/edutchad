@@ -18,6 +18,7 @@ model Etablissement {
   parametres   ParametrePlateforme?
   actualites   Actualite[]
   sondages     Sondage[]
+  groupes      Groupe[]
 }
 
 model User {
@@ -303,6 +304,9 @@ model Groupe {
 
   classe   Classe? @relation(fields: [classeId], references: [id])
   classeId Int?    @unique
+
+  etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
+  etablissementId Int?
 
   messages MessageGroupe[]
 }

@@ -25,12 +25,12 @@ export class MessagesController {
 
   @Post()
   send(@Body() dto: CreateMessageDto, @CurrentUser() user: JwtPayload) {
-    return this.messagesService.send(user.sub, dto);
+    return this.messagesService.send(user, dto);
   }
 
   @Get('contacts')
   contacts(@CurrentUser() user: JwtPayload) {
-    return this.messagesService.contacts(user.sub);
+    return this.messagesService.contacts(user);
   }
 
   @Get('recus')
