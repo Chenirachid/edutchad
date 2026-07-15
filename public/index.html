@@ -1314,12 +1314,41 @@ async function renderParentEnfants(){
       target.innerHTML = '<div class="empty-state">Chargement…</div>';
       try{
         if(btn.dataset.action === 'bulletin'){
-          const b = await api('/bulletins/etudiant/' + id);
-          const rows = b.matieres.map(m => `
-            <tr><td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td><td>${m.coefficient}</td><td><span class="moy-pill ${moyennePillClass(m.moyenne)}">${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'}</span></td></tr>`).join('');
+          const [b, toutesLesNotes] = await Promise.all([
+            api('/bulletins/etudiant/' + id),
+            api('/notes'),
+          ]);
+          const mesNotes = toutesLesNotes.filter(n => String(n.etudiantId) === String(id));
+          const notesParMatiere = {};
+          mesNotes.forEach(n => {
+            const nom = n.enseignement.matiere.nom;
+            if(!notesParMatiere[nom]) notesParMatiere[nom] = [];
+            notesParMatiere[nom].push(n);
+          });
+
+          const sections = b.matieres.map(m => {
+            const notesDeLaMatiere = (notesParMatiere[m.nom] || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+            const rowsNotes = notesDeLaMatiere.map(n => `
+              <tr>
+                <td>${new Date(n.createdAt).toLocaleDateString('fr-FR')}</td>
+                <td>${TYPE_EVALUATION_LABELS[n.type] || n.type}</td>
+                <td><strong>${n.valeur.toFixed(2)}</strong> / 20</td>
+                <td>${n.coefficient}</td>
+                <td>${n.commentaire ? escapeHtml(n.commentaire) : '—'}</td>
+              </tr>`).join('');
+            return `
+              <div style="margin-bottom:18px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span>
+                  <span class="moy-pill ${moyennePillClass(m.moyenne)}">Moyenne : ${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'} (coef. ${m.coefficient})</span>
+                </div>
+                ${notesDeLaMatiere.length ? `<table><thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Coef.</th><th>Commentaire</th></tr></thead><tbody>${rowsNotes}</tbody></table>` : '<div class="empty-state">Aucune évaluation notée.</div>'}
+              </div>`;
+          }).join('');
+
           target.innerHTML = `<div style="margin-top:14px;">
-            <div class="stat" style="margin-bottom:12px;"><div class="label">Moyenne générale</div><div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / 20</div></div>
-            ${b.matieres.length ? `<table><thead><tr><th>Matière</th><th>Coef.</th><th>Moyenne</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune note.</div>'}
+            <div class="stat" style="margin-bottom:16px;"><div class="label">Moyenne générale</div><div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / 20</div></div>
+            ${b.matieres.length ? sections : '<div class="empty-state">Aucune note.</div>'}
           </div>`;
         } else {
           const absences = await api('/absences');
@@ -1457,7 +1486,19 @@ async function renderAdminUsers(){
           toast('Utilisateur supprimé.');
         }
         renderAdminUsers();
-      }catch(err){ toast(err.message, 'error'); }
+      }catch(err){
+        if(String(err.message).includes('historique associé')){
+          if(confirm("Ce compte a de l'historique lié (notes, absences, messages...). Veux-tu vraiment tout supprimer définitivement, y compris cet historique ? Cette action est irréversible.")){
+            try{
+              await api('/users/' + id + '/force', { method:'DELETE' });
+              toast('Utilisateur et tout son historique supprimés.');
+              renderAdminUsers();
+            }catch(err2){ toast(err2.message, 'error'); }
+          }
+        } else {
+          toast(err.message, 'error');
+        }
+      }
     });
   });
 }
@@ -1586,7 +1627,29 @@ async function renderAdminMatieres(){
     }catch(err){ toast(err.message, 'error'); }
   });
 
-  bindDeleteButtons(content, 'data-delete-matiere', '/matieres', renderAdminMatieres, 'cette matière');
+  content.querySelectorAll('[data-delete-matiere]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.deleteMatiere;
+      if(!confirm('Supprimer définitivement cette matière ?')) return;
+      try{
+        await api('/matieres/' + id, { method:'DELETE' });
+        toast('Matière supprimée.');
+        renderAdminMatieres();
+      }catch(err){
+        if(String(err.message).includes('enseignements/notes')){
+          if(confirm("Des enseignements/notes sont encore rattachés à cette matière. Veux-tu vraiment tout supprimer définitivement, y compris cet historique ? Cette action est irréversible.")){
+            try{
+              await api('/matieres/' + id + '/force', { method:'DELETE' });
+              toast('Matière et tout son historique supprimés.');
+              renderAdminMatieres();
+            }catch(err2){ toast(err2.message, 'error'); }
+          }
+        } else {
+          toast(err.message, 'error');
+        }
+      }
+    });
+  });
 }
 
 async function renderAdminEnseignements(){
@@ -1912,6 +1975,7 @@ async function loadGroupeMessages(groupeId){
 /* ============================================================
    OBSERVATIONS & PUNITIONS (PROF)
    ============================================================ */
+const TYPE_EVALUATION_LABELS = { DEVOIR:'Devoir', CONTROLE:'Contrôle', EXAMEN:'Examen' };
 const TYPE_OBSERVATION_LABELS = { POSITIVE:'Positive', NEGATIVE:'Négative', NEUTRE:'Neutre' };
 const TYPE_OBSERVATION_COLORS = { POSITIVE:'var(--success)', NEGATIVE:'var(--danger)', NEUTRE:'var(--text-muted)' };
 const TYPE_PUNITION_LABELS = { AVERTISSEMENT:'Avertissement', RETENUE:'Retenue', EXCLUSION_TEMPORAIRE:'Exclusion temporaire', EXCLUSION_DEFINITIVE:'Exclusion définitive' };

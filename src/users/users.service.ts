@@ -169,6 +169,92 @@ export class UsersService {
     });
   }
 
+  async removeForce(id: number) {
+    await this.findOne(id);
+
+    // Enseignements du prof + tout ce qui en dépend
+    const enseignements = await this.prisma.enseignement.findMany({
+      where: { professeurId: id },
+      select: { id: true },
+    });
+    const enseignementIds = enseignements.map((e) => e.id);
+
+    if (enseignementIds.length) {
+      await this.prisma.note.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.absence.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.cahierTexte.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.epreuve.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.creneau.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.observation.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+    }
+
+    // Notes/absences/observations/punitions de l'élève, ou rédigées par lui
+    await this.prisma.note.deleteMany({ where: { etudiantId: id } });
+    await this.prisma.absence.deleteMany({ where: { etudiantId: id } });
+    await this.prisma.observation.deleteMany({ where: { OR: [{ etudiantId: id }, { auteurId: id }] } });
+    await this.prisma.punition.deleteMany({ where: { OR: [{ etudiantId: id }, { auteurId: id }] } });
+    await this.prisma.inscriptionMatiere.deleteMany({ where: { etudiantId: id } });
+
+    await this.prisma.enseignement.deleteMany({ where: { professeurId: id } });
+
+    // Messagerie
+    await this.prisma.message.deleteMany({ where: { OR: [{ expediteurId: id }, { destinataireId: id }] } });
+    await this.prisma.messageGroupe.deleteMany({ where: { auteurId: id } });
+
+    // Réunions organisées ou invitations reçues
+    await this.prisma.invitationReunion.deleteMany({ where: { inviteId: id } });
+    const reunionsOrganisees = await this.prisma.reunion.findMany({
+      where: { organisateurId: id },
+      select: { id: true },
+    });
+    const reunionIds = reunionsOrganisees.map((r) => r.id);
+    if (reunionIds.length) {
+      await this.prisma.invitationReunion.deleteMany({ where: { reunionId: { in: reunionIds } } });
+      await this.prisma.reunion.deleteMany({ where: { id: { in: reunionIds } } });
+    }
+
+    // Frais scolaires
+    const frais = await this.prisma.fraisScolarite.findUnique({ where: { etudiantId: id } });
+    if (frais) {
+      await this.prisma.versement.deleteMany({ where: { fraisId: frais.id } });
+      await this.prisma.fraisScolarite.delete({ where: { id: frais.id } });
+    }
+
+    await this.prisma.inscriptionAdministrative.deleteMany({ where: { etudiantId: id } });
+    await this.prisma.mentionBulletin.deleteMany({ where: { etudiantId: id } });
+    await this.prisma.demandeSuppressionAdmin.deleteMany({
+      where: { OR: [{ cibleId: id }, { demandeurId: id }, { traiteParId: id }] },
+    });
+
+    // Rendez-vous parents-profs
+    await this.prisma.reservationRdv.deleteMany({ where: { OR: [{ parentId: id }, { etudiantId: id }] } });
+    const creneauxRdv = await this.prisma.creneauRendezVous.findMany({
+      where: { professeurId: id },
+      select: { id: true },
+    });
+    const creneauxRdvIds = creneauxRdv.map((c) => c.id);
+    if (creneauxRdvIds.length) {
+      await this.prisma.reservationRdv.deleteMany({ where: { creneauId: { in: creneauxRdvIds } } });
+      await this.prisma.creneauRendezVous.deleteMany({ where: { id: { in: creneauxRdvIds } } });
+    }
+
+    // Actualités et sondages
+    await this.prisma.actualite.deleteMany({ where: { auteurId: id } });
+    await this.prisma.voteSondage.deleteMany({ where: { votantId: id } });
+    const sondages = await this.prisma.sondage.findMany({
+      where: { auteurId: id },
+      select: { id: true },
+    });
+    const sondageIds = sondages.map((s) => s.id);
+    if (sondageIds.length) {
+      await this.prisma.voteSondage.deleteMany({ where: { sondageId: { in: sondageIds } } });
+      await this.prisma.optionSondage.deleteMany({ where: { sondageId: { in: sondageIds } } });
+      await this.prisma.sondage.deleteMany({ where: { id: { in: sondageIds } } });
+    }
+
+    return this.prisma.user.delete({ where: { id }, select: userSelect });
+  }
+
   async remove(id: number, currentUser: JwtPayload) {
     const cible = await this.findOne(id);
 

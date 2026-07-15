@@ -73,6 +73,12 @@ export class MatieresController {
     return this.matieresService.update(id, dto);
   }
 
+  @Delete(':id/force')
+  @Roles(Role.ADMIN)
+  removeForce(@Param('id', ParseIntPipe) id: number) {
+    return this.matieresService.removeForce(id);
+  }
+
   @Delete(':id')
   @Roles(Role.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {

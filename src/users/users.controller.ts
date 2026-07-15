@@ -62,6 +62,11 @@ export class UsersController {
     return this.usersService.toggleActif(id);
   }
 
+  @Delete(':id/force')
+  removeForce(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.removeForce(id);
+  }
+
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
     return this.usersService.remove(id, user);

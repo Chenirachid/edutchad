@@ -76,6 +76,36 @@ export class MatieresService {
 
   async remove(id: number) {
     await this.findOne(id);
+    try {
+      return await this.prisma.matiere.delete({ where: { id } });
+    } catch (err) {
+      throw new BadRequestException(
+        "Impossible de supprimer cette matière : des enseignements/notes y sont encore rattachés. Utilise la suppression forcée si tu es sûr.",
+      );
+    }
+  }
+
+  async removeForce(id: number) {
+    await this.findOne(id);
+
+    const enseignements = await this.prisma.enseignement.findMany({
+      where: { matiereId: id },
+      select: { id: true },
+    });
+    const enseignementIds = enseignements.map((e) => e.id);
+
+    if (enseignementIds.length) {
+      await this.prisma.note.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.absence.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.cahierTexte.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.epreuve.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.creneau.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.observation.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+      await this.prisma.enseignement.deleteMany({ where: { matiereId: id } });
+    }
+
+    await this.prisma.inscriptionMatiere.deleteMany({ where: { matiereId: id } });
+
     return this.prisma.matiere.delete({ where: { id } });
   }
 
