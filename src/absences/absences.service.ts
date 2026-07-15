@@ -80,7 +80,7 @@ export class AbsencesService {
       });
     }
 
-    // ADMIN
+    // ADMIN, VIE_SCOLAIRE, CHEF_PROJET : vue complète pour supervision
     return this.prisma.absence.findMany({
       include: {
         enseignement: { include: { matiere: true, classe: true } },
@@ -107,6 +107,17 @@ export class AbsencesService {
     const absence = await this.findOne(id, currentUser);
     this.assertWriteAccess(absence, currentUser);
 
+    // Seule la vie scolaire (ou l'administration) peut justifier/invalider une absence,
+    // comme dans Pronote : le professeur déclare, la vie scolaire statue.
+    if (
+      dto.justifiee !== undefined &&
+      currentUser.role === Role.PROFESSEUR
+    ) {
+      throw new ForbiddenException(
+        "Seule la vie scolaire ou l'administration peut justifier une absence",
+      );
+    }
+
     return this.prisma.absence.update({
       where: { id },
       data: {
@@ -126,7 +137,7 @@ export class AbsencesService {
     absence: { etudiantId: number; enseignement: { professeurId: number } },
     currentUser: JwtPayload,
   ) {
-    if (currentUser.role === Role.ADMIN) return;
+    if (currentUser.role === Role.ADMIN || currentUser.role === Role.VIE_SCOLAIRE) return;
     if (
       currentUser.role === Role.ETUDIANT &&
       absence.etudiantId === currentUser.sub
@@ -154,7 +165,7 @@ export class AbsencesService {
     absence: { enseignement: { professeurId: number } },
     currentUser: JwtPayload,
   ) {
-    if (currentUser.role === Role.ADMIN) return;
+    if (currentUser.role === Role.ADMIN || currentUser.role === Role.VIE_SCOLAIRE) return;
     if (
       currentUser.role === Role.PROFESSEUR &&
       absence.enseignement.professeurId === currentUser.sub
@@ -162,7 +173,7 @@ export class AbsencesService {
       return;
 
     throw new ForbiddenException(
-      'Seul le professeur concerné ou un admin peut modifier cette absence',
+      'Seul le professeur concerné, la vie scolaire ou un admin peut modifier cette absence',
     );
   }
 }

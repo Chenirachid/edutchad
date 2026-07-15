@@ -81,7 +81,7 @@ export class ObservationsService {
       });
     }
 
-    // ADMIN
+    // ADMIN, VIE_SCOLAIRE, CHEF_PROJET : vue complète pour supervision
     return this.prisma.observation.findMany({ include, orderBy: { date: 'desc' } });
   }
 
@@ -90,8 +90,9 @@ export class ObservationsService {
     if (!observation) {
       throw new NotFoundException(`Observation ${id} introuvable`);
     }
-    if (currentUser.role !== Role.ADMIN && observation.auteurId !== currentUser.sub) {
-      throw new ForbiddenException("Seul l'auteur ou un admin peut supprimer cette observation");
+    const peutTout = currentUser.role === Role.ADMIN || currentUser.role === Role.VIE_SCOLAIRE;
+    if (!peutTout && observation.auteurId !== currentUser.sub) {
+      throw new ForbiddenException("Seul l'auteur, la vie scolaire ou un admin peut supprimer cette observation");
     }
     return this.prisma.observation.delete({ where: { id } });
   }

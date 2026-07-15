@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Role, TypePunition } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePunitionDto } from './dto/create-punition.dto';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
@@ -32,6 +32,14 @@ export class PunitionsService {
     });
     if (!etudiant) {
       throw new NotFoundException(`Étudiant ${dto.etudiantId} introuvable`);
+    }
+
+    // Comme dans Pronote : le professeur ne peut donner qu'un avertissement.
+    // Les sanctions plus lourdes (retenue, exclusion) relèvent de la vie scolaire / administration.
+    if (currentUser.role === Role.PROFESSEUR && dto.type !== TypePunition.AVERTISSEMENT) {
+      throw new ForbiddenException(
+        "Un professeur ne peut donner qu'un avertissement — les sanctions plus lourdes relèvent de la vie scolaire",
+      );
     }
 
     return this.prisma.punition.create({
@@ -79,7 +87,7 @@ export class PunitionsService {
       });
     }
 
-    // ADMIN
+    // ADMIN, VIE_SCOLAIRE, CHEF_PROJET : vue complète pour supervision
     return this.prisma.punition.findMany({ include, orderBy: { date: 'desc' } });
   }
 
@@ -88,8 +96,9 @@ export class PunitionsService {
     if (!punition) {
       throw new NotFoundException(`Punition ${id} introuvable`);
     }
-    if (currentUser.role !== Role.ADMIN && punition.auteurId !== currentUser.sub) {
-      throw new ForbiddenException("Seul l'auteur ou un admin peut supprimer cette punition");
+    const peutTout = currentUser.role === Role.ADMIN || currentUser.role === Role.VIE_SCOLAIRE;
+    if (!peutTout && punition.auteurId !== currentUser.sub) {
+      throw new ForbiddenException("Seul l'auteur, la vie scolaire ou un admin peut supprimer cette punition");
     }
     return this.prisma.punition.delete({ where: { id } });
   }

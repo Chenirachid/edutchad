@@ -61,7 +61,7 @@ export class GroupesService {
       }
     }
 
-    if (user.role === Role.ADMIN) {
+    if (user.role === Role.ADMIN || user.role === Role.VIE_SCOLAIRE) {
       groupes.push(await this.getOrCreateSingleton(TypeGroupe.PROFS));
       groupes.push(await this.getOrCreateSingleton(TypeGroupe.ADMIN));
       const classes = await this.prisma.classe.findMany({ select: { id: true } });
@@ -77,7 +77,7 @@ export class GroupesService {
     const groupe = await this.prisma.groupe.findUnique({ where: { id: groupeId } });
     if (!groupe) throw new NotFoundException(`Groupe ${groupeId} introuvable`);
 
-    if (user.role === Role.ADMIN) return groupe;
+    if (user.role === Role.ADMIN || user.role === Role.VIE_SCOLAIRE) return groupe;
 
     if (groupe.type === TypeGroupe.CLASSE) {
       if (user.role === Role.ETUDIANT) {

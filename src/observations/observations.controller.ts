@@ -26,7 +26,7 @@ export class ObservationsController {
   constructor(private readonly observationsService: ObservationsService) {}
 
   @Post()
-  @Roles(Role.PROFESSEUR, Role.ADMIN)
+  @Roles(Role.PROFESSEUR, Role.ADMIN, Role.VIE_SCOLAIRE)
   create(@Body() dto: CreateObservationDto, @CurrentUser() user: JwtPayload) {
     return this.observationsService.create(dto, user);
   }

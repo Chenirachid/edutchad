@@ -26,7 +26,7 @@ export class PunitionsController {
   constructor(private readonly punitionsService: PunitionsService) {}
 
   @Post()
-  @Roles(Role.PROFESSEUR, Role.ADMIN)
+  @Roles(Role.PROFESSEUR, Role.ADMIN, Role.VIE_SCOLAIRE)
   create(@Body() dto: CreatePunitionDto, @CurrentUser() user: JwtPayload) {
     return this.punitionsService.create(dto, user);
   }

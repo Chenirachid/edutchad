@@ -782,6 +782,13 @@ MENUS.CHEF_PROJET = [
   ...MENUS.ADMIN,
   { id:'demandes-suppression', label:'Demandes de suppression', render: renderDemandesSuppression },
 ];
+MENUS.VIE_SCOLAIRE = [
+  { id:'actualites', label:'Actualités', render: renderActualites },
+  { id:'vie-scolaire', label:'Vie scolaire', render: renderVieScolaire },
+  { id:'sondages', label:'Sondages', render: renderSondages },
+  { id:'groupes', label:'Groupes', render: renderGroupes },
+  { id:'messagerie', label:'Messagerie', render: renderMessagerie },
+];
 
 const PAGE_TITLES = {
   bulletin:'Mon bulletin', absences:'Mes absences', comportement:'Mon comportement', emploi:'Emploi du temps',
@@ -1329,7 +1336,7 @@ async function renderAdminUsers(){
       <td>${u.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(u.numeroEtudiant)}</code>` : '—'}</td>
       <td>
         <select data-user-role="${u.id}">
-          ${['ETUDIANT','PROFESSEUR','PARENT','ADMIN','CHEF_PROJET'].map(r => `<option value="${r}" ${r===u.role?'selected':''}>${r}</option>`).join('')}
+          ${['ETUDIANT','PROFESSEUR','PARENT','ADMIN','VIE_SCOLAIRE','CHEF_PROJET'].map(r => `<option value="${r}" ${r===u.role?'selected':''}>${r}</option>`).join('')}
         </select>
       </td>
       <td><input type="number" data-user-classe="${u.id}" value="${u.classeId ?? ''}" placeholder="—" style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;" /></td>
@@ -1355,6 +1362,7 @@ async function renderAdminUsers(){
             <option value="PROFESSEUR">PROFESSEUR</option>
             <option value="PARENT">PARENT</option>
             <option value="ADMIN">ADMIN</option>
+            <option value="VIE_SCOLAIRE">VIE_SCOLAIRE</option>
             <option value="CHEF_PROJET">CHEF_PROJET</option>
           </select>
         </div>
@@ -1961,14 +1969,11 @@ async function renderProfPunitions(){
         </div>
         <div class="f">
           <label>Type</label>
-          <select name="type">
-            <option value="AVERTISSEMENT">Avertissement</option>
-            <option value="RETENUE">Retenue</option>
-            <option value="EXCLUSION_TEMPORAIRE">Exclusion temporaire</option>
-            <option value="EXCLUSION_DEFINITIVE">Exclusion définitive</option>
+          <select name="type" disabled>
+            <option value="AVERTISSEMENT" selected>Avertissement</option>
           </select>
+          <p style="font-size:11px;color:var(--text-muted);margin:4px 0 0;">Les sanctions plus lourdes relèvent de la vie scolaire.</p>
         </div>
-        <div class="f"><label>Durée (heures, facultatif)</label><input type="number" name="dureeHeures" min="1" /></div>
         <div class="f" style="min-width:260px;flex:2;"><label>Motif</label><input type="text" name="motif" required placeholder="Ex : bavardage répété en cours" /></div>
         <button class="btn-submit" type="submit">Ajouter</button>
       </form>
@@ -1983,8 +1988,7 @@ async function renderProfPunitions(){
     const fd = new FormData(e.target);
     try{
       await api('/punitions', { method:'POST', body: JSON.stringify({
-        etudiantId: Number(fd.get('etudiantId')), type: fd.get('type'), motif: fd.get('motif'),
-        dureeHeures: fd.get('dureeHeures') ? Number(fd.get('dureeHeures')) : undefined,
+        etudiantId: Number(fd.get('etudiantId')), type: 'AVERTISSEMENT', motif: fd.get('motif'),
       })});
       toast('Punition ajoutée.');
       renderProfPunitions();
@@ -3080,14 +3084,16 @@ async function renderVieScolaire(){
 
   const nbAbsences = absences.filter(a => a.type === 'ABSENCE').length;
   const nbRetards = absences.filter(a => a.type === 'RETARD').length;
+  const nbNonJustifiees = absences.filter(a => a.type === 'ABSENCE' && !a.justifiee).length;
 
-  const rowsAbsences = absences.slice(0, 30).map(a => `
+  const rowsAbsences = absences.slice(0, 40).map(a => `
     <tr>
       <td>${new Date(a.date).toLocaleDateString('fr-FR')}</td>
       <td>${escapeHtml(a.etudiant.prenom)} ${escapeHtml(a.etudiant.nom)}</td>
       <td>${a.type === 'RETARD' ? `<span class="chip" style="background:var(--warning)">Retard</span>` : '<span class="chip" style="background:var(--teal-700)">Absence</span>'}</td>
       <td>${escapeHtml(a.enseignement.matiere.nom)}</td>
       <td>${a.justifiee ? '<span class="badge-justifiee">Justifiée</span>' : '<span class="badge-non-justifiee">Non justifiée</span>'}</td>
+      <td><button class="btn-secondary" data-toggle-justif="${a.id}" data-valeur="${a.justifiee ? 'false' : 'true'}">${a.justifiee ? 'Invalider' : 'Justifier'}</button></td>
     </tr>`).join('');
 
   const rowsPunitions = punitions.slice(0, 30).map(p => `
@@ -3097,6 +3103,7 @@ async function renderVieScolaire(){
       <td><span class="chip" style="background:var(--danger)">${TYPE_PUNITION_LABELS[p.type]}</span></td>
       <td>${escapeHtml(p.motif)}</td>
       <td>${escapeHtml(p.auteur.prenom)} ${escapeHtml(p.auteur.nom)}</td>
+      <td><button class="btn-secondary" data-delete-punition-vs="${p.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td>
     </tr>`).join('');
 
   const rowsObservations = observations.slice(0, 30).map(o => `
@@ -3110,22 +3117,95 @@ async function renderVieScolaire(){
 
   content.innerHTML = `
     <div class="grid-3">
-      <div class="card"><h2 style="margin-bottom:4px;">${nbAbsences}</h2><p style="font-size:12.5px;color:var(--text-muted);">Absences</p></div>
+      <div class="card"><h2 style="margin-bottom:4px;">${nbAbsences}</h2><p style="font-size:12.5px;color:var(--text-muted);">Absences (${nbNonJustifiees} non justifiées)</p></div>
       <div class="card"><h2 style="margin-bottom:4px;">${nbRetards}</h2><p style="font-size:12.5px;color:var(--text-muted);">Retards</p></div>
       <div class="card"><h2 style="margin-bottom:4px;">${punitions.length}</h2><p style="font-size:12.5px;color:var(--text-muted);">Punitions</p></div>
     </div>
     <div class="card">
-      <h2>Absences &amp; retards récents</h2>
-      ${absences.length ? `<table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Matière</th><th>Statut</th></tr></thead><tbody>${rowsAbsences}</tbody></table>` : '<div class="empty-state">Aucune absence enregistrée.</div>'}
+      <h2>Absences &amp; retards — justification</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Seule la vie scolaire ou l'administration peut justifier une absence.</p>
+      ${absences.length ? `<table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Matière</th><th>Statut</th><th></th></tr></thead><tbody>${rowsAbsences}</tbody></table>` : '<div class="empty-state">Aucune absence enregistrée.</div>'}
+    </div>
+    <div class="card">
+      <h2>Donner une punition</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">La vie scolaire peut prononcer toutes les sanctions, y compris retenues et exclusions.</p>
+      <form class="inline-form" id="vs-punition-form">
+        <div class="f"><label>ID étudiant</label><input type="number" name="etudiantId" required min="1" /></div>
+        <div class="f">
+          <label>Type</label>
+          <select name="type">
+            <option value="AVERTISSEMENT">Avertissement</option>
+            <option value="RETENUE">Retenue</option>
+            <option value="EXCLUSION_TEMPORAIRE">Exclusion temporaire</option>
+            <option value="EXCLUSION_DEFINITIVE">Exclusion définitive</option>
+          </select>
+        </div>
+        <div class="f"><label>Durée (heures, facultatif)</label><input type="number" name="dureeHeures" min="1" /></div>
+        <div class="f" style="min-width:220px;flex:2;"><label>Motif</label><input type="text" name="motif" required /></div>
+        <button class="btn-submit" type="submit">Ajouter</button>
+      </form>
     </div>
     <div class="card">
       <h2>Punitions récentes</h2>
-      ${punitions.length ? `<table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Motif</th><th>Rédigée par</th></tr></thead><tbody>${rowsPunitions}</tbody></table>` : '<div class="empty-state">Aucune punition enregistrée.</div>'}
+      ${punitions.length ? `<table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Motif</th><th>Rédigée par</th><th></th></tr></thead><tbody>${rowsPunitions}</tbody></table>` : '<div class="empty-state">Aucune punition enregistrée.</div>'}
+    </div>
+    <div class="card">
+      <h2>Ajouter une observation</h2>
+      <form class="inline-form" id="vs-observation-form">
+        <div class="f"><label>ID étudiant</label><input type="number" name="etudiantId" required min="1" /></div>
+        <div class="f">
+          <label>Type</label>
+          <select name="type">
+            <option value="NEUTRE">Neutre</option>
+            <option value="POSITIVE">Positive</option>
+            <option value="NEGATIVE">Négative</option>
+          </select>
+        </div>
+        <div class="f" style="min-width:260px;flex:2;"><label>Contenu</label><input type="text" name="contenu" required /></div>
+        <button class="btn-submit" type="submit">Ajouter</button>
+      </form>
     </div>
     <div class="card">
       <h2>Observations récentes</h2>
       ${observations.length ? `<table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Contenu</th><th>Rédigée par</th></tr></thead><tbody>${rowsObservations}</tbody></table>` : '<div class="empty-state">Aucune observation enregistrée.</div>'}
     </div>`;
+
+  content.querySelectorAll('[data-toggle-justif]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try{
+        await api('/absences/' + btn.dataset.toggleJustif, { method:'PATCH', body: JSON.stringify({ justifiee: btn.dataset.valeur === 'true' })});
+        toast('Statut mis à jour.');
+        renderVieScolaire();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  document.getElementById('vs-punition-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/punitions', { method:'POST', body: JSON.stringify({
+        etudiantId: Number(fd.get('etudiantId')), type: fd.get('type'), motif: fd.get('motif'),
+        dureeHeures: fd.get('dureeHeures') ? Number(fd.get('dureeHeures')) : undefined,
+      })});
+      toast('Punition ajoutée.');
+      renderVieScolaire();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  document.getElementById('vs-observation-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/observations', { method:'POST', body: JSON.stringify({
+        etudiantId: Number(fd.get('etudiantId')), type: fd.get('type'), contenu: fd.get('contenu'),
+      })});
+      toast('Observation ajoutée.');
+      renderVieScolaire();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  bindDeleteButtons(content, 'data-delete-punition-vs', '/punitions', renderVieScolaire, 'cette punition');
 }
 
 /* ============================================================

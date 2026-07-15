@@ -82,6 +82,7 @@ enum Role {
   PARENT
   ADMIN
   CHEF_PROJET
+  VIE_SCOLAIRE
 }
 
 model Classe {
