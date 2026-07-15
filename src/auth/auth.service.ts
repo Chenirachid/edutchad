@@ -90,6 +90,12 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
+    if (!user.actif) {
+      throw new UnauthorizedException(
+        "Ce compte a été désactivé. Contacte ton établissement pour plus d'informations.",
+      );
+    }
+
     if (user.verrouJusqua && user.verrouJusqua > new Date()) {
       const minutesRestantes = Math.ceil(
         (user.verrouJusqua.getTime() - Date.now()) / 60000,

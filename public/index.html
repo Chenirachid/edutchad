@@ -1343,7 +1343,7 @@ async function renderAdminUsers(){
   const content = document.getElementById('content');
 
   const rows = users.map(u => `
-    <tr>
+    <tr style="${u.actif === false ? 'opacity:.55;' : ''}">
       <td>${u.id}</td>
       <td>${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</td>
       <td>${escapeHtml(u.email)}</td>
@@ -1354,9 +1354,11 @@ async function renderAdminUsers(){
         </select>
       </td>
       <td><input type="number" data-user-classe="${u.id}" value="${u.classeId ?? ''}" placeholder="—" style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;" /></td>
+      <td>${u.actif === false ? '<span class="badge-non-justifiee">Désactivé</span>' : '<span class="badge-justifiee">Actif</span>'}</td>
       <td style="white-space:nowrap;">
         <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
         <button class="btn-secondary" data-reset-password="${u.id}" style="margin-left:6px;">Réinitialiser MDP</button>
+        <button class="btn-secondary" data-toggle-actif="${u.id}" style="margin-left:6px;">${u.actif === false ? 'Réactiver' : 'Désactiver'}</button>
         <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
       </td>
     </tr>`).join('');
@@ -1388,7 +1390,7 @@ async function renderAdminUsers(){
     </div>
     <div class="card">
       <h2>Tous les utilisateurs</h2>
-      <table><thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>N° étudiant</th><th>Rôle</th><th>Classe</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>N° étudiant</th><th>Rôle</th><th>Classe</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 
   document.getElementById('create-user-form').addEventListener('submit', async (e) => {
@@ -1429,6 +1431,16 @@ async function renderAdminUsers(){
       try{
         await api('/users/' + id + '/password', { method:'PATCH', body: JSON.stringify({ nouveauMotDePasse: nouveau }) });
         toast('Mot de passe réinitialisé : ' + nouveau);
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-toggle-actif]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try{
+        await api('/users/' + btn.dataset.toggleActif + '/actif', { method:'PATCH' });
+        toast('Statut du compte mis à jour.');
+        renderAdminUsers();
       }catch(err){ toast(err.message, 'error'); }
     });
   });

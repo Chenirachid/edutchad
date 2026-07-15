@@ -23,6 +23,7 @@ const userSelect = {
   numeroEtudiant: true,
   classeId: true,
   etablissementId: true,
+  actif: true,
   createdAt: true,
 } as const;
 
@@ -159,6 +160,15 @@ export class UsersService {
     return { message: 'Mot de passe réinitialisé avec succès' };
   }
 
+  async toggleActif(id: number) {
+    const cible = await this.findOne(id);
+    return this.prisma.user.update({
+      where: { id },
+      data: { actif: !cible.actif },
+      select: userSelect,
+    });
+  }
+
   async remove(id: number, currentUser: JwtPayload) {
     const cible = await this.findOne(id);
 
@@ -191,6 +201,12 @@ export class UsersService {
       };
     }
 
-    return this.prisma.user.delete({ where: { id }, select: userSelect });
+    try {
+      return await this.prisma.user.delete({ where: { id }, select: userSelect });
+    } catch (err) {
+      throw new BadRequestException(
+        "Impossible de supprimer ce compte : il a de l'historique associé (notes, absences, enseignements, messages…). Utilise plutôt « Désactiver » pour bloquer son accès tout en conservant l'historique.",
+      );
+    }
   }
 }

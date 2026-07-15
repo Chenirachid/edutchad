@@ -32,6 +32,7 @@ model User {
   createdAt           DateTime  @default(now())
   tentativesEchouees  Int       @default(0)
   verrouJusqua        DateTime?
+  actif               Boolean   @default(true)
 
   etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
   etablissementId Int?

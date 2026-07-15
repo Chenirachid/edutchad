@@ -57,6 +57,11 @@ export class UsersController {
     return this.usersService.resetPassword(id, dto);
   }
 
+  @Patch(':id/actif')
+  toggleActif(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.toggleActif(id);
+  }
+
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
     return this.usersService.remove(id, user);
