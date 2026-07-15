@@ -29,6 +29,7 @@ import { EtablissementsModule } from './etablissements/etablissements.module';
 import { RendezVousModule } from './rendez-vous/rendez-vous.module';
 import { EpreuvesModule } from './epreuves/epreuves.module';
 import { ActualitesModule } from './actualites/actualites.module';
+import { SondagesModule } from './sondages/sondages.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { ActualitesModule } from './actualites/actualites.module';
     RendezVousModule,
     EpreuvesModule,
     ActualitesModule,
+    SondagesModule,
   ],
   controllers: [],
   providers: [

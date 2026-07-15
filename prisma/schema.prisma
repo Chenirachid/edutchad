@@ -17,6 +17,7 @@ model Etablissement {
   matieres     Matiere[]
   parametres   ParametrePlateforme?
   actualites   Actualite[]
+  sondages     Sondage[]
 }
 
 model User {
@@ -71,6 +72,8 @@ model User {
   reservationsRdv    ReservationRdv[]    @relation("ReservationsRdvParent")
   rendezVousEnfant   ReservationRdv[]    @relation("ReservationsRdvEtudiant")
   actualites         Actualite[]
+  sondagesCrees      Sondage[]
+  votesSondages      VoteSondage[]
 }
 
 enum Role {
@@ -477,4 +480,43 @@ model Actualite {
   auteurId        Int
   etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
   etablissementId Int?
+}
+
+model Sondage {
+  id        Int      @id @default(autoincrement())
+  question  String
+  cloture   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  auteur          User           @relation(fields: [auteurId], references: [id])
+  auteurId        Int
+  etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
+  etablissementId Int?
+
+  options OptionSondage[]
+  votes   VoteSondage[]
+}
+
+model OptionSondage {
+  id        Int    @id @default(autoincrement())
+  texte     String
+
+  sondage   Sondage @relation(fields: [sondageId], references: [id])
+  sondageId Int
+
+  votes VoteSondage[]
+}
+
+model VoteSondage {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  option    OptionSondage @relation(fields: [optionId], references: [id])
+  optionId  Int
+  sondage   Sondage       @relation(fields: [sondageId], references: [id])
+  sondageId Int
+  votant    User          @relation(fields: [votantId], references: [id])
+  votantId  Int
+
+  @@unique([sondageId, votantId])
 }
