@@ -64,6 +64,12 @@ export class SondagesService {
   }
 
   async voter(sondageId: number, dto: VoterSondageDto, currentUser: JwtPayload) {
+    if (currentUser.role === Role.ETUDIANT || currentUser.role === Role.PARENT) {
+      throw new ForbiddenException(
+        "Les élèves et parents peuvent consulter les résultats mais pas voter à ce sondage",
+      );
+    }
+
     const sondage = await this.prisma.sondage.findUnique({
       where: { id: sondageId },
       include: { options: true },
