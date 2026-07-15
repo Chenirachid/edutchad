@@ -6,7 +6,13 @@ import { UpdateCreneauDto } from './dto/update-creneau.dto';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 const includeContext = {
-  enseignement: { include: { matiere: true, classe: true } },
+  enseignement: {
+    include: {
+      matiere: true,
+      classe: true,
+      professeur: { select: { id: true, nom: true, prenom: true } },
+    },
+  },
 } as const;
 
 @Injectable()

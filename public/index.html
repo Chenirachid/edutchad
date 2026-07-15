@@ -947,27 +947,41 @@ function renderAbsencesTable(absences, showEtudiant){
     </div>`;
 }
 
+let cahierTextePrefillEnseignementId = null;
+
 async function renderEmploiDuTemps(){
   const creneaux = await api('/creneaux');
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
+  const estProf = state.user.role === 'PROFESSEUR';
 
   const parJour = {};
   JOURS_ORDRE.forEach(j => parJour[j] = []);
   creneaux.forEach(c => { if(parJour[c.jour]) parJour[c.jour].push(c); });
   Object.values(parJour).forEach(list => list.sort((a,b) => a.heureDebut.localeCompare(b.heureDebut)));
 
+  const estMonCours = (c) => estProf && c.enseignement.professeur && c.enseignement.professeur.id === state.user.id;
+
   const cols = JOURS_ORDRE.map(jour => {
     const blocks = parJour[jour].map(c => `
-      <div class="creneau-block" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)}">
+      <div class="creneau-block" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)};${estMonCours(c) ? 'cursor:pointer;' : ''}" ${estMonCours(c) ? `data-cahier-enseignement="${c.enseignement.id}"` : ''}>
         <div class="heure">${c.heureDebut} – ${c.heureFin}</div>
         <div>${escapeHtml(c.enseignement.matiere.nom)}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
         ${c.salle ? `<div class="salle">Salle ${escapeHtml(c.salle)}</div>` : ''}
+        ${estMonCours(c) ? '<div style="font-size:10.5px;color:var(--teal-700);font-weight:600;margin-top:4px;">📖 Remplir le cahier de texte →</div>' : ''}
       </div>`).join('');
     return `<div><div class="day-col-head">${jour}</div>${blocks || '<div class="empty-state" style="padding:10px 0;">—</div>'}</div>`;
   }).join('');
 
   content.innerHTML = `<div class="card"><h2>Semaine type</h2><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;">${cols}</div></div>`;
+
+  content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
+    bloc.addEventListener('click', () => {
+      cahierTextePrefillEnseignementId = Number(bloc.dataset.cahierEnseignement);
+      selectMenu('cahier-texte');
+    });
+  });
 }
 
 /* ============================================================
@@ -2433,10 +2447,13 @@ async function renderCahierTexte(){
   let creationCard = '';
   if(isProf){
     const mine = await getMesEnseignements();
-    const enseignementOptions = mine.map(e => `<option value="${e.id}">${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('');
+    const enseignementOptions = mine.map(e => `<option value="${e.id}" ${cahierTextePrefillEnseignementId === e.id ? 'selected' : ''}>${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('');
+    const venaitDeLEmploi = cahierTextePrefillEnseignementId !== null;
+    cahierTextePrefillEnseignementId = null;
     creationCard = `
       <div class="card">
         <h2>Nouvelle entrée</h2>
+        ${venaitDeLEmploi ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis ton emploi du temps.</p>` : ''}
         <form class="inline-form" id="cahier-texte-form">
           <div class="f" style="min-width:220px;">
             <label>Classe / matière</label>

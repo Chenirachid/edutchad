@@ -3,12 +3,18 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { json, urlencoded } from 'express';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Limite de taille des requêtes relevée à 10 Mo : nécessaire pour les pièces jointes
+  // du cahier de texte, envoyées encodées en base64 (donc ~33% plus lourdes que le fichier réel)
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // CSP réactivée avec des règles adaptées à notre propre frontend (police Google Fonts, styles/scripts inline first-party)
   app.use(
