@@ -14,4 +14,16 @@ export class CreateCahierTexteDto {
 
   @IsInt()
   enseignementId: number;
+
+  @IsOptional()
+  @IsString()
+  pieceJointeNom?: string;
+
+  @IsOptional()
+  @IsString()
+  pieceJointeType?: string;
+
+  @IsOptional()
+  @IsString()
+  pieceJointeData?: string;
 }

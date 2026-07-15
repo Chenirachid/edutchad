@@ -28,6 +28,7 @@ import { DemandesSuppressionModule } from './demandes-suppression/demandes-suppr
 import { EtablissementsModule } from './etablissements/etablissements.module';
 import { RendezVousModule } from './rendez-vous/rendez-vous.module';
 import { EpreuvesModule } from './epreuves/epreuves.module';
+import { ActualitesModule } from './actualites/actualites.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { EpreuvesModule } from './epreuves/epreuves.module';
     EtablissementsModule,
     RendezVousModule,
     EpreuvesModule,
+    ActualitesModule,
   ],
   controllers: [],
   providers: [

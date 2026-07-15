@@ -16,6 +16,7 @@ model Etablissement {
   classes      Classe[]
   matieres     Matiere[]
   parametres   ParametrePlateforme?
+  actualites   Actualite[]
 }
 
 model User {
@@ -69,6 +70,7 @@ model User {
   creneauxRdv        CreneauRendezVous[] @relation("CreneauxRdvProf")
   reservationsRdv    ReservationRdv[]    @relation("ReservationsRdvParent")
   rendezVousEnfant   ReservationRdv[]    @relation("ReservationsRdvEtudiant")
+  actualites         Actualite[]
 }
 
 enum Role {
@@ -351,6 +353,10 @@ model CahierTexte {
   devoirs   String?
   createdAt DateTime @default(now())
 
+  pieceJointeNom  String?
+  pieceJointeType String?
+  pieceJointeData String? @db.Text
+
   enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
   enseignementId Int
 }
@@ -459,4 +465,16 @@ model ReservationRdv {
   parentId  Int
   etudiant  User @relation("ReservationsRdvEtudiant", fields: [etudiantId], references: [id])
   etudiantId Int
+}
+
+model Actualite {
+  id        Int      @id @default(autoincrement())
+  titre     String
+  contenu   String
+  createdAt DateTime @default(now())
+
+  auteur          User           @relation(fields: [auteurId], references: [id])
+  auteurId        Int
+  etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
+  etablissementId Int?
 }

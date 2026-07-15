@@ -36,6 +36,9 @@ export class CahiersTexteService {
         contenu: dto.contenu,
         devoirs: dto.devoirs,
         enseignementId: dto.enseignementId,
+        pieceJointeNom: dto.pieceJointeNom,
+        pieceJointeType: dto.pieceJointeType,
+        pieceJointeData: dto.pieceJointeData,
       },
       include,
     });
