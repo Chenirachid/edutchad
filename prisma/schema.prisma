@@ -65,6 +65,10 @@ model User {
   demandesSuppressionCible     DemandeSuppressionAdmin[] @relation("DemandeCible")
   demandesSuppressionEmises    DemandeSuppressionAdmin[] @relation("DemandeDemandeur")
   demandesSuppressionTraitees  DemandeSuppressionAdmin[] @relation("DemandeTraitant")
+
+  creneauxRdv        CreneauRendezVous[] @relation("CreneauxRdvProf")
+  reservationsRdv    ReservationRdv[]    @relation("ReservationsRdvParent")
+  rendezVousEnfant   ReservationRdv[]    @relation("ReservationsRdvEtudiant")
 }
 
 enum Role {
@@ -410,4 +414,29 @@ model DemandeSuppressionAdmin {
   demandeurId Int
   traitePar   User? @relation("DemandeTraitant", fields: [traiteParId], references: [id])
   traiteParId Int?
+}
+
+model CreneauRendezVous {
+  id           Int      @id @default(autoincrement())
+  date         DateTime
+  dureeMinutes Int      @default(15)
+  createdAt    DateTime @default(now())
+
+  professeur   User @relation("CreneauxRdvProf", fields: [professeurId], references: [id])
+  professeurId Int
+
+  reservation ReservationRdv?
+}
+
+model ReservationRdv {
+  id        Int      @id @default(autoincrement())
+  motif     String?
+  createdAt DateTime @default(now())
+
+  creneau   CreneauRendezVous @relation(fields: [creneauId], references: [id])
+  creneauId Int               @unique
+  parent    User @relation("ReservationsRdvParent", fields: [parentId], references: [id])
+  parentId  Int
+  etudiant  User @relation("ReservationsRdvEtudiant", fields: [etudiantId], references: [id])
+  etudiantId Int
 }

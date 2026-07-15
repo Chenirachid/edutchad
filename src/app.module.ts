@@ -26,6 +26,7 @@ import { InscriptionsAdministrativesModule } from './inscriptions-administrative
 import { MentionsBulletinModule } from './mentions-bulletin/mentions-bulletin.module';
 import { DemandesSuppressionModule } from './demandes-suppression/demandes-suppression.module';
 import { EtablissementsModule } from './etablissements/etablissements.module';
+import { RendezVousModule } from './rendez-vous/rendez-vous.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { EtablissementsModule } from './etablissements/etablissements.module';
     InscriptionsAdministrativesModule,
     DemandesSuppressionModule,
     EtablissementsModule,
+    RendezVousModule,
   ],
   controllers: [],
   providers: [

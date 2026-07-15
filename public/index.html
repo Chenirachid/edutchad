@@ -463,7 +463,7 @@ const I18N = {
     login_connecte_a: 'Connecté à',
     logout: 'Se déconnecter',
     nav_bulletin: 'Mon bulletin', nav_absences: 'Mes absences', nav_comportement: 'Mon comportement',
-    nav_emploi: 'Emploi du temps', nav_groupes: 'Groupes', nav_reunions: 'Réunions', nav_messagerie: 'Messagerie',
+    nav_emploi: 'Emploi du temps', nav_groupes: 'Groupes', nav_reunions: 'Réunions', nav_messagerie: 'Messagerie', nav_rendez_vous: 'Rendez-vous',
     nav_enseignements: 'Mes classes', nav_appel: "Faire l'appel", nav_saisir_note: 'Saisir une note',
     nav_declarer_absence: 'Déclarer une absence', nav_observations: 'Observations', nav_punitions: 'Punitions',
     nav_cahier_texte: 'Cahier de texte', nav_parametres: 'Paramètres', nav_enfants: 'Mes enfants',
@@ -475,7 +475,7 @@ const I18N = {
     title_emploi: 'Emploi du temps', title_enseignements: 'Mes classes', title_appel: "Faire l'appel",
     title_saisir_note: 'Saisir une note', title_declarer_absence: 'Déclarer une absence',
     title_observations: 'Observations', title_punitions: 'Punitions', title_groupes: 'Groupes',
-    title_reunions: 'Réunions', title_cahier_texte: 'Cahier de texte', title_inscriptions: 'Inscriptions',
+    title_reunions: 'Réunions', title_cahier_texte: 'Cahier de texte', title_inscriptions: 'Inscriptions', title_rendez_vous: 'Rendez-vous',
     title_enfants: 'Mes enfants', title_utilisateurs: 'Gestion des utilisateurs', title_classes: 'Gestion des classes',
     title_matieres: 'Gestion des matières', title_enseignements_admin: 'Gestion des enseignements',
     title_creneaux_admin: "Gestion de l'emploi du temps", title_liaisons: 'Liaisons parent-enfant',
@@ -495,7 +495,7 @@ const I18N = {
     login_connecte_a: 'Connected to',
     logout: 'Log out',
     nav_bulletin: 'My report card', nav_absences: 'My absences', nav_comportement: 'My behaviour',
-    nav_emploi: 'Timetable', nav_groupes: 'Groups', nav_reunions: 'Meetings', nav_messagerie: 'Messages',
+    nav_emploi: 'Timetable', nav_groupes: 'Groups', nav_reunions: 'Meetings', nav_messagerie: 'Messages', nav_rendez_vous: 'Appointments',
     nav_enseignements: 'My classes', nav_appel: 'Take attendance', nav_saisir_note: 'Enter a grade',
     nav_declarer_absence: 'Report an absence', nav_observations: 'Remarks', nav_punitions: 'Sanctions',
     nav_cahier_texte: 'Class logbook', nav_parametres: 'Settings', nav_enfants: 'My children',
@@ -507,7 +507,7 @@ const I18N = {
     title_emploi: 'Timetable', title_enseignements: 'My classes', title_appel: 'Take attendance',
     title_saisir_note: 'Enter a grade', title_declarer_absence: 'Report an absence',
     title_observations: 'Remarks', title_punitions: 'Sanctions', title_groupes: 'Groups',
-    title_reunions: 'Meetings', title_cahier_texte: 'Class logbook', title_inscriptions: 'Enrolments',
+    title_reunions: 'Meetings', title_cahier_texte: 'Class logbook', title_inscriptions: 'Enrolments', title_rendez_vous: 'Appointments',
     title_enfants: 'My children', title_utilisateurs: 'User management', title_classes: 'Class management',
     title_matieres: 'Subject management', title_enseignements_admin: 'Teaching assignments management',
     title_creneaux_admin: 'Timetable management', title_liaisons: 'Parent-child links',
@@ -527,7 +527,7 @@ const I18N = {
     login_connecte_a: 'متصل بـ',
     logout: 'تسجيل الخروج',
     nav_bulletin: 'كشف نقاطي', nav_absences: 'غياباتي', nav_comportement: 'سلوكي',
-    nav_emploi: 'الجدول الزمني', nav_groupes: 'المجموعات', nav_reunions: 'الاجتماعات', nav_messagerie: 'الرسائل',
+    nav_emploi: 'الجدول الزمني', nav_groupes: 'المجموعات', nav_reunions: 'الاجتماعات', nav_messagerie: 'الرسائل', nav_rendez_vous: 'المواعيد',
     nav_enseignements: 'أقسامي', nav_appel: 'أخذ الحضور', nav_saisir_note: 'إدخال نقطة',
     nav_declarer_absence: 'تسجيل غياب', nav_observations: 'ملاحظات', nav_punitions: 'عقوبات',
     nav_cahier_texte: 'دفتر النصوص', nav_parametres: 'الإعدادات', nav_enfants: 'أبنائي',
@@ -539,7 +539,7 @@ const I18N = {
     title_emploi: 'الجدول الزمني', title_enseignements: 'أقسامي', title_appel: 'أخذ الحضور',
     title_saisir_note: 'إدخال نقطة', title_declarer_absence: 'تسجيل غياب',
     title_observations: 'ملاحظات', title_punitions: 'عقوبات', title_groupes: 'المجموعات',
-    title_reunions: 'الاجتماعات', title_cahier_texte: 'دفتر النصوص', title_inscriptions: 'التسجيلات',
+    title_reunions: 'الاجتماعات', title_cahier_texte: 'دفتر النصوص', title_inscriptions: 'التسجيلات', title_rendez_vous: 'المواعيد',
     title_enfants: 'أبنائي', title_utilisateurs: 'إدارة المستخدمين', title_classes: 'إدارة الأقسام',
     title_matieres: 'إدارة المواد', title_enseignements_admin: 'إدارة التكليفات التعليمية',
     title_creneaux_admin: 'إدارة الجدول الزمني', title_liaisons: 'روابط أولياء الأمور بالأبناء',
@@ -763,11 +763,13 @@ const MENUS = {
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'reunions', label:'Réunions', render: renderReunions },
+    { id:'rendez-vous', label:'Rendez-vous parents', render: renderProfRendezVous },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
   PARENT: [
     { id:'enfants', label:'Mes enfants', render: renderParentEnfants },
+    { id:'rendez-vous', label:'Rendez-vous profs', render: renderParentRendezVous },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
   ADMIN: [
@@ -2611,6 +2613,128 @@ async function renderDemandesSuppression(){
         await api('/demandes-suppression-admin/' + btn.dataset.traiterDemande, { method:'PATCH', body: JSON.stringify({ decision })});
         toast(decision === 'APPROUVEE' ? 'Compte supprimé.' : 'Demande rejetée.');
         renderDemandesSuppression();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+}
+
+/* ============================================================
+   RENDEZ-VOUS PARENTS-PROFS (créneaux de disponibilité)
+   ============================================================ */
+async function renderProfRendezVous(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const creneaux = await api('/rendez-vous/mes-creneaux');
+
+  const rows = creneaux.map(c => `
+    <tr>
+      <td>${new Date(c.date).toLocaleString('fr-FR', { dateStyle:'medium', timeStyle:'short' })}</td>
+      <td>${c.dureeMinutes} min</td>
+      <td>${c.reservation
+        ? `<span class="chip" style="background:var(--success)">Réservé</span> par ${escapeHtml(c.reservation.parent.prenom)} ${escapeHtml(c.reservation.parent.nom)} pour ${escapeHtml(c.reservation.etudiant.prenom)} ${escapeHtml(c.reservation.etudiant.nom)}${c.reservation.motif ? ' — ' + escapeHtml(c.reservation.motif) : ''}`
+        : '<span class="chip" style="background:var(--teal-700)">Disponible</span>'}</td>
+      <td><button class="btn-secondary" data-delete-creneau="${c.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td>
+    </tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Ouvrir un créneau de disponibilité</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Les parents des élèves de tes classes pourront réserver ce créneau.</p>
+      <form class="inline-form" id="creneau-rdv-form">
+        <div class="f"><label>Date et heure</label><input type="datetime-local" name="date" required /></div>
+        <div class="f"><label>Durée (minutes)</label><input type="number" name="dureeMinutes" min="5" value="15" /></div>
+        <button class="btn-submit" type="submit">Créer le créneau</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Mes créneaux (${creneaux.length})</h2>
+      ${creneaux.length ? `<table><thead><tr><th>Date</th><th>Durée</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun créneau ouvert.</div>'}
+    </div>`;
+
+  document.getElementById('creneau-rdv-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/rendez-vous/creneaux', { method:'POST', body: JSON.stringify({
+        date: new Date(fd.get('date')).toISOString(),
+        dureeMinutes: Number(fd.get('dureeMinutes')) || 15,
+      })});
+      toast('Créneau créé.');
+      renderProfRendezVous();
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  content.querySelectorAll('[data-delete-creneau]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm('Supprimer ce créneau (et sa réservation éventuelle) ?')) return;
+      try{
+        await api('/rendez-vous/creneaux/' + btn.dataset.deleteCreneau, { method:'DELETE' });
+        toast('Créneau supprimé.');
+        renderProfRendezVous();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+}
+
+async function renderParentRendezVous(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const [disponibles, reservations, enfants] = await Promise.all([
+    api('/rendez-vous/disponibles'),
+    api('/rendez-vous/mes-reservations'),
+    api('/parents/mes-enfants'),
+  ]);
+
+  const rowsDispo = disponibles.map(c => `
+    <tr>
+      <td>${new Date(c.date).toLocaleString('fr-FR', { dateStyle:'medium', timeStyle:'short' })}</td>
+      <td>${escapeHtml(c.professeur.prenom)} ${escapeHtml(c.professeur.nom)}</td>
+      <td>${c.dureeMinutes} min</td>
+      <td>
+        <select data-enfant-select="${c.id}" style="padding:5px 7px;border:1px solid var(--border);border-radius:6px;">
+          ${enfants.map(e => `<option value="${e.id}">${escapeHtml(e.prenom)} ${escapeHtml(e.nom)}</option>`).join('')}
+        </select>
+      </td>
+      <td><button class="btn-submit" data-reserver-creneau="${c.id}">Réserver</button></td>
+    </tr>`).join('');
+
+  const rowsReservations = reservations.map(c => `
+    <tr>
+      <td>${new Date(c.date).toLocaleString('fr-FR', { dateStyle:'medium', timeStyle:'short' })}</td>
+      <td>${escapeHtml(c.professeur.prenom)} ${escapeHtml(c.professeur.nom)}</td>
+      <td>${escapeHtml(c.reservation.etudiant.prenom)} ${escapeHtml(c.reservation.etudiant.nom)}</td>
+      <td><button class="btn-secondary" data-annuler-reservation="${c.id}" style="border-color:var(--danger);color:var(--danger);">Annuler</button></td>
+    </tr>`).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Créneaux disponibles</h2>
+      ${!enfants.length ? '<div class="empty-state">Aucun enfant lié à ton compte.</div>' : (disponibles.length ? `<table><thead><tr><th>Date</th><th>Professeur</th><th>Durée</th><th>Pour quel enfant</th><th></th></tr></thead><tbody>${rowsDispo}</tbody></table>` : '<div class="empty-state">Aucun créneau disponible pour le moment.</div>')}
+    </div>
+    <div class="card">
+      <h2>Mes rendez-vous réservés (${reservations.length})</h2>
+      ${reservations.length ? `<table><thead><tr><th>Date</th><th>Professeur</th><th>Enfant</th><th></th></tr></thead><tbody>${rowsReservations}</tbody></table>` : '<div class="empty-state">Aucun rendez-vous réservé.</div>'}
+    </div>`;
+
+  content.querySelectorAll('[data-reserver-creneau]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const creneauId = btn.dataset.reserverCreneau;
+      const etudiantId = content.querySelector(`[data-enfant-select="${creneauId}"]`).value;
+      try{
+        await api('/rendez-vous/creneaux/' + creneauId + '/reserver', { method:'POST', body: JSON.stringify({ etudiantId: Number(etudiantId) })});
+        toast('Rendez-vous réservé.');
+        renderParentRendezVous();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-annuler-reservation]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm('Annuler ce rendez-vous ?')) return;
+      try{
+        await api('/rendez-vous/creneaux/' + btn.dataset.annulerReservation + '/reservation', { method:'DELETE' });
+        toast('Rendez-vous annulé.');
+        renderParentRendezVous();
       }catch(err){ toast(err.message, 'error'); }
     });
   });
