@@ -22,15 +22,24 @@ export class MessagesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async send(currentUser: JwtPayload, dto: CreateMessageDto) {
-    if (dto.destinataireId === currentUser.sub) {
-      throw new BadRequestException('Vous ne pouvez pas vous envoyer un message à vous-même');
+    if (!dto.destinataireId && !dto.destinataireEmail) {
+      throw new BadRequestException("Précise un destinataire (ID ou email)");
     }
 
-    const destinataire = await this.prisma.user.findUnique({
-      where: { id: dto.destinataireId },
-    });
+    const destinataire = dto.destinataireEmail
+      ? await this.prisma.user.findUnique({ where: { email: dto.destinataireEmail } })
+      : await this.prisma.user.findUnique({ where: { id: dto.destinataireId } });
+
     if (!destinataire) {
-      throw new NotFoundException(`Utilisateur ${dto.destinataireId} introuvable`);
+      throw new NotFoundException(
+        dto.destinataireEmail
+          ? `Aucun utilisateur avec l'email ${dto.destinataireEmail}`
+          : `Utilisateur ${dto.destinataireId} introuvable`,
+      );
+    }
+
+    if (destinataire.id === currentUser.sub) {
+      throw new BadRequestException('Vous ne pouvez pas vous envoyer un message à vous-même');
     }
 
     if (
@@ -46,7 +55,7 @@ export class MessagesService {
       data: {
         contenu: dto.contenu,
         expediteurId: currentUser.sub,
-        destinataireId: dto.destinataireId,
+        destinataireId: destinataire.id,
       },
       include: {
         expediteur: { select: contactSelect },

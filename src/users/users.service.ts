@@ -74,8 +74,8 @@ export class UsersService {
 
     // Hiérarchie de création des comptes, comme dans Pronote :
     // - CHEF_PROJET ne crée que des chefs d'établissement (un par établissement)
-    // - CHEF_ETABLISSEMENT crée tout le reste de son établissement, y compris les admins
-    // - ADMIN crée tout sauf des comptes admin/chef d'établissement/chef de projet
+    // - CHEF_ETABLISSEMENT ne crée que des comptes admin de son établissement
+    // - ADMIN crée tout le reste (profs, élèves, parents, vie scolaire), pas d'autres admins
     if (currentUser.role === Role.CHEF_PROJET) {
       if (role !== Role.CHEF_ETABLISSEMENT) {
         throw new ForbiddenException(
@@ -83,9 +83,9 @@ export class UsersService {
         );
       }
     } else if (currentUser.role === Role.CHEF_ETABLISSEMENT) {
-      if (role === Role.CHEF_PROJET || role === Role.CHEF_ETABLISSEMENT) {
+      if (role !== Role.ADMIN) {
         throw new ForbiddenException(
-          "Tu ne peux pas créer de compte chef de projet ou chef d'établissement.",
+          "Le chef d'établissement ne peut créer que des comptes admin. Demande à un admin de créer les comptes profs, élèves, parents ou vie scolaire.",
         );
       }
     } else if (currentUser.role === Role.ADMIN) {
