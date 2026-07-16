@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { buildBaseEmail, formatNumeroEtudiant } from '../common/email-generator';
+import { buildBaseEmail, buildBaseIdentifiant, formatNumeroEtudiant, genererCodeActivation } from '../common/email-generator';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
 const SALT_ROUNDS = 10;
@@ -20,6 +20,7 @@ const userSelect = {
   nom: true,
   prenom: true,
   email: true,
+  identifiant: true,
   role: true,
   numeroEtudiant: true,
   classeId: true,
@@ -44,6 +45,19 @@ export class UsersService {
     }
 
     return email;
+  }
+
+  private async generateUniqueIdentifiant(prenom: string, nom: string) {
+    const base = buildBaseIdentifiant(prenom, nom);
+    let identifiant = base;
+    let counter = 1;
+
+    while (await this.prisma.user.findUnique({ where: { identifiant } })) {
+      counter++;
+      identifiant = `${base}${counter}`;
+    }
+
+    return identifiant;
   }
 
   async create(dto: CreateUserDto, currentUser: JwtPayload) {
@@ -106,14 +120,19 @@ export class UsersService {
     }
 
     const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
-    const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
+    const identifiant = await this.generateUniqueIdentifiant(dto.prenom, dto.nom);
+    const codeActivation = genererCodeActivation();
+    // Mot de passe temporaire inutilisable : la personne le remplace via l'activation
+    const motDePasseTemporaire = await bcrypt.hash(genererCodeActivation() + genererCodeActivation(), SALT_ROUNDS);
 
     const user = await this.prisma.user.create({
       data: {
         nom: dto.nom,
         prenom: dto.prenom,
         email,
-        password: hashedPassword,
+        identifiant,
+        codeActivation,
+        password: motDePasseTemporaire,
         role,
         classeId: dto.classeId,
         etablissementId,
@@ -121,14 +140,15 @@ export class UsersService {
     });
 
     if (role === Role.ETUDIANT) {
-      return this.prisma.user.update({
+      await this.prisma.user.update({
         where: { id: user.id },
         data: { numeroEtudiant: formatNumeroEtudiant(user.id) },
-        select: userSelect,
       });
     }
 
-    return this.prisma.user.findUnique({ where: { id: user.id }, select: userSelect });
+    const cree = await this.prisma.user.findUnique({ where: { id: user.id }, select: userSelect });
+    // Le code d'activation en clair n'est révélé qu'une seule fois, à la création
+    return { ...cree, codeActivation };
   }
 
   findAll(currentUser: JwtPayload) {
@@ -184,6 +204,17 @@ export class UsersService {
       data: { password: hashedPassword },
     });
     return { message: 'Mot de passe réinitialisé avec succès' };
+  }
+
+  async regenererActivation(id: number) {
+    await this.findOne(id);
+    const codeActivation = genererCodeActivation();
+    const cible = await this.prisma.user.update({
+      where: { id },
+      data: { codeActivation },
+      select: userSelect,
+    });
+    return { ...cible, codeActivation };
   }
 
   async toggleActif(id: number) {

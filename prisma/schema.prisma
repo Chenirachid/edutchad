@@ -26,6 +26,8 @@ model User {
   nom                 String
   prenom              String
   email               String    @unique
+  identifiant         String?   @unique
+  codeActivation      String?
   password            String
   role                Role      @default(ETUDIANT)
   numeroEtudiant      String?   @unique

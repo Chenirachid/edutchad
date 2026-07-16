@@ -355,8 +355,8 @@
     <div class="login-error" id="login-error"></div>
     <form id="login-form">
       <div class="field">
-        <label id="login-email-label">Email</label>
-        <input type="email" id="login-email" required autocomplete="username" />
+        <label id="login-email-label">Nom d'utilisateur</label>
+        <input type="text" id="login-email" required autocomplete="username" />
       </div>
       <div class="field">
         <label id="login-password-label">Mot de passe</label>
@@ -365,10 +365,35 @@
       <button class="btn-primary" type="submit" id="login-submit-btn">Se connecter</button>
     </form>
     <p style="text-align:center;margin:14px 0 0;">
+      <a href="#" id="activer-compte-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Activer mon compte (premier accès)</a>
+    </p>
+    <p style="text-align:center;margin:8px 0 0;">
       <a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Mot de passe oublié ?</a>
     </p>
     <div class="login-hint">
       <span id="login-connecte-a-label">Connecté à</span> <code id="api-base-display"></code>
+    </div>
+
+    <div id="activation-panel" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+      <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 10px;">Activer mon compte</p>
+      <form id="activation-form">
+        <div class="field">
+          <label>Nom d'utilisateur</label>
+          <input type="text" id="activation-identifiant" required />
+        </div>
+        <div class="field">
+          <label>Code d'activation (reçu sur papier)</label>
+          <input type="text" id="activation-code" required style="text-transform:uppercase;" />
+        </div>
+        <div class="field">
+          <label>Choisis ton mot de passe</label>
+          <input type="password" id="activation-password" required minlength="8" placeholder="Min. 8 car., Maj+min+chiffre" />
+        </div>
+        <button class="btn-primary" type="submit">Activer et se connecter</button>
+      </form>
+      <p style="text-align:center;margin:10px 0 0;">
+        <a href="#" id="retour-connexion-link" style="font-size:12px;color:var(--text-muted);text-decoration:none;">← Retour à la connexion</a>
+      </p>
     </div>
   </div>
 </div>
@@ -669,18 +694,46 @@ const JOURS_ORDRE = ['LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
    ============================================================ */
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const email = document.getElementById('login-email').value.trim();
+  const identifiant = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const errorBox = document.getElementById('login-error');
   errorBox.style.display = 'none';
   try{
-    const data = await api('/auth/login', { method:'POST', body: JSON.stringify({ email, password }) });
+    const data = await api('/auth/login', { method:'POST', body: JSON.stringify({ identifiant, password }) });
     saveSession(data.access_token, data.user);
     enterApp();
   }catch(err){
-    errorBox.textContent = err.message.includes('Unauthorized') || err.message.includes('invalides') ? 'Email ou mot de passe incorrect.' : err.message;
+    errorBox.textContent = err.message.includes('Unauthorized') || err.message.includes('invalides') ? "Nom d'utilisateur ou mot de passe incorrect." : err.message;
     errorBox.style.display = 'block';
   }
+});
+
+document.getElementById('activer-compte-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('login-form').classList.add('hidden');
+  document.querySelectorAll('#login-screen .login-card > p').forEach(p => p.classList.add('hidden'));
+  document.getElementById('login-error').classList.add('hidden');
+  document.getElementById('activation-panel').classList.remove('hidden');
+});
+
+document.getElementById('retour-connexion-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('activation-panel').classList.add('hidden');
+  document.getElementById('login-form').classList.remove('hidden');
+  document.querySelectorAll('#login-screen .login-card > p').forEach(p => p.classList.remove('hidden'));
+  document.getElementById('login-error').classList.remove('hidden');
+});
+
+document.getElementById('activation-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const identifiant = document.getElementById('activation-identifiant').value.trim();
+  const codeActivation = document.getElementById('activation-code').value.trim();
+  const nouveauMotDePasse = document.getElementById('activation-password').value;
+  try{
+    const data = await api('/auth/activer', { method:'POST', body: JSON.stringify({ identifiant, codeActivation, nouveauMotDePasse }) });
+    saveSession(data.access_token, data.user);
+    enterApp();
+  }catch(err){ toast(err.message, 'error'); }
 });
 
 document.querySelectorAll('[data-lang-btn]').forEach(btn => {
@@ -1370,6 +1423,56 @@ async function renderParentEnfants(){
 /* ============================================================
    ADMIN
    ============================================================ */
+function chargerJsBarcode(){
+  return new Promise((resolve, reject) => {
+    if(window.JsBarcode){ resolve(); return; }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.5/JsBarcode.all.min.js';
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function imprimerDocumentActivation(user){
+  try{
+    await chargerJsBarcode();
+    const parametres = await api('/parametres');
+    const printRoot = document.getElementById('print-root');
+    printRoot.innerHTML = `
+      <div class="certificat-sheet">
+        <div class="certificat-entete">
+          <h1>${escapeHtml(parametres.nomEtablissement)}</h1>
+          <div class="etab">Document d'activation de compte</div>
+        </div>
+        <div class="certificat-titre" style="font-size:16px;">Bienvenue, ${escapeHtml(user.prenom)} ${escapeHtml(user.nom)}</div>
+        <div class="certificat-corps" style="font-size:14px;">
+          Un compte <strong>${escapeHtml(user.role)}</strong> a été créé pour toi sur <strong>${escapeHtml(parametres.nomEtablissement)}</strong>.
+          Pour l'activer et choisir ton propre mot de passe, connecte-toi sur le site et clique sur
+          « Activer mon compte », puis renseigne les informations ci-dessous.
+        </div>
+        <div style="display:flex;justify-content:space-around;align-items:center;margin:24px 0;padding:20px;border:2px dashed var(--teal-700);border-radius:10px;">
+          <div>
+            <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Nom d'utilisateur</div>
+            <div style="font-size:20px;font-weight:700;color:var(--teal-900);margin-bottom:14px;">${escapeHtml(user.identifiant)}</div>
+            <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Code d'activation</div>
+            <div style="font-size:20px;font-weight:700;color:var(--teal-900);letter-spacing:.1em;">${escapeHtml(user.codeActivation)}</div>
+          </div>
+          <svg id="barcode-activation"></svg>
+        </div>
+        <div class="bulletin-footer">${escapeHtml(parametres.nomEtablissement)} — Document confidentiel, à usage unique</div>
+      </div>`;
+
+    window.JsBarcode('#barcode-activation', user.codeActivation, {
+      format: 'CODE128', width: 2, height: 60, displayValue: false, margin: 6,
+    });
+
+    window.print();
+  }catch(err){
+    toast("Impossible de charger le générateur de code-barres, mais l'identifiant et le code sont : " + user.identifiant + ' / ' + user.codeActivation, 'error');
+  }
+}
+
 async function renderAdminUsers(){
   const users = await api('/users');
   const etablissementsListe = state.user.role === 'CHEF_PROJET' ? await api('/etablissements') : [];
@@ -1380,7 +1483,7 @@ async function renderAdminUsers(){
     <tr style="${u.actif === false ? 'opacity:.55;' : ''}">
       <td>${u.id}</td>
       <td>${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</td>
-      <td>${escapeHtml(u.email)}</td>
+      <td><code style="font-size:12px;">${escapeHtml(u.identifiant || '—')}</code></td>
       <td>${u.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(u.numeroEtudiant)}</code>` : '—'}</td>
       <td>
         <select data-user-role="${u.id}">
@@ -1392,6 +1495,7 @@ async function renderAdminUsers(){
       <td style="white-space:nowrap;">
         <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
         <button class="btn-secondary" data-reset-password="${u.id}" style="margin-left:6px;">Réinitialiser MDP</button>
+        <button class="btn-secondary" data-regenerer-activation="${u.id}" style="margin-left:6px;">Réimprimer activation</button>
         <button class="btn-secondary" data-toggle-actif="${u.id}" style="margin-left:6px;">${u.actif === false ? 'Réactiver' : 'Désactiver'}</button>
         <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
       </td>
@@ -1406,11 +1510,10 @@ async function renderAdminUsers(){
   content.innerHTML = `
     <div class="card">
       <h2>Créer un utilisateur</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">L'adresse email est générée automatiquement (prénom.nom@... selon le rôle).${state.user.role === 'CHEF_PROJET' ? " En tant que chef de projet, tu ne peux créer que des comptes chef d'établissement." : ''}</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Un nom d'utilisateur est généré automatiquement (prénom.nom selon le rôle). La personne créera elle-même son mot de passe grâce au document d'activation imprimable fourni après la création.${state.user.role === 'CHEF_PROJET' ? " En tant que chef de projet, tu ne peux créer que des comptes chef d'établissement." : ''}</p>
       <form class="inline-form" id="create-user-form">
         <div class="f"><label>Prénom</label><input type="text" name="prenom" required /></div>
         <div class="f"><label>Nom</label><input type="text" name="nom" required /></div>
-        <div class="f"><label>Mot de passe</label><input type="password" name="password" required minlength="8" placeholder="Min. 8 car., Maj+min+chiffre" /></div>
         <div class="f">
           <label>Rôle</label>
           <select name="role">
@@ -1425,7 +1528,7 @@ async function renderAdminUsers(){
     </div>
     <div class="card">
       <h2>Tous les utilisateurs</h2>
-      <table><thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>N° étudiant</th><th>Rôle</th><th>Classe</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>ID</th><th>Nom</th><th>Identifiant</th><th>N° étudiant</th><th>Rôle</th><th>Classe</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 
   document.getElementById('create-user-form').addEventListener('submit', async (e) => {
@@ -1433,11 +1536,11 @@ async function renderAdminUsers(){
     const fd = new FormData(e.target);
     try{
       const created = await api('/users', { method:'POST', body: JSON.stringify({
-        prenom: fd.get('prenom'), nom: fd.get('nom'),
-        password: fd.get('password'), role: fd.get('role'),
+        prenom: fd.get('prenom'), nom: fd.get('nom'), role: fd.get('role'),
         etablissementId: fd.get('etablissementId') ? Number(fd.get('etablissementId')) : undefined,
       })});
-      toast(`Utilisateur créé — email : ${created.email}`);
+      toast(`Compte créé — identifiant : ${created.identifiant}`);
+      await imprimerDocumentActivation(created);
       renderAdminUsers();
     }catch(err){ toast(err.message, 'error'); }
   });
@@ -1466,6 +1569,17 @@ async function renderAdminUsers(){
       try{
         await api('/users/' + id + '/password', { method:'PATCH', body: JSON.stringify({ nouveauMotDePasse: nouveau }) });
         toast('Mot de passe réinitialisé : ' + nouveau);
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-regenerer-activation]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm("Régénérer un nouveau code d'activation pour ce compte ? L'ancien code ne fonctionnera plus.")) return;
+      try{
+        const resultat = await api('/users/' + btn.dataset.regenererActivation + '/activation', { method:'PATCH' });
+        toast('Code régénéré.');
+        await imprimerDocumentActivation(resultat);
       }catch(err){ toast(err.message, 'error'); }
     });
   });

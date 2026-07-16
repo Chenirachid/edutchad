@@ -13,7 +13,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtPayload } from './types/jwt-payload.type';
-import { buildBaseEmail } from '../common/email-generator';
+import { buildBaseEmail, buildBaseIdentifiant, genererCodeActivation } from '../common/email-generator';
 
 const SALT_ROUNDS = 10;
 const MAX_TENTATIVES = 5;
@@ -38,6 +38,19 @@ export class AuthService {
     }
 
     return email;
+  }
+
+  private async generateUniqueIdentifiant(prenom: string, nom: string) {
+    const base = buildBaseIdentifiant(prenom, nom);
+    let identifiant = base;
+    let counter = 1;
+
+    while (await this.prisma.user.findUnique({ where: { identifiant } })) {
+      counter++;
+      identifiant = `${base}${counter}`;
+    }
+
+    return identifiant;
   }
 
   async register(dto: RegisterDto) {
@@ -65,6 +78,7 @@ export class AuthService {
     const etablissementId: number | null = null;
 
     const email = await this.generateUniqueEmail(dto.prenom, dto.nom, role);
+    const identifiant = await this.generateUniqueIdentifiant(dto.prenom, dto.nom);
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
     const user = await this.prisma.user.create({
@@ -72,6 +86,7 @@ export class AuthService {
         nom: dto.nom,
         prenom: dto.prenom,
         email,
+        identifiant,
         password: hashedPassword,
         role,
         etablissementId,
@@ -83,7 +98,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { identifiant: dto.identifiant },
     });
 
     if (!user) {
@@ -93,6 +108,12 @@ export class AuthService {
     if (!user.actif) {
       throw new UnauthorizedException(
         "Ce compte a été désactivé. Contacte ton établissement pour plus d'informations.",
+      );
+    }
+
+    if (user.codeActivation) {
+      throw new UnauthorizedException(
+        "Ce compte n'est pas encore activé. Utilise le code d'activation reçu (document imprimé) pour créer ton mot de passe.",
       );
     }
 
@@ -160,11 +181,34 @@ export class AuthService {
     return { message: 'Mot de passe mis à jour avec succès' };
   }
 
+  async activerCompte(dto: { identifiant: string; codeActivation: string; nouveauMotDePasse: string }) {
+    const user = await this.prisma.user.findUnique({
+      where: { identifiant: dto.identifiant },
+    });
+
+    if (!user || !user.codeActivation) {
+      throw new BadRequestException('Identifiant ou code invalide, ou compte déjà activé');
+    }
+
+    if (user.codeActivation !== dto.codeActivation.toUpperCase().trim()) {
+      throw new BadRequestException("Code d'activation incorrect");
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.nouveauMotDePasse, SALT_ROUNDS);
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, codeActivation: null },
+    });
+
+    return this.buildAuthResponse(updated);
+  }
+
   private buildAuthResponse(user: {
     id: number;
     nom: string;
     prenom: string;
     email: string;
+    identifiant?: string | null;
     role: JwtPayload['role'];
     numeroEtudiant?: string | null;
     etablissementId: number | null;
@@ -183,6 +227,7 @@ export class AuthService {
         nom: user.nom,
         prenom: user.prenom,
         email: user.email,
+        identifiant: user.identifiant ?? null,
         role: user.role,
         numeroEtudiant: user.numeroEtudiant ?? null,
         etablissementId: user.etablissementId,

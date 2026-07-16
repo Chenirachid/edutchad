@@ -57,6 +57,11 @@ export class UsersController {
     return this.usersService.resetPassword(id, dto);
   }
 
+  @Patch(':id/activation')
+  regenererActivation(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.regenererActivation(id);
+  }
+
   @Patch(':id/actif')
   toggleActif(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.toggleActif(id);

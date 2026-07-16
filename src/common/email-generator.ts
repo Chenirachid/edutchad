@@ -60,3 +60,23 @@ export function slugify(nom: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
+/**
+ * Construit la base d'un nom d'utilisateur (sans vérifier l'unicité) : prenom.nom
+ */
+export function buildBaseIdentifiant(prenom: string, nom: string): string {
+  return `${normalizeEmailPart(prenom)}.${normalizeEmailPart(nom)}`;
+}
+
+/**
+ * Génère un code d'activation lisible (8 caractères, sans caractères ambigus)
+ * à imprimer/afficher en code-barres pour que la personne active son compte.
+ */
+export function genererCodeActivation(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sans I, O, 0, 1 (ambigus)
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return code;
+}
