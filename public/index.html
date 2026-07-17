@@ -1456,7 +1456,7 @@ async function imprimerDocumentActivation(user){
     zoneQr.style.left = '-9999px';
     document.body.appendChild(zoneQr);
     new window.QRCode(zoneQr, {
-      text: `Identifiant: ${user.identifiant}\nCode: ${user.codeActivation}`,
+      text: `${window.location.origin}/?identifiant=${encodeURIComponent(user.identifiant)}&code=${encodeURIComponent(user.codeActivation)}`,
       width: 200, height: 200,
     });
     await new Promise(r => setTimeout(r, 60));
@@ -1520,6 +1520,7 @@ async function imprimerDocumentActivation(user){
     doc.text(`${parametres.nomEtablissement} — Document confidentiel, à usage unique`, centreX, 270, { align: 'center' });
 
     doc.save(`activation-${user.identifiant}.pdf`);
+    window.open(doc.output('bloburl'), '_blank');
   }catch(err){
     toast("Impossible de générer le PDF, mais l'identifiant et le code sont : " + user.identifiant + ' / ' + user.codeActivation, 'error');
   }
@@ -3572,6 +3573,19 @@ if(labelInitLogin) labelInitLogin.textContent = langueSauvegardee.toUpperCase();
 
 if(restoreSession()){
   enterApp();
+} else {
+  const params = new URLSearchParams(window.location.search);
+  const identifiantQr = params.get('identifiant');
+  const codeQr = params.get('code');
+  if(identifiantQr && codeQr){
+    document.getElementById('login-form').classList.add('hidden');
+    document.querySelectorAll('#login-screen .login-card > p').forEach(p => p.classList.add('hidden'));
+    document.getElementById('login-error').classList.add('hidden');
+    document.getElementById('activation-panel').classList.remove('hidden');
+    document.getElementById('activation-identifiant').value = identifiantQr;
+    document.getElementById('activation-code').value = codeQr;
+    history.replaceState(null, '', window.location.pathname);
+  }
 }
 </script>
 </body>
