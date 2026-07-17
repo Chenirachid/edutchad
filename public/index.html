@@ -1423,11 +1423,11 @@ async function renderParentEnfants(){
 /* ============================================================
    ADMIN
    ============================================================ */
-function chargerJsBarcode(){
+function chargerQRCode(){
   return new Promise((resolve, reject) => {
-    if(window.JsBarcode){ resolve(); return; }
+    if(window.QRCode){ resolve(); return; }
     const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.5/JsBarcode.all.min.js';
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
     script.onload = resolve;
     script.onerror = reject;
     document.head.appendChild(script);
@@ -1436,7 +1436,7 @@ function chargerJsBarcode(){
 
 async function imprimerDocumentActivation(user){
   try{
-    await chargerJsBarcode();
+    await chargerQRCode();
     const parametres = await api('/parametres');
     const printRoot = document.getElementById('print-root');
     printRoot.innerHTML = `
@@ -1449,7 +1449,7 @@ async function imprimerDocumentActivation(user){
         <div class="certificat-corps" style="font-size:14px;">
           Un compte <strong>${escapeHtml(user.role)}</strong> a été créé pour toi sur <strong>${escapeHtml(parametres.nomEtablissement)}</strong>.
           Pour l'activer et choisir ton propre mot de passe, connecte-toi sur le site et clique sur
-          « Activer mon compte », puis renseigne les informations ci-dessous.
+          « Activer mon compte », puis renseigne les informations ci-dessous (ou scanne le QR code).
         </div>
         <div style="display:flex;justify-content:space-around;align-items:center;margin:24px 0;padding:20px;border:2px dashed var(--teal-700);border-radius:10px;">
           <div>
@@ -1458,18 +1458,19 @@ async function imprimerDocumentActivation(user){
             <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Code d'activation</div>
             <div style="font-size:20px;font-weight:700;color:var(--teal-900);letter-spacing:.1em;">${escapeHtml(user.codeActivation)}</div>
           </div>
-          <svg id="barcode-activation"></svg>
+          <div id="qrcode-activation"></div>
         </div>
         <div class="bulletin-footer">${escapeHtml(parametres.nomEtablissement)} — Document confidentiel, à usage unique</div>
       </div>`;
 
-    window.JsBarcode('#barcode-activation', user.codeActivation, {
-      format: 'CODE128', width: 2, height: 60, displayValue: false, margin: 6,
+    new window.QRCode(document.getElementById('qrcode-activation'), {
+      text: `Identifiant: ${user.identifiant}\nCode: ${user.codeActivation}`,
+      width: 110, height: 110,
     });
 
     window.print();
   }catch(err){
-    toast("Impossible de charger le générateur de code-barres, mais l'identifiant et le code sont : " + user.identifiant + ' / ' + user.codeActivation, 'error');
+    toast("Impossible de charger le générateur de QR code, mais l'identifiant et le code sont : " + user.identifiant + ' / ' + user.codeActivation, 'error');
   }
 }
 
