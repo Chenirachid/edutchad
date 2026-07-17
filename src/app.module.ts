@@ -30,6 +30,7 @@ import { RendezVousModule } from './rendez-vous/rendez-vous.module';
 import { EpreuvesModule } from './epreuves/epreuves.module';
 import { ActualitesModule } from './actualites/actualites.module';
 import { SondagesModule } from './sondages/sondages.module';
+import { MaintenanceModule } from './maintenance/maintenance.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { SondagesModule } from './sondages/sondages.module';
     EpreuvesModule,
     ActualitesModule,
     SondagesModule,
+    MaintenanceModule,
   ],
   controllers: [],
   providers: [
