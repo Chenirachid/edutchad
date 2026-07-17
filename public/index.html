@@ -1434,43 +1434,94 @@ function chargerQRCode(){
   });
 }
 
+function chargerJsPDF(){
+  return new Promise((resolve, reject) => {
+    if(window.jspdf){ resolve(); return; }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
 async function imprimerDocumentActivation(user){
   try{
-    await chargerQRCode();
+    await Promise.all([chargerQRCode(), chargerJsPDF()]);
     const parametres = await api('/parametres');
-    const printRoot = document.getElementById('print-root');
-    printRoot.innerHTML = `
-      <div class="certificat-sheet">
-        <div class="certificat-entete">
-          <h1>${escapeHtml(parametres.nomEtablissement)}</h1>
-          <div class="etab">Document d'activation de compte</div>
-        </div>
-        <div class="certificat-titre" style="font-size:16px;">Bienvenue, ${escapeHtml(user.prenom)} ${escapeHtml(user.nom)}</div>
-        <div class="certificat-corps" style="font-size:14px;">
-          Un compte <strong>${escapeHtml(user.role)}</strong> a été créé pour toi sur <strong>${escapeHtml(parametres.nomEtablissement)}</strong>.
-          Pour l'activer et choisir ton propre mot de passe, connecte-toi sur le site et clique sur
-          « Activer mon compte », puis renseigne les informations ci-dessous (ou scanne le QR code).
-        </div>
-        <div style="display:flex;justify-content:space-around;align-items:center;margin:24px 0;padding:20px;border:2px dashed var(--teal-700);border-radius:10px;">
-          <div>
-            <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Nom d'utilisateur</div>
-            <div style="font-size:20px;font-weight:700;color:var(--teal-900);margin-bottom:14px;">${escapeHtml(user.identifiant)}</div>
-            <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Code d'activation</div>
-            <div style="font-size:20px;font-weight:700;color:var(--teal-900);letter-spacing:.1em;">${escapeHtml(user.codeActivation)}</div>
-          </div>
-          <div id="qrcode-activation"></div>
-        </div>
-        <div class="bulletin-footer">${escapeHtml(parametres.nomEtablissement)} — Document confidentiel, à usage unique</div>
-      </div>`;
 
-    new window.QRCode(document.getElementById('qrcode-activation'), {
+    // Génère le QR code dans une zone invisible, juste pour en extraire l'image
+    const zoneQr = document.createElement('div');
+    zoneQr.style.position = 'fixed';
+    zoneQr.style.left = '-9999px';
+    document.body.appendChild(zoneQr);
+    new window.QRCode(zoneQr, {
       text: `Identifiant: ${user.identifiant}\nCode: ${user.codeActivation}`,
-      width: 110, height: 110,
+      width: 200, height: 200,
     });
+    await new Promise(r => setTimeout(r, 60));
+    const canvasQr = zoneQr.querySelector('canvas');
+    const imgQr = zoneQr.querySelector('img');
+    const qrDataUrl = canvasQr ? canvasQr.toDataURL('image/png') : (imgQr ? imgQr.src : null);
+    document.body.removeChild(zoneQr);
 
-    window.print();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const centreX = 105;
+
+    doc.setFontSize(16);
+    doc.setTextColor(11, 114, 133);
+    doc.text(parametres.nomEtablissement, centreX, 25, { align: 'center' });
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text("Document d'activation de compte", centreX, 32, { align: 'center' });
+
+    doc.setDrawColor(11, 114, 133);
+    doc.setLineWidth(0.8);
+    doc.line(20, 38, 190, 38);
+
+    doc.setFontSize(14);
+    doc.setTextColor(20);
+    doc.text(`Bienvenue, ${user.prenom} ${user.nom}`, centreX, 50, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setTextColor(60);
+    const corps = doc.splitTextToSize(
+      `Un compte ${user.role} a été créé pour toi sur ${parametres.nomEtablissement}. Pour l'activer et choisir ton propre mot de passe, connecte-toi sur le site et clique sur « Activer mon compte », puis renseigne les informations ci-dessous (ou scanne le QR code).`,
+      160,
+    );
+    doc.text(corps, centreX, 62, { align: 'center' });
+
+    doc.setDrawColor(11, 114, 133);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.rect(30, 90, 150, 60);
+    doc.setLineDashPattern([], 0);
+
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text("NOM D'UTILISATEUR", 45, 102);
+    doc.setFontSize(15);
+    doc.setTextColor(11, 114, 133);
+    doc.text(user.identifiant, 45, 110);
+
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text("CODE D'ACTIVATION", 45, 122);
+    doc.setFontSize(15);
+    doc.setTextColor(11, 114, 133);
+    doc.text(user.codeActivation, 45, 130);
+
+    if(qrDataUrl){
+      doc.addImage(qrDataUrl, 'PNG', 140, 95, 32, 32);
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`${parametres.nomEtablissement} — Document confidentiel, à usage unique`, centreX, 270, { align: 'center' });
+
+    doc.save(`activation-${user.identifiant}.pdf`);
   }catch(err){
-    toast("Impossible de charger le générateur de QR code, mais l'identifiant et le code sont : " + user.identifiant + ' / ' + user.codeActivation, 'error');
+    toast("Impossible de générer le PDF, mais l'identifiant et le code sont : " + user.identifiant + ' / ' + user.codeActivation, 'error');
   }
 }
 
