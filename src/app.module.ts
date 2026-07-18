@@ -31,6 +31,7 @@ import { EpreuvesModule } from './epreuves/epreuves.module';
 import { ActualitesModule } from './actualites/actualites.module';
 import { SondagesModule } from './sondages/sondages.module';
 import { DossiersProfesseurModule } from './dossiers-professeur/dossiers-professeur.module';
+import { RessourcesProfModule } from './ressources-prof/ressources-prof.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { DossiersProfesseurModule } from './dossiers-professeur/dossiers-profess
     ActualitesModule,
     SondagesModule,
     DossiersProfesseurModule,
+    RessourcesProfModule,
   ],
   controllers: [],
   providers: [

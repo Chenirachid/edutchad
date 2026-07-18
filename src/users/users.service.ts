@@ -26,6 +26,7 @@ const userSelect = {
   classeId: true,
   etablissementId: true,
   actif: true,
+  derniereActivite: true,
   createdAt: true,
 } as const;
 

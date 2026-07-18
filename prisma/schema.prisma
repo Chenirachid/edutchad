@@ -35,6 +35,7 @@ model User {
   tentativesEchouees  Int       @default(0)
   verrouJusqua        DateTime?
   actif               Boolean   @default(true)
+  derniereActivite    DateTime?
 
   etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
   etablissementId Int?
@@ -79,6 +80,7 @@ model User {
   sondagesCrees      Sondage[]
   votesSondages      VoteSondage[]
   dossierProfesseur  DossierProfesseur?
+  ressourcesProf     RessourceProf[]
 }
 
 enum Role {
@@ -578,4 +580,16 @@ enum CategorieDocumentProf {
   DIPLOME
   ATTESTATION
   AUTRE
+}
+
+model RessourceProf {
+  id          Int      @id @default(autoincrement())
+  titre       String
+  nom         String
+  type        String
+  data        String   @db.Text
+  createdAt   DateTime @default(now())
+
+  professeur   User @relation(fields: [professeurId], references: [id])
+  professeurId Int
 }
