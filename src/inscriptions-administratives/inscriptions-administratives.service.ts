@@ -28,8 +28,30 @@ export class InscriptionsAdministrativesService {
       where: {
         etudiantId_anneeScolaire: { etudiantId: etudiant.id, anneeScolaire: dto.anneeScolaire },
       },
-      create: { etudiantId: etudiant.id, anneeScolaire: dto.anneeScolaire },
-      update: {},
+      create: {
+        etudiantId: etudiant.id,
+        anneeScolaire: dto.anneeScolaire,
+        dateNaissance: new Date(dto.dateNaissance),
+        typeJustificatif: dto.typeJustificatif,
+        justificatifNom: dto.justificatifNom,
+        justificatifType: dto.justificatifType,
+        justificatifData: dto.justificatifData,
+        vientDAutreEtablissement: dto.vientDAutreEtablissement,
+        justificatifTransfertNom: dto.justificatifTransfertNom,
+        justificatifTransfertType: dto.justificatifTransfertType,
+        justificatifTransfertData: dto.justificatifTransfertData,
+      },
+      update: {
+        dateNaissance: new Date(dto.dateNaissance),
+        typeJustificatif: dto.typeJustificatif,
+        justificatifNom: dto.justificatifNom,
+        justificatifType: dto.justificatifType,
+        justificatifData: dto.justificatifData,
+        vientDAutreEtablissement: dto.vientDAutreEtablissement,
+        justificatifTransfertNom: dto.justificatifTransfertNom,
+        justificatifTransfertType: dto.justificatifTransfertType,
+        justificatifTransfertData: dto.justificatifTransfertData,
+      },
       include: { etudiant: { select: etudiantSelect } },
     });
   }

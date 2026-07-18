@@ -78,6 +78,7 @@ model User {
   actualites         Actualite[]
   sondagesCrees      Sondage[]
   votesSondages      VoteSondage[]
+  dossierProfesseur  DossierProfesseur?
 }
 
 enum Role {
@@ -408,10 +409,28 @@ model InscriptionAdministrative {
   dateValidation DateTime?
   createdAt      DateTime               @default(now())
 
+  dateNaissance DateTime
+
+  typeJustificatif    TypeJustificatifIdentite
+  justificatifNom     String
+  justificatifType    String
+  justificatifData    String                   @db.Text
+
+  vientDAutreEtablissement   Boolean
+  justificatifTransfertNom   String?
+  justificatifTransfertType  String?
+  justificatifTransfertData  String?           @db.Text
+
   etudiant   User @relation(fields: [etudiantId], references: [id])
   etudiantId Int
 
   @@unique([etudiantId, anneeScolaire])
+}
+
+enum TypeJustificatifIdentite {
+  ACTE_NAISSANCE
+  PIECE_IDENTITE
+  PASSEPORT
 }
 
 enum Mention {
@@ -528,4 +547,19 @@ model VoteSondage {
   votantId  Int
 
   @@unique([sondageId, votantId])
+}
+
+model DossierProfesseur {
+  id            Int      @id @default(autoincrement())
+  dateNaissance DateTime
+  justification String
+
+  diplomeNom  String
+  diplomeType String
+  diplomeData String   @db.Text
+
+  createdAt DateTime @default(now())
+
+  professeur   User @relation(fields: [professeurId], references: [id])
+  professeurId Int  @unique
 }

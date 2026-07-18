@@ -1540,6 +1540,7 @@ async function renderAdminUsers(){
         <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
         <button class="btn-secondary" data-reset-password="${u.id}" style="margin-left:6px;">Réinitialiser MDP</button>
         <button class="btn-secondary" data-regenerer-activation="${u.id}" style="margin-left:6px;">Réimprimer activation</button>
+        ${u.role === 'PROFESSEUR' ? `<button class="btn-secondary" data-dossier-prof="${u.id}" style="margin-left:6px;">Dossier</button>` : ''}
         <button class="btn-secondary" data-toggle-actif="${u.id}" style="margin-left:6px;">${u.actif === false ? 'Réactiver' : 'Désactiver'}</button>
         <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
       </td>
@@ -1573,7 +1574,8 @@ async function renderAdminUsers(){
     <div class="card">
       <h2>Tous les utilisateurs</h2>
       <table><thead><tr><th>ID</th><th>Nom</th><th>Identifiant</th><th>N° étudiant</th><th>Rôle</th><th>Classe</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>
-    </div>`;
+    </div>
+    <div id="dossier-prof-zone"></div>`;
 
   document.getElementById('create-user-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1625,6 +1627,62 @@ async function renderAdminUsers(){
         toast('Code régénéré.');
         await imprimerDocumentActivation(resultat);
       }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-dossier-prof]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const profId = btn.dataset.dossierProf;
+      const u = users.find(x => String(x.id) === profId);
+      const zone = document.getElementById('dossier-prof-zone');
+      let dossierExistant = null;
+      try{ dossierExistant = await api('/dossiers-professeur/' + profId); }catch(e){ /* pas encore de dossier */ }
+
+      zone.innerHTML = `
+        <div class="card">
+          <h2>Dossier de ${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</h2>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Justification de sa qualification à enseigner sa matière (diplôme, parcours d'études).</p>
+          <form class="inline-form" id="dossier-prof-form">
+            <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required value="${dossierExistant ? dossierExistant.dateNaissance.slice(0,10) : ''}" /></div>
+            <div class="f" style="min-width:280px;flex:2;"><label>Justification (diplôme, parcours d'études)</label><input type="text" name="justification" required value="${dossierExistant ? escapeHtml(dossierExistant.justification) : ''}" placeholder="Ex : Licence de Mathématiques, 5 ans d'expérience..." /></div>
+            <div class="f"><label>Diplôme (fichier)${dossierExistant ? ' — déjà fourni : ' + escapeHtml(dossierExistant.diplomeNom) : ''}</label><input type="file" name="diplome" id="dossier-prof-diplome" ${dossierExistant ? '' : 'required'} /></div>
+            <button class="btn-submit" type="submit">${dossierExistant ? 'Mettre à jour' : 'Enregistrer'}</button>
+          </form>
+        </div>`;
+
+      document.getElementById('dossier-prof-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const fichier = document.getElementById('dossier-prof-diplome').files[0];
+        if(fichier && fichier.size > 3 * 1024 * 1024){ toast('Le fichier dépasse 3 Mo.', 'error'); return; }
+
+        try{
+          const body = {
+            dateNaissance: new Date(fd.get('dateNaissance')).toISOString(),
+            justification: fd.get('justification'),
+          };
+          if(fichier){
+            const base64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result.split(',')[1]);
+              reader.onerror = reject;
+              reader.readAsDataURL(fichier);
+            });
+            body.diplomeNom = fichier.name;
+            body.diplomeType = fichier.type;
+            body.diplomeData = base64;
+          } else if(dossierExistant){
+            body.diplomeNom = dossierExistant.diplomeNom;
+            body.diplomeType = dossierExistant.diplomeType;
+            body.diplomeData = dossierExistant.diplomeData;
+          } else {
+            toast('Le diplôme est obligatoire.', 'error'); return;
+          }
+
+          await api('/dossiers-professeur/' + profId, { method:'POST', body: JSON.stringify(body) });
+          toast('Dossier enregistré.');
+        }catch(err){ toast(err.message, 'error'); }
+      });
     });
   });
 
@@ -2865,6 +2923,25 @@ async function renderAdminInscriptions(){
       <form class="inline-form" id="inscription-admin-form">
         <div class="f"><label>Numéro étudiant</label><input type="text" name="numeroEtudiant" required placeholder="ETU-00007" /></div>
         <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
+        <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required /></div>
+        <div class="f">
+          <label>Type de justificatif d'identité</label>
+          <select name="typeJustificatif" required>
+            <option value="ACTE_NAISSANCE">Acte de naissance</option>
+            <option value="PIECE_IDENTITE">Pièce d'identité</option>
+            <option value="PASSEPORT">Passeport</option>
+          </select>
+        </div>
+        <div class="f"><label>Justificatif d'identité (fichier)</label><input type="file" name="justificatif" id="inscription-justificatif" required /></div>
+        <div class="f">
+          <label>Vient d'un autre établissement ?</label>
+          <select name="vientDAutreEtablissement" id="inscription-vient-autre" required>
+            <option value="">— Choisir —</option>
+            <option value="non">Non</option>
+            <option value="oui">Oui</option>
+          </select>
+        </div>
+        <div class="f hidden" id="inscription-transfert-zone"><label>Justificatif de transfert (obligatoire)</label><input type="file" name="justificatifTransfert" id="inscription-justificatif-transfert" /></div>
         <button class="btn-submit" type="submit">Enregistrer</button>
       </form>
     </div>
@@ -2881,13 +2958,52 @@ async function renderAdminInscriptions(){
       </div>
     </div>`;
 
+  document.getElementById('inscription-vient-autre').addEventListener('change', (e) => {
+    const zone = document.getElementById('inscription-transfert-zone');
+    const champFichier = document.getElementById('inscription-justificatif-transfert');
+    const estOui = e.target.value === 'oui';
+    zone.classList.toggle('hidden', !estOui);
+    champFichier.required = estOui;
+  });
+
   document.getElementById('inscription-admin-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
+    const fichierJustificatif = document.getElementById('inscription-justificatif').files[0];
+    const fichierTransfert = document.getElementById('inscription-justificatif-transfert').files[0];
+    const vientDAutreEtablissement = fd.get('vientDAutreEtablissement') === 'oui';
+
+    if(!fichierJustificatif){ toast("Le justificatif d'identité est obligatoire.", 'error'); return; }
+    if(vientDAutreEtablissement && !fichierTransfert){ toast('Le justificatif de transfert est obligatoire.', 'error'); return; }
+    for(const f of [fichierJustificatif, fichierTransfert]){
+      if(f && f.size > 3 * 1024 * 1024){ toast('Un fichier dépasse 3 Mo.', 'error'); return; }
+    }
+
     try{
-      await api('/inscriptions-administratives', { method:'POST', body: JSON.stringify({
-        numeroEtudiant: fd.get('numeroEtudiant'), anneeScolaire: fd.get('anneeScolaire'),
-      })});
+      const lireFichier = (f) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(f);
+      });
+
+      const body = {
+        numeroEtudiant: fd.get('numeroEtudiant'),
+        anneeScolaire: fd.get('anneeScolaire'),
+        dateNaissance: new Date(fd.get('dateNaissance')).toISOString(),
+        typeJustificatif: fd.get('typeJustificatif'),
+        justificatifNom: fichierJustificatif.name,
+        justificatifType: fichierJustificatif.type,
+        justificatifData: await lireFichier(fichierJustificatif),
+        vientDAutreEtablissement,
+      };
+      if(vientDAutreEtablissement && fichierTransfert){
+        body.justificatifTransfertNom = fichierTransfert.name;
+        body.justificatifTransfertType = fichierTransfert.type;
+        body.justificatifTransfertData = await lireFichier(fichierTransfert);
+      }
+
+      await api('/inscriptions-administratives', { method:'POST', body: JSON.stringify(body) });
       toast('Inscription administrative enregistrée.');
       renderAdminInscriptions();
     }catch(err){ toast(err.message, 'error'); }
