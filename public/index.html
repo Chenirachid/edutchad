@@ -1067,12 +1067,36 @@ async function renderProfEnseignements(){
       <td>${escapeHtml(e.classe.nom)}</td>
       <td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td>
       <td>${e.matiere.coefficient}</td>
+      <td><button class="btn-secondary" data-voir-eleves-enseignement="${e.id}">Voir les élèves</button></td>
     </tr>`).join('');
   content.innerHTML = `
     <div class="card">
       <h2>Mes enseignements</h2>
-      ${mine.length ? `<table><thead><tr><th>Classe</th><th>Matière</th><th>Coefficient</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">Aucun enseignement ne vous est encore assigné.</div>`}
-    </div>`;
+      ${mine.length ? `<table><thead><tr><th>Classe</th><th>Matière</th><th>Coefficient</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">Aucun enseignement ne vous est encore assigné.</div>`}
+    </div>
+    <div id="roster-zone"></div>`;
+
+  content.querySelectorAll('[data-voir-eleves-enseignement]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const enseignementId = btn.dataset.voirElevesEnseignement;
+      const ligne = mine.find(e => String(e.id) === enseignementId);
+      const zone = document.getElementById('roster-zone');
+      zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
+      try{
+        const etudiants = await api('/enseignements/' + enseignementId + '/etudiants');
+        const rowsEtudiants = etudiants.map(et => `
+          <tr>
+            <td>${et.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(et.numeroEtudiant)}</code>` : '—'}</td>
+            <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
+          </tr>`).join('');
+        zone.innerHTML = `
+          <div class="card">
+            <h2>${escapeHtml(ligne.classe.nom)} — ${escapeHtml(ligne.matiere.nom)} (${etudiants.length} élève${etudiants.length > 1 ? 's' : ''})</h2>
+            ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
+          </div>`;
+      }catch(err){ zone.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`; }
+    });
+  });
 }
 
 async function renderProfSaisirNote(){
@@ -1648,7 +1672,7 @@ async function renderAdminClasses(){
   const etablissementsListe = state.user.role === 'CHEF_PROJET' ? await api('/etablissements') : [];
   document.getElementById('page-subtitle').textContent = classes.length + ' classes';
   const content = document.getElementById('content');
-  const rows = classes.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.nom)}</td><td>${escapeHtml(c.anneeScolaire)}</td><td>${c.etudiants ? c.etudiants.length : 0}</td><td><button class="btn-secondary" data-delete-classe="${c.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
+  const rows = classes.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.nom)}</td><td>${escapeHtml(c.anneeScolaire)}</td><td>${c.etudiants ? c.etudiants.length : 0}</td><td><button class="btn-secondary" data-voir-eleves-classe="${c.id}">Voir les élèves</button> <button class="btn-secondary" data-delete-classe="${c.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
 
   content.innerHTML = `
     <div class="card">
@@ -1663,7 +1687,27 @@ async function renderAdminClasses(){
     <div class="card">
       <h2>Classes existantes</h2>
       ${classes.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Année</th><th>Étudiants</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune classe.</div>'}
-    </div>`;
+    </div>
+    <div id="roster-classe-zone"></div>`;
+
+  content.querySelectorAll('[data-voir-eleves-classe]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const classe = classes.find(c => String(c.id) === btn.dataset.voirElevesClasse);
+      const zone = document.getElementById('roster-classe-zone');
+      const etudiants = (classe.etudiants || []).slice().sort((a, b) => a.nom.localeCompare(b.nom));
+      const rowsEtudiants = etudiants.map(et => `
+        <tr>
+          <td>${et.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(et.numeroEtudiant)}</code>` : '—'}</td>
+          <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
+          <td>${escapeHtml(et.email)}</td>
+        </tr>`).join('');
+      zone.innerHTML = `
+        <div class="card">
+          <h2>${escapeHtml(classe.nom)} — ${etudiants.length} élève${etudiants.length > 1 ? 's' : ''}</h2>
+          ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th><th>Email</th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
+        </div>`;
+    });
+  });
 
   document.getElementById('classe-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1682,11 +1726,11 @@ async function renderAdminClasses(){
 }
 
 async function renderAdminMatieres(){
-  const matieres = await api('/matieres');
+  const [matieres, enseignements] = await Promise.all([api('/matieres'), api('/enseignements')]);
   const etablissementsListe = state.user.role === 'CHEF_PROJET' ? await api('/etablissements') : [];
   document.getElementById('page-subtitle').textContent = matieres.length + ' matières';
   const content = document.getElementById('content');
-  const rows = matieres.map(m => `<tr><td>${m.id}</td><td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td><td>${m.coefficient}</td><td><button class="btn-secondary" data-delete-matiere="${m.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
+  const rows = matieres.map(m => `<tr><td>${m.id}</td><td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td><td>${m.coefficient}</td><td><button class="btn-secondary" data-voir-classes-matiere="${m.id}">Voir les classes/profs</button> <button class="btn-secondary" data-delete-matiere="${m.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
 
   content.innerHTML = `
     <div class="card">
@@ -1702,6 +1746,7 @@ async function renderAdminMatieres(){
       <h2>Matières existantes</h2>
       ${matieres.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Coefficient</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune matière.</div>'}
     </div>
+    <div id="roster-matiere-zone"></div>
     <div class="card">
       <h2>Inscrire un élève à une matière (optionnelle)</h2>
       <form class="inline-form" id="inscription-matiere-form">
@@ -1715,6 +1760,24 @@ async function renderAdminMatieres(){
       </form>
       <div id="inscrits-liste" style="margin-top:14px;"></div>
     </div>`;
+
+  content.querySelectorAll('[data-voir-classes-matiere]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const matiere = matieres.find(m => String(m.id) === btn.dataset.voirClassesMatiere);
+      const zone = document.getElementById('roster-matiere-zone');
+      const liees = enseignements.filter(e => e.matiere.id === matiere.id);
+      const rowsLiees = liees.map(e => `
+        <tr>
+          <td>${escapeHtml(e.classe.nom)}</td>
+          <td>${escapeHtml(e.professeur.prenom)} ${escapeHtml(e.professeur.nom)}</td>
+        </tr>`).join('');
+      zone.innerHTML = `
+        <div class="card">
+          <h2>${escapeHtml(matiere.nom)} — ${liees.length} classe${liees.length > 1 ? 's' : ''}</h2>
+          ${liees.length ? `<table><thead><tr><th>Classe</th><th>Professeur</th></tr></thead><tbody>${rowsLiees}</tbody></table>` : '<div class="empty-state">Aucune classe n\'enseigne encore cette matière.</div>'}
+        </div>`;
+    });
+  });
 
   document.getElementById('inscription-matiere-form').addEventListener('submit', async (e) => {
     e.preventDefault();
