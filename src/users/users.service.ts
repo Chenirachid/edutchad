@@ -228,7 +228,10 @@ export class UsersService {
 
   async removeForce(id: number) {
     await this.findOne(id);
+    return this.cascadeDeleteUser(id);
+  }
 
+  private async cascadeDeleteUser(id: number) {
     // Enseignements du prof + tout ce qui en dépend
     const enseignements = await this.prisma.enseignement.findMany({
       where: { professeurId: id },
@@ -312,6 +315,49 @@ export class UsersService {
     return this.prisma.user.delete({ where: { id }, select: userSelect });
   }
 
+  /**
+   * Suppression d'un chef d'établissement par le chef de projet : tout l'établissement
+   * disparaît avec lui (tous ses comptes, classes, matières, etc.), comme fermer une école.
+   */
+  private async removeEtablissementCascade(etablissementId: number, chefId: number) {
+    const utilisateurs = await this.prisma.user.findMany({
+      where: { etablissementId },
+      select: { id: true },
+    });
+
+    for (const u of utilisateurs) {
+      if (u.id === chefId) continue;
+      await this.cascadeDeleteUser(u.id);
+    }
+    await this.cascadeDeleteUser(chefId);
+
+    // Filet de sécurité : enseignements restants de cet établissement
+    await this.prisma.enseignement.deleteMany({ where: { classe: { etablissementId } } });
+    await this.prisma.classe.deleteMany({ where: { etablissementId } });
+    await this.prisma.matiere.deleteMany({ where: { etablissementId } });
+    await this.prisma.parametrePlateforme.deleteMany({ where: { etablissementId } });
+    await this.prisma.actualite.deleteMany({ where: { etablissementId } });
+
+    const sondagesRestants = await this.prisma.sondage.findMany({
+      where: { etablissementId },
+      select: { id: true },
+    });
+    const sondageIdsRestants = sondagesRestants.map((s) => s.id);
+    if (sondageIdsRestants.length) {
+      await this.prisma.voteSondage.deleteMany({ where: { sondageId: { in: sondageIdsRestants } } });
+      await this.prisma.optionSondage.deleteMany({ where: { sondageId: { in: sondageIdsRestants } } });
+      await this.prisma.sondage.deleteMany({ where: { id: { in: sondageIdsRestants } } });
+    }
+
+    await this.prisma.groupe.deleteMany({ where: { etablissementId } });
+    await this.prisma.etablissement.delete({ where: { id: etablissementId } });
+
+    return {
+      message: `Établissement fermé : ${utilisateurs.length} compte(s) supprimés définitivement avec toutes leurs données`,
+      etablissementId,
+    };
+  }
+
   private async creerDemandeSuppression(
     cible: { id: number; prenom: string; nom: string; email: string },
     currentUser: JwtPayload,
@@ -345,23 +391,31 @@ export class UsersService {
     const cible = await this.findOne(id);
 
     // Suppression d'un chef d'établissement : seul le chef de projet peut le faire directement,
-    // sinon une demande lui est envoyée.
-    if (cible.role === Role.CHEF_ETABLISSEMENT && currentUser.role !== Role.CHEF_PROJET) {
-      const chefsProjet = await this.prisma.user.findMany({ where: { role: Role.CHEF_PROJET } });
-      return this.creerDemandeSuppression(cible, currentUser, chefsProjet, "chef d'établissement");
+    // et dans ce cas TOUT l'établissement (comptes, classes, matières...) disparaît avec lui —
+    // sinon une demande est envoyée au chef de projet.
+    if (cible.role === Role.CHEF_ETABLISSEMENT) {
+      if (currentUser.role !== Role.CHEF_PROJET) {
+        const chefsProjet = await this.prisma.user.findMany({ where: { role: Role.CHEF_PROJET } });
+        return this.creerDemandeSuppression(cible, currentUser, chefsProjet, "chef d'établissement");
+      }
+
+      if (!cible.etablissementId) {
+        return this.prisma.user.delete({ where: { id }, select: userSelect });
+      }
+      return this.removeEtablissementCascade(cible.etablissementId, cible.id);
     }
 
-    // Suppression d'un compte admin par un autre admin (pas par le chef d'établissement/projet) :
-    // la demande remonte au chef d'établissement de ce même établissement (ou au chef de projet
-    // si l'établissement n'a pas encore de chef d'établissement désigné).
-    if (cible.role === Role.ADMIN && currentUser.role === Role.ADMIN) {
+    // Toute suppression d'un compte "normal" (admin, prof, élève, parent, vie scolaire) par
+    // un simple ADMIN doit être validée par le chef d'établissement de son établissement
+    // (ou par le chef de projet si aucun chef d'établissement n'est encore désigné).
+    if (currentUser.role === Role.ADMIN) {
       let destinataires = await this.prisma.user.findMany({
         where: { role: Role.CHEF_ETABLISSEMENT, etablissementId: cible.etablissementId },
       });
       if (!destinataires.length) {
         destinataires = await this.prisma.user.findMany({ where: { role: Role.CHEF_PROJET } });
       }
-      return this.creerDemandeSuppression(cible, currentUser, destinataires, 'admin');
+      return this.creerDemandeSuppression(cible, currentUser, destinataires, cible.role.toLowerCase());
     }
 
     try {

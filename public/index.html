@@ -2918,8 +2918,8 @@ async function renderDemandesSuppression(){
 
   content.innerHTML = `
     <div class="card">
-      <h2>Demandes de suppression de comptes admin (${demandes.length})</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Quand un admin tente de supprimer un autre compte admin, la demande apparaît ici pour ta validation.</p>
+      <h2>Demandes de suppression (${demandes.length})</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Toute suppression de compte (admin, prof, élève, parent, vie scolaire) par un admin passe par ta validation. La suppression d'un chef d'établissement supprime tout son établissement.</p>
       ${demandes.length ? `<table><thead><tr><th>Date</th><th>Compte visé</th><th>Demandé par</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune demande pour l\'instant.</div>'}
     </div>`;
 
@@ -2927,7 +2927,7 @@ async function renderDemandesSuppression(){
     btn.addEventListener('click', async () => {
       const decision = btn.dataset.decision;
       const message = decision === 'APPROUVEE'
-        ? 'Confirmer : ce compte admin sera définitivement supprimé.'
+        ? 'Confirmer : ce compte sera définitivement supprimé (ainsi que tout son établissement si c\'est un chef d\'établissement).'
         : 'Confirmer le rejet de cette demande ?';
       if(!confirm(message)) return;
       try{
