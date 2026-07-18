@@ -899,6 +899,8 @@ const NAV_ICONS = {
   'vie-scolaire': svgIcon('<path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/>'),
 };
 
+const ICONE_DOSSIER = svgIcon('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>');
+
 function navButtonHtml(item){
   return `<span class="nav-icon">${NAV_ICONS[item.id] || ''}</span><span>${t('nav_' + item.id.replace(/-/g,'_'))}</span>`;
 }
@@ -1540,7 +1542,7 @@ async function renderAdminUsers(){
         <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
         <button class="btn-secondary" data-reset-password="${u.id}" style="margin-left:6px;">Réinitialiser MDP</button>
         <button class="btn-secondary" data-regenerer-activation="${u.id}" style="margin-left:6px;">Réimprimer activation</button>
-        ${u.role === 'PROFESSEUR' ? `<button class="btn-secondary" data-dossier-prof="${u.id}" style="margin-left:6px;">Dossier</button>` : ''}
+        ${u.role === 'PROFESSEUR' ? `<button class="btn-secondary" data-dossier-prof="${u.id}" style="margin-left:6px;display:inline-flex;align-items:center;gap:5px;">${ICONE_DOSSIER} Dossier</button>` : ''}
         <button class="btn-secondary" data-toggle-actif="${u.id}" style="margin-left:6px;">${u.actif === false ? 'Réactiver' : 'Désactiver'}</button>
         <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
       </td>
@@ -1634,55 +1636,7 @@ async function renderAdminUsers(){
     btn.addEventListener('click', async () => {
       const profId = btn.dataset.dossierProf;
       const u = users.find(x => String(x.id) === profId);
-      const zone = document.getElementById('dossier-prof-zone');
-      let dossierExistant = null;
-      try{ dossierExistant = await api('/dossiers-professeur/' + profId); }catch(e){ /* pas encore de dossier */ }
-
-      zone.innerHTML = `
-        <div class="card">
-          <h2>Dossier de ${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</h2>
-          <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Justification de sa qualification à enseigner sa matière (diplôme, parcours d'études).</p>
-          <form class="inline-form" id="dossier-prof-form">
-            <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required value="${dossierExistant ? dossierExistant.dateNaissance.slice(0,10) : ''}" /></div>
-            <div class="f" style="min-width:280px;flex:2;"><label>Justification (diplôme, parcours d'études)</label><input type="text" name="justification" required value="${dossierExistant ? escapeHtml(dossierExistant.justification) : ''}" placeholder="Ex : Licence de Mathématiques, 5 ans d'expérience..." /></div>
-            <div class="f"><label>Diplôme (fichier)${dossierExistant ? ' — déjà fourni : ' + escapeHtml(dossierExistant.diplomeNom) : ''}</label><input type="file" name="diplome" id="dossier-prof-diplome" ${dossierExistant ? '' : 'required'} /></div>
-            <button class="btn-submit" type="submit">${dossierExistant ? 'Mettre à jour' : 'Enregistrer'}</button>
-          </form>
-        </div>`;
-
-      document.getElementById('dossier-prof-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fd = new FormData(e.target);
-        const fichier = document.getElementById('dossier-prof-diplome').files[0];
-        if(fichier && fichier.size > 3 * 1024 * 1024){ toast('Le fichier dépasse 3 Mo.', 'error'); return; }
-
-        try{
-          const body = {
-            dateNaissance: new Date(fd.get('dateNaissance')).toISOString(),
-            justification: fd.get('justification'),
-          };
-          if(fichier){
-            const base64 = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result.split(',')[1]);
-              reader.onerror = reject;
-              reader.readAsDataURL(fichier);
-            });
-            body.diplomeNom = fichier.name;
-            body.diplomeType = fichier.type;
-            body.diplomeData = base64;
-          } else if(dossierExistant){
-            body.diplomeNom = dossierExistant.diplomeNom;
-            body.diplomeType = dossierExistant.diplomeType;
-            body.diplomeData = dossierExistant.diplomeData;
-          } else {
-            toast('Le diplôme est obligatoire.', 'error'); return;
-          }
-
-          await api('/dossiers-professeur/' + profId, { method:'POST', body: JSON.stringify(body) });
-          toast('Dossier enregistré.');
-        }catch(err){ toast(err.message, 'error'); }
-      });
+      await afficherDossierProfesseur(profId, u);
     });
   });
 
@@ -1725,6 +1679,160 @@ async function renderAdminUsers(){
   });
 }
 
+function telechargerFichier(nom, type, data){
+  const a = document.createElement('a');
+  a.href = `data:${type || 'application/octet-stream'};base64,${data}`;
+  a.download = nom;
+  a.click();
+}
+
+async function afficherDossierEleve(etudiantId, etudiant){
+  const zone = document.getElementById('dossier-eleve-zone');
+  if(!zone) return;
+  zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
+  try{
+    const inscriptions = await api('/inscriptions-administratives/etudiant/' + etudiantId);
+    if(!inscriptions.length){
+      zone.innerHTML = `<div class="card"><h2>Dossier de ${escapeHtml(etudiant.prenom)} ${escapeHtml(etudiant.nom)}</h2><div class="empty-state">Aucune inscription administrative (donc aucun justificatif) pour cet élève.</div></div>`;
+      return;
+    }
+    const cartes = inscriptions.map(i => `
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+        <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 8px;">Année scolaire <strong>${escapeHtml(i.anneeScolaire)}</strong></p>
+        <p style="font-size:13.5px;margin:4px 0;"><strong>Date de naissance :</strong> ${new Date(i.dateNaissance).toLocaleDateString('fr-FR')}</p>
+        <p style="font-size:13.5px;margin:4px 0;"><strong>Justificatif d'identité :</strong> ${TYPE_JUSTIFICATIF_LABELS[i.typeJustificatif] || i.typeJustificatif}
+          <button class="btn-secondary" data-telecharger-justif="${i.id}" style="margin-left:8px;font-size:12px;">Télécharger</button>
+        </p>
+        <p style="font-size:13.5px;margin:4px 0;"><strong>Vient d'un autre établissement :</strong> ${i.vientDAutreEtablissement ? 'Oui' : 'Non'}
+          ${i.vientDAutreEtablissement && i.justificatifTransfertNom ? `<button class="btn-secondary" data-telecharger-transfert="${i.id}" style="margin-left:8px;font-size:12px;">Télécharger le justificatif de transfert</button>` : ''}
+        </p>
+      </div>`).join('');
+
+    zone.innerHTML = `
+      <div class="card">
+        <h2>Dossier de ${escapeHtml(etudiant.prenom)} ${escapeHtml(etudiant.nom)}</h2>
+        ${cartes}
+      </div>`;
+
+    zone.querySelectorAll('[data-telecharger-justif]').forEach(b => {
+      b.addEventListener('click', () => {
+        const insc = inscriptions.find(i => String(i.id) === b.dataset.telechargerJustif);
+        telechargerFichier(insc.justificatifNom, insc.justificatifType, insc.justificatifData);
+      });
+    });
+    zone.querySelectorAll('[data-telecharger-transfert]').forEach(b => {
+      b.addEventListener('click', () => {
+        const insc = inscriptions.find(i => String(i.id) === b.dataset.telechargerTransfert);
+        telechargerFichier(insc.justificatifTransfertNom, insc.justificatifTransfertType, insc.justificatifTransfertData);
+      });
+    });
+  }catch(err){
+    zone.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`;
+  }
+}
+
+const CATEGORIE_DOCUMENT_LABELS = { DIPLOME: 'Diplôme', ATTESTATION: 'Attestation', AUTRE: 'Autre' };
+
+async function afficherDossierProfesseur(profId, u){
+  const zone = document.getElementById('dossier-prof-zone');
+  if(!zone) return;
+  let dossierExistant = null;
+  try{ dossierExistant = await api('/dossiers-professeur/' + profId); }catch(e){ /* pas encore de dossier */ }
+
+  const documents = dossierExistant ? dossierExistant.documents : [];
+  const rowsDocuments = documents.map(d => `
+    <tr>
+      <td><span class="chip" style="background:var(--teal-100);color:var(--teal-900);">${CATEGORIE_DOCUMENT_LABELS[d.categorie] || d.categorie}</span></td>
+      <td>${escapeHtml(d.nom)}</td>
+      <td>${new Date(d.createdAt).toLocaleDateString('fr-FR')}</td>
+      <td>
+        <button class="btn-secondary" data-telecharger-doc-prof="${d.id}">Télécharger</button>
+        <button class="btn-secondary" data-supprimer-doc-prof="${d.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
+      </td>
+    </tr>`).join('');
+
+  zone.innerHTML = `
+    <div class="card">
+      <h2>Dossier de ${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Informations et justification de sa qualification à enseigner sa matière.</p>
+      <form class="inline-form" id="dossier-prof-form">
+        <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required value="${dossierExistant ? dossierExistant.dateNaissance.slice(0,10) : ''}" /></div>
+        <div class="f" style="min-width:280px;flex:2;"><label>Justification (parcours d'études)</label><input type="text" name="justification" required value="${dossierExistant ? escapeHtml(dossierExistant.justification) : ''}" placeholder="Ex : Licence de Mathématiques, 5 ans d'expérience..." /></div>
+        <button class="btn-submit" type="submit">${dossierExistant ? 'Mettre à jour' : 'Enregistrer'}</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Diplômes &amp; attestations (${documents.length})</h2>
+      ${documents.length ? `<table><thead><tr><th>Type</th><th>Fichier</th><th>Ajouté le</th><th></th></tr></thead><tbody>${rowsDocuments}</tbody></table>` : '<div class="empty-state">Aucun document ajouté.</div>'}
+      ${dossierExistant ? `
+      <form class="inline-form" id="ajout-document-prof-form" style="margin-top:16px;">
+        <div class="f">
+          <label>Type de document</label>
+          <select name="categorie">
+            <option value="DIPLOME">Diplôme</option>
+            <option value="ATTESTATION">Attestation</option>
+            <option value="AUTRE">Autre</option>
+          </select>
+        </div>
+        <div class="f"><label>Fichier</label><input type="file" name="document" id="ajout-document-prof-fichier" required /></div>
+        <button class="btn-submit" type="submit">Ajouter le document</button>
+      </form>` : `<p style="font-size:12.5px;color:var(--text-muted);margin-top:12px;">Enregistre d'abord les informations de base ci-dessus pour pouvoir ajouter des documents.</p>`}
+    </div>`;
+
+  document.getElementById('dossier-prof-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/dossiers-professeur/' + profId, { method:'POST', body: JSON.stringify({
+        dateNaissance: new Date(fd.get('dateNaissance')).toISOString(),
+        justification: fd.get('justification'),
+      })});
+      toast('Dossier enregistré.');
+      afficherDossierProfesseur(profId, u);
+    }catch(err){ toast(err.message, 'error'); }
+  });
+
+  const formDoc = document.getElementById('ajout-document-prof-form');
+  if(formDoc){
+    formDoc.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const fichier = document.getElementById('ajout-document-prof-fichier').files[0];
+      if(fichier.size > 3 * 1024 * 1024){ toast('Le fichier dépasse 3 Mo.', 'error'); return; }
+      try{
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(fichier);
+        });
+        await api('/dossiers-professeur/' + profId + '/documents', { method:'POST', body: JSON.stringify({
+          categorie: fd.get('categorie'), nom: fichier.name, type: fichier.type, data: base64,
+        })});
+        toast('Document ajouté.');
+        afficherDossierProfesseur(profId, u);
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  }
+
+  zone.querySelectorAll('[data-telecharger-doc-prof]').forEach(b => {
+    b.addEventListener('click', () => {
+      const d = documents.find(doc => String(doc.id) === b.dataset.telechargerDocProf);
+      telechargerFichier(d.nom, d.type, d.data);
+    });
+  });
+  zone.querySelectorAll('[data-supprimer-doc-prof]').forEach(b => {
+    b.addEventListener('click', async () => {
+      if(!confirm('Supprimer ce document ?')) return;
+      try{
+        await api('/dossiers-professeur/documents/' + b.dataset.supprimerDocProf, { method:'DELETE' });
+        toast('Document supprimé.');
+        afficherDossierProfesseur(profId, u);
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+}
+
 async function renderAdminClasses(){
   const classes = await api('/classes');
   const etablissementsListe = state.user.role === 'CHEF_PROJET' ? await api('/etablissements') : [];
@@ -1758,12 +1866,18 @@ async function renderAdminClasses(){
           <td>${et.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(et.numeroEtudiant)}</code>` : '—'}</td>
           <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
           <td>${escapeHtml(et.email)}</td>
+          <td><button class="btn-secondary" data-dossier-eleve="${et.id}" style="display:inline-flex;align-items:center;gap:5px;">${ICONE_DOSSIER} Dossier</button></td>
         </tr>`).join('');
       zone.innerHTML = `
         <div class="card">
           <h2>${escapeHtml(classe.nom)} — ${etudiants.length} élève${etudiants.length > 1 ? 's' : ''}</h2>
-          ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th><th>Email</th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
-        </div>`;
+          ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th><th>Email</th><th></th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
+        </div>
+        <div id="dossier-eleve-zone"></div>`;
+
+      zone.querySelectorAll('[data-dossier-eleve]').forEach(b => {
+        b.addEventListener('click', () => afficherDossierEleve(b.dataset.dossierEleve, etudiants.find(e => String(e.id) === b.dataset.dossierEleve)));
+      });
     });
   });
 
@@ -2255,6 +2369,7 @@ async function loadGroupeMessages(groupeId){
    OBSERVATIONS & PUNITIONS (PROF)
    ============================================================ */
 const TYPE_EVALUATION_LABELS = { DEVOIR:'Devoir', CONTROLE:'Contrôle', EXAMEN:'Examen' };
+const TYPE_JUSTIFICATIF_LABELS = { ACTE_NAISSANCE:'Acte de naissance', PIECE_IDENTITE:"Pièce d'identité", PASSEPORT:'Passeport' };
 const TYPE_OBSERVATION_LABELS = { POSITIVE:'Positive', NEGATIVE:'Négative', NEUTRE:'Neutre' };
 const TYPE_OBSERVATION_COLORS = { POSITIVE:'var(--success)', NEGATIVE:'var(--danger)', NEUTRE:'var(--text-muted)' };
 const TYPE_PUNITION_LABELS = { AVERTISSEMENT:'Avertissement', RETENUE:'Retenue', EXCLUSION_TEMPORAIRE:'Exclusion temporaire', EXCLUSION_DEFINITIVE:'Exclusion définitive' };

@@ -554,12 +554,28 @@ model DossierProfesseur {
   dateNaissance DateTime
   justification String
 
-  diplomeNom  String
-  diplomeType String
-  diplomeData String   @db.Text
-
   createdAt DateTime @default(now())
 
   professeur   User @relation(fields: [professeurId], references: [id])
   professeurId Int  @unique
+
+  documents DocumentProfesseur[]
+}
+
+model DocumentProfesseur {
+  id        Int                     @id @default(autoincrement())
+  categorie CategorieDocumentProf
+  nom       String
+  type      String
+  data      String                  @db.Text
+  createdAt DateTime                @default(now())
+
+  dossier   DossierProfesseur @relation(fields: [dossierId], references: [id])
+  dossierId Int
+}
+
+enum CategorieDocumentProf {
+  DIPLOME
+  ATTESTATION
+  AUTRE
 }

@@ -7,13 +7,4 @@ export class CreateDossierProfesseurDto {
   @IsString()
   @MinLength(1)
   justification: string;
-
-  @IsString()
-  diplomeNom: string;
-
-  @IsString()
-  diplomeType: string;
-
-  @IsString()
-  diplomeData: string;
 }

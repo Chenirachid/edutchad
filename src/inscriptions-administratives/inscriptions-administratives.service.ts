@@ -63,6 +63,14 @@ export class InscriptionsAdministrativesService {
     });
   }
 
+  async findByEtudiant(etudiantId: number) {
+    return this.prisma.inscriptionAdministrative.findMany({
+      where: { etudiantId },
+      include: { etudiant: { select: etudiantSelect } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async updateStatut(id: number, dto: UpdateStatutInscriptionDto) {
     const inscription = await this.prisma.inscriptionAdministrative.findUnique({ where: { id } });
     if (!inscription) {

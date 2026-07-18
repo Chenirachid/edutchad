@@ -35,6 +35,11 @@ export class InscriptionsAdministrativesController {
     return this.service.findAll();
   }
 
+  @Get('etudiant/:etudiantId')
+  findByEtudiant(@Param('etudiantId', ParseIntPipe) etudiantId: number) {
+    return this.service.findByEtudiant(etudiantId);
+  }
+
   @Patch(':id/statut')
   updateStatut(
     @Param('id', ParseIntPipe) id: number,

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -11,6 +12,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { DossiersProfesseurService } from './dossiers-professeur.service';
 import { CreateDossierProfesseurDto } from './dto/create-dossier-professeur.dto';
+import { AddDocumentProfesseurDto } from './dto/add-document-professeur.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -34,5 +36,18 @@ export class DossiersProfesseurController {
   @Get(':professeurId')
   findOne(@Param('professeurId', ParseIntPipe) professeurId: number) {
     return this.service.findOne(professeurId);
+  }
+
+  @Post(':professeurId/documents')
+  ajouterDocument(
+    @Param('professeurId', ParseIntPipe) professeurId: number,
+    @Body() dto: AddDocumentProfesseurDto,
+  ) {
+    return this.service.ajouterDocument(professeurId, dto);
+  }
+
+  @Delete('documents/:documentId')
+  supprimerDocument(@Param('documentId', ParseIntPipe) documentId: number) {
+    return this.service.supprimerDocument(documentId);
   }
 }
