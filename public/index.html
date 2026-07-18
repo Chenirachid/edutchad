@@ -1519,7 +1519,7 @@ async function imprimerDocumentActivation(user){
     doc.setTextColor(150);
     doc.text(`${parametres.nomEtablissement} — Document confidentiel, à usage unique`, centreX, 270, { align: 'center' });
 
-    doc.save(`activation-${user.identifiant}.pdf`);
+    doc.autoPrint();
     window.open(doc.output('bloburl'), '_blank');
   }catch(err){
     toast("Impossible de générer le PDF, mais l'identifiant et le code sont : " + user.identifiant + ' / ' + user.codeActivation, 'error');
