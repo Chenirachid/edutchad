@@ -1446,6 +1446,8 @@ function chargerJsPDF(){
 }
 
 async function imprimerDocumentActivation(user){
+  const fenetre = window.open('', '_blank');
+  if(fenetre){ fenetre.document.write('Génération du document en cours…'); }
   try{
     await Promise.all([chargerQRCode(), chargerJsPDF()]);
     const parametres = await api('/parametres');
@@ -1520,8 +1522,11 @@ async function imprimerDocumentActivation(user){
     doc.text(`${parametres.nomEtablissement} — Document confidentiel, à usage unique`, centreX, 270, { align: 'center' });
 
     doc.autoPrint();
-    window.open(doc.output('bloburl'), '_blank');
+    const blobUrl = doc.output('bloburl');
+    if(fenetre && !fenetre.closed){ fenetre.location.href = blobUrl; }
+    else { window.open(blobUrl, '_blank'); }
   }catch(err){
+    if(fenetre && !fenetre.closed){ fenetre.close(); }
     toast("Impossible de générer le PDF, mais l'identifiant et le code sont : " + user.identifiant + ' / ' + user.codeActivation, 'error');
   }
 }
