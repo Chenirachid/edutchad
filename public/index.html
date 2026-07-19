@@ -188,7 +188,16 @@
   .content{flex:1;padding:26px 28px 60px;overflow-y:auto;overflow-x:hidden;max-width:100%;}
 
   /* ---------- SHARED UI ---------- */
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px;max-width:100%;overflow-x:auto;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px;max-width:100%;}
+  .table-shrink-row{display:flex;justify-content:flex-end;margin-bottom:6px;}
+  .table-shrink-btn{
+    width:30px;height:30px;border-radius:8px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--teal-100);border:1px solid var(--border);color:var(--teal-900);
+  }
+  .table-shrink-btn:hover{background:var(--border);}
+  .table-shrink-btn.active{background:var(--teal-500);color:#04302F;border-color:var(--teal-500);}
+  table.table-compact, table.table-compact th, table.table-compact td{font-size:10.5px !important;padding:4px 5px !important;}
   .card h2{font-size:15px;margin:0 0 16px;color:var(--teal-900);}
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
   .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
@@ -3979,6 +3988,35 @@ document.documentElement.dir = langueSauvegardee === 'ar' ? 'rtl' : 'ltr';
 applyStaticTranslations();
 const labelInitLogin = document.getElementById('lang-dropdown-label');
 if(labelInitLogin) labelInitLogin.textContent = langueSauvegardee.toUpperCase();
+
+const ICONE_REDUIRE = svgIcon('<path d="M4 9V5h4M4 5l5 5M20 9V5h-4M20 5l-5 5M4 15v4h4M4 19l5-5M20 15v4h-4M20 19l-5-5"/>');
+
+function ajouterBoutonReduction(table){
+  if(table.dataset.shrinkPret) return;
+  table.dataset.shrinkPret = '1';
+  const ligne = document.createElement('div');
+  ligne.className = 'table-shrink-row';
+  const btn = document.createElement('button');
+  btn.className = 'table-shrink-btn';
+  btn.title = 'Réduire le texte pour tout afficher';
+  btn.innerHTML = ICONE_REDUIRE;
+  btn.addEventListener('click', () => {
+    table.classList.toggle('table-compact');
+    btn.classList.toggle('active');
+  });
+  ligne.appendChild(btn);
+  table.parentNode.insertBefore(ligne, table);
+}
+
+function initReductionTableaux(){
+  const contentEl = document.getElementById('content');
+  if(!contentEl) return;
+  const observer = new MutationObserver(() => {
+    contentEl.querySelectorAll('table').forEach(ajouterBoutonReduction);
+  });
+  observer.observe(contentEl, { childList: true, subtree: true });
+}
+initReductionTableaux();
 
 if(restoreSession()){
   enterApp();
