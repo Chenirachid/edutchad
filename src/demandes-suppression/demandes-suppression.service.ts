@@ -33,7 +33,11 @@ export class DemandesSuppressionService {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (currentUser.role === Role.CHEF_PROJET) return toutes;
+    if (currentUser.role === Role.CHEF_PROJET) {
+      // Le chef de projet ne voit que les demandes visant un chef d'établissement —
+      // les demandes visant un admin ne le concernent pas.
+      return toutes.filter((d) => d.cible.role === Role.CHEF_ETABLISSEMENT);
+    }
 
     // Le chef d'établissement ne voit que les demandes concernant son propre établissement
     return toutes.filter((d) => d.cible.etablissementId === currentUser.etablissementId);
@@ -50,10 +54,12 @@ export class DemandesSuppressionService {
     if (demande.statut !== StatutDemande.EN_ATTENTE) {
       throw new ForbiddenException('Cette demande a déjà été traitée');
     }
-    if (
-      currentUser.role !== Role.CHEF_PROJET &&
-      demande.cible.etablissementId !== currentUser.etablissementId
-    ) {
+
+    if (currentUser.role === Role.CHEF_PROJET) {
+      if (demande.cible.role !== Role.CHEF_ETABLISSEMENT) {
+        throw new ForbiddenException('Cette demande ne concerne pas le chef de projet');
+      }
+    } else if (demande.cible.etablissementId !== currentUser.etablissementId) {
       throw new ForbiddenException("Cette demande ne concerne pas ton établissement");
     }
 

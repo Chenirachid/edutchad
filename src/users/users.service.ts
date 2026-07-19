@@ -406,6 +406,14 @@ export class UsersService {
       return this.removeEtablissementCascade(cible.etablissementId, cible.id);
     }
 
+    // Le chef de projet n'a le droit de supprimer que des comptes chef d'établissement —
+    // rien d'autre, même en tentant l'API directement.
+    if (currentUser.role === Role.CHEF_PROJET) {
+      throw new ForbiddenException(
+        "Le chef de projet ne peut supprimer que des comptes chef d'établissement.",
+      );
+    }
+
     // Toute suppression d'un compte "normal" (admin, prof, élève, parent, vie scolaire) par
     // un simple ADMIN doit être validée par le chef d'établissement de son établissement
     // (ou par le chef de projet si aucun chef d'établissement n'est encore désigné).
