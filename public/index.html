@@ -1847,19 +1847,22 @@ async function renderAdminUsers(filtreRoles){
     </div>
     <div id="dossier-prof-zone"></div>`;
 
-  document.getElementById('create-user-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    try{
-      const created = await api('/users', { method:'POST', body: JSON.stringify({
-        prenom: fd.get('prenom'), nom: fd.get('nom'), role: fd.get('role'),
-        etablissementId: fd.get('etablissementId') ? Number(fd.get('etablissementId')) : undefined,
-      })});
-      toast(`Compte créé — identifiant : ${created.identifiant}`);
-      await imprimerDocumentActivation(created);
-      renderAdminUsers(filtreRoles);
-    }catch(err){ toast(err.message, 'error'); }
-  });
+  const formCreateUser = document.getElementById('create-user-form');
+  if(formCreateUser){
+    formCreateUser.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try{
+        const created = await api('/users', { method:'POST', body: JSON.stringify({
+          prenom: fd.get('prenom'), nom: fd.get('nom'), role: fd.get('role'),
+          etablissementId: fd.get('etablissementId') ? Number(fd.get('etablissementId')) : undefined,
+        })});
+        toast(`Compte créé — identifiant : ${created.identifiant}`);
+        await imprimerDocumentActivation(created);
+        renderAdminUsers(filtreRoles);
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  }
 
   content.querySelectorAll('[data-save-user]').forEach(btn => {
     btn.addEventListener('click', async () => {

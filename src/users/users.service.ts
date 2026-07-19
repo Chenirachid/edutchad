@@ -317,6 +317,18 @@ export class UsersService {
   }
 
   /**
+   * Utilisé par le module Demandes de suppression une fois une demande approuvée :
+   * nettoie tout l'historique lié avant de supprimer (établissement entier si c'est
+   * un chef d'établissement, sinon juste le compte et ses données).
+   */
+  async supprimerCompteApprouve(cible: { id: number; role: Role; etablissementId: number | null }) {
+    if (cible.role === Role.CHEF_ETABLISSEMENT && cible.etablissementId) {
+      return this.removeEtablissementCascade(cible.etablissementId, cible.id);
+    }
+    return this.cascadeDeleteUser(cible.id);
+  }
+
+  /**
    * Suppression d'un chef d'établissement par le chef de projet : tout l'établissement
    * disparaît avec lui (tous ses comptes, classes, matières, etc.), comme fermer une école.
    */

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Role, StatutDemande } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 import { TraiterDemandeDto } from './dto/traiter-demande.dto';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
@@ -25,7 +26,10 @@ const include = {
 
 @Injectable()
 export class DemandesSuppressionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly usersService: UsersService,
+  ) {}
 
   async findAll(currentUser: JwtPayload) {
     const toutes = await this.prisma.demandeSuppressionAdmin.findMany({
@@ -64,7 +68,7 @@ export class DemandesSuppressionService {
     }
 
     if (dto.decision === 'APPROUVEE') {
-      await this.prisma.user.delete({ where: { id: demande.cibleId } });
+      await this.usersService.supprimerCompteApprouve(demande.cible);
     }
 
     return this.prisma.demandeSuppressionAdmin.update({
