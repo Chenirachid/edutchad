@@ -1,85 +1,59 @@
-import { Controller, Get, Query, UnauthorizedException, NotFoundException } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { Controller, Get, Query, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 // Route de maintenance TEMPORAIRE — à retirer une fois utilisée.
-const CLE_MAINTENANCE = 'cheni-ajout-chef-2026';
-const SALT_ROUNDS = 10;
-
-function normaliser(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z]/g, '');
-}
-
-function genererCode(): string {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
-  return code;
-}
+const CLE_MAINTENANCE = 'cheni-fix-notes-2026';
 
 @Controller('maintenance')
 export class MaintenanceController {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async identifiantUnique(prenom: string, nom: string) {
-    const base = `${normaliser(prenom)}.${normaliser(nom)}`;
-    let identifiant = base;
-    let counter = 1;
-    while (await this.prisma.user.findUnique({ where: { identifiant } })) {
-      counter++;
-      identifiant = `${base}${counter}`;
-    }
-    return identifiant;
-  }
-
-  @Get('ajouter-chef-etablissement')
-  async ajouterChefEtablissement(@Query('cle') cle: string) {
+  @Get('rattacher-notes-orphelines')
+  async rattacherNotesOrphelines(@Query('cle') cle: string) {
     if (cle !== CLE_MAINTENANCE) {
       throw new UnauthorizedException('Clé invalide');
     }
 
-    const etablissement = await this.prisma.etablissement.findFirst({
-      where: { nom: 'Dossier scientifique de la Renaissance' },
+    const notesOrphelines = await this.prisma.note.findMany({
+      where: { epreuveId: null },
+      select: { id: true, enseignementId: true, createdAt: true },
     });
-    if (!etablissement) {
-      throw new NotFoundException('Établissement introuvable');
+
+    const parEnseignement = new Map();
+    for (const n of notesOrphelines) {
+      if (!parEnseignement.has(n.enseignementId)) parEnseignement.set(n.enseignementId, []);
+      parEnseignement.get(n.enseignementId).push({ id: n.id, createdAt: n.createdAt });
     }
 
-    const prenom = 'Isabelle';
-    const nom = 'Chastain';
-    const identifiant = await this.identifiantUnique(prenom, nom);
-    const codeActivation = genererCode();
-    const motDePasseTemp = await bcrypt.hash(genererCode() + genererCode(), SALT_ROUNDS);
-    const email = `${identifiant}@exemple.local`;
+    const resultats: any[] = [];
 
-    const user = await this.prisma.user.create({
-      data: {
-        prenom,
-        nom,
-        identifiant,
-        email,
-        codeActivation,
-        password: motDePasseTemp,
-        role: Role.CHEF_ETABLISSEMENT,
-        etablissementId: etablissement.id,
-      },
-    });
+    for (const [enseignementId, notes] of parEnseignement) {
+      const dateReference = notes.reduce(
+        (min, n) => (n.createdAt < min ? n.createdAt : min),
+        notes[0].createdAt,
+      );
+
+      const epreuve = await this.prisma.epreuve.create({
+        data: {
+          enseignementId,
+          titre: 'Évaluation initiale',
+          type: 'CONTROLE',
+          date: dateReference,
+          coefficient: 1,
+        },
+      });
+
+      await this.prisma.note.updateMany({
+        where: { id: { in: notes.map((n) => n.id) } },
+        data: { epreuveId: epreuve.id },
+      });
+
+      resultats.push({ enseignementId, epreuveId: epreuve.id, notesRattachees: notes.length });
+    }
 
     return {
-      message: `Chef d'établissement créé pour "${etablissement.nom}"`,
-      compte: {
-        id: user.id,
-        prenom,
-        nom,
-        role: user.role,
-        identifiant,
-        codeActivation,
-      },
+      message: `${resultats.length} épreuve(s) créée(s) pour rattacher ${notesOrphelines.length} note(s) orpheline(s)`,
+      details: resultats,
     };
   }
 }
