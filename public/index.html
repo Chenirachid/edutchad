@@ -1287,10 +1287,11 @@ async function renderProfEnseignements(){
       const zone = document.getElementById('roster-zone');
       zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
       try{
-        const [etudiants, epreuvesTous, notesTous] = await Promise.all([
+        const [etudiants, epreuvesTous, notesTous, absencesTous] = await Promise.all([
           api('/enseignements/' + enseignementId + '/etudiants'),
           api('/epreuves'),
           api('/notes'),
+          api('/absences'),
         ]);
         const rowsEtudiants = etudiants.map(et => `
           <tr>
@@ -1326,6 +1327,81 @@ async function renderProfEnseignements(){
           const moy = valeurs.length ? valeurs.reduce((a, n) => a + n.valeur, 0) / valeurs.length : null;
           return `<td><strong>${moy !== null ? moy.toFixed(2) : '—'}</strong></td>`;
         }).join('');
+
+        // Grille d'appel : une colonne par date où l'appel a été fait pour cette classe
+        const absencesClasse = absencesTous.filter(a => a.enseignementId === Number(enseignementId));
+        const absenceCellule = (etudiantId, date) => absencesClasse.find(a => a.etudiantId === etudiantId && new Date(a.date).toISOString().slice(0, 10) === date);
+        let datesAppelActuelles = Array.from(new Set(absencesClasse.map(a => new Date(a.date).toISOString().slice(0, 10)))).sort();
+
+        function construireGrilleAppel(){
+          const entetesDates = datesAppelActuelles.map(d => `<th>${new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' })}</th>`).join('');
+          const rowsAppel = etudiants.map(et => {
+            const cellules = datesAppelActuelles.map(d => {
+              const a = absenceCellule(et.id, d);
+              return `<td>
+                <select data-appel-etudiant="${et.id}" data-appel-date="${d}" data-appel-id="${a ? a.id : ''}" style="padding:4px 5px;border:1px solid var(--border);border-radius:5px;font-size:12px;">
+                  <option value="PRESENT" ${!a ? 'selected' : ''}>P</option>
+                  <option value="ABSENCE" ${a && a.type === 'ABSENCE' ? 'selected' : ''}>A</option>
+                  <option value="RETARD" ${a && a.type === 'RETARD' ? 'selected' : ''}>R</option>
+                </select>
+              </td>`;
+            }).join('');
+            return `<tr><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>${cellules}</tr>`;
+          }).join('');
+          const ligneAbsentsParDate = datesAppelActuelles.map(d => {
+            const nbAbsents = etudiants.filter(et => { const a = absenceCellule(et.id, d); return a && a.type === 'ABSENCE'; }).length;
+            return `<td><strong>${nbAbsents}</strong></td>`;
+          }).join('');
+
+          if(!etudiants.length || !datesAppelActuelles.length){
+            return '<div class="empty-state">Ajoute une première date ci-dessus pour commencer l\'appel.</div>';
+          }
+          return `
+            <div style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Étudiant</th>${entetesDates}</tr></thead>
+                <tbody>${rowsAppel}</tbody>
+                <tfoot><tr style="background:var(--bg);"><td><strong>Absents</strong></td>${ligneAbsentsParDate}</tr></tfoot>
+              </table>
+            </div>
+            <button class="btn-submit" id="dossier-enregistrer-appel-btn" style="margin-top:16px;">Enregistrer les modifications</button>`;
+        }
+
+        function attacherHandlerEnregistrerAppel(){
+          const btn = document.getElementById('dossier-enregistrer-appel-btn');
+          if(!btn) return;
+          btn.addEventListener('click', async () => {
+            const zoneAppel = document.getElementById('appel-grille-zone');
+            const selects = zoneAppel.querySelectorAll('[data-appel-etudiant]');
+            let creations = 0, maj = 0, suppressions = 0, echecs = 0;
+            for(const sel of selects){
+              const etudiantId = Number(sel.dataset.appelEtudiant);
+              const date = sel.dataset.appelDate;
+              const absenceId = sel.dataset.appelId;
+              const valeur = sel.value;
+              try{
+                if(!absenceId && valeur !== 'PRESENT'){
+                  await api('/absences', { method:'POST', body: JSON.stringify({
+                    enseignementId: Number(enseignementId), etudiantId, type: valeur, date: new Date(date).toISOString(),
+                  })});
+                  creations++;
+                } else if(absenceId && valeur === 'PRESENT'){
+                  await api('/absences/' + absenceId, { method:'DELETE' });
+                  suppressions++;
+                } else if(absenceId){
+                  const absenceOriginale = absencesClasse.find(a => String(a.id) === absenceId);
+                  if(absenceOriginale && absenceOriginale.type !== valeur){
+                    await api('/absences/' + absenceId, { method:'PATCH', body: JSON.stringify({ type: valeur })});
+                    maj++;
+                  }
+                }
+              }catch(err){ echecs++; }
+            }
+            if(!creations && !maj && !suppressions && !echecs){ toast('Aucune modification à enregistrer.'); return; }
+            toast(`Appel enregistré : ${creations} créée(s), ${maj} modifiée(s), ${suppressions} supprimée(s)${echecs ? `, ${echecs} échec(s)` : ''}.`, echecs ? 'error' : undefined);
+            carte.click();
+          });
+        }
 
         zone.innerHTML = `
           <div class="card">
@@ -1365,7 +1441,30 @@ async function renderProfEnseignements(){
             </div>
             <button class="btn-submit" id="dossier-enregistrer-notes-btn" style="margin-top:16px;">Enregistrer les modifications</button>
             ` : '<div class="empty-state">Crée une première évaluation ci-dessus pour commencer à saisir des notes.</div>'}
+          </div>
+          <div class="card">
+            <h2>Appel — historique par date</h2>
+            <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Une colonne par date d'appel. P = présent (défaut), A = absent, R = retard. Ajoute une date, modifie les cases, puis enregistre.</p>
+            <form class="inline-form" id="dossier-nouvelle-date-appel-form" style="margin-bottom:18px;">
+              <div class="f"><label>Nouvelle date d'appel</label><input type="date" name="date" required value="${new Date().toISOString().slice(0,10)}" /></div>
+              <button class="btn-submit" type="submit">Ajouter la colonne</button>
+            </form>
+            <div id="appel-grille-zone">${construireGrilleAppel()}</div>
           </div>`;
+
+        attacherHandlerEnregistrerAppel();
+
+        document.getElementById('dossier-nouvelle-date-appel-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          const nouvelleDate = fd.get('date');
+          if(!datesAppelActuelles.includes(nouvelleDate)){
+            datesAppelActuelles.push(nouvelleDate);
+            datesAppelActuelles.sort();
+          }
+          document.getElementById('appel-grille-zone').innerHTML = construireGrilleAppel();
+          attacherHandlerEnregistrerAppel();
+        });
 
         document.getElementById('dossier-cahier-btn').addEventListener('click', () => {
           cahierTextePrefillEnseignementId = Number(enseignementId);
