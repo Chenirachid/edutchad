@@ -1,75 +1,88 @@
-import { Controller, Get, Query, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Query, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { slugify } from '../common/email-generator';
 
 // Route de maintenance TEMPORAIRE — à retirer une fois utilisée.
-const CLE_MAINTENANCE = 'cheni-rattache-2026';
+const CLE_MAINTENANCE = 'cheni-hierarchie-2026';
+const SALT_ROUNDS = 10;
+
+function normaliser(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+}
+
+function genererCode(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return code;
+}
 
 @Controller('maintenance')
 export class MaintenanceController {
   constructor(private readonly prisma: PrismaService) {}
 
-  @Get('rattacher-etablissement-origine')
-  async rattacherEtablissementOrigine(@Query('cle') cle: string) {
+  private async identifiantUnique(prenom: string, nom: string) {
+    const base = `${normaliser(prenom)}.${normaliser(nom)}`;
+    let identifiant = base;
+    let counter = 1;
+    while (await this.prisma.user.findUnique({ where: { identifiant } })) {
+      counter++;
+      identifiant = `${base}${counter}`;
+    }
+    return identifiant;
+  }
+
+  private async creerCompte(prenom: string, nom: string, role: Role, etablissementId: number) {
+    const identifiant = await this.identifiantUnique(prenom, nom);
+    const codeActivation = genererCode();
+    const motDePasseTemp = await bcrypt.hash(genererCode() + genererCode(), SALT_ROUNDS);
+    const email = `${identifiant}@exemple.local`;
+
+    const user = await this.prisma.user.create({
+      data: {
+        prenom,
+        nom,
+        identifiant,
+        email,
+        codeActivation,
+        password: motDePasseTemp,
+        role,
+        etablissementId,
+      },
+    });
+
+    return { id: user.id, prenom, nom, role, identifiant, codeActivation };
+  }
+
+  @Get('seed-hierarchie-lycee-exemple')
+  async seedHierarchie(@Query('cle') cle: string) {
     if (cle !== CLE_MAINTENANCE) {
       throw new UnauthorizedException('Clé invalide');
     }
 
-    const nomEtab = 'EduCheni';
-    const base = slugify(nomEtab);
-    let code = base;
-    let i = 1;
-    while (await this.prisma.etablissement.findUnique({ where: { code } })) {
-      i++;
-      code = `${base}-${i}`;
+    const etablissement = await this.prisma.etablissement.findFirst({
+      where: { nom: 'Lycée Exemple' },
+    });
+    if (!etablissement) {
+      throw new NotFoundException('Établissement "Lycée Exemple" introuvable');
     }
 
-    const etablissement = await this.prisma.etablissement.create({
-      data: { nom: nomEtab, code },
-    });
-
-    const utilisateurs = await this.prisma.user.updateMany({
-      where: { etablissementId: null, role: { not: Role.CHEF_PROJET } },
-      data: { etablissementId: etablissement.id },
-    });
-    const classes = await this.prisma.classe.updateMany({
-      where: { etablissementId: null },
-      data: { etablissementId: etablissement.id },
-    });
-    const matieres = await this.prisma.matiere.updateMany({
-      where: { etablissementId: null },
-      data: { etablissementId: etablissement.id },
-    });
-    const parametres = await this.prisma.parametrePlateforme.updateMany({
-      where: { etablissementId: null },
-      data: { etablissementId: etablissement.id },
-    });
-    const actualites = await this.prisma.actualite.updateMany({
-      where: { etablissementId: null },
-      data: { etablissementId: etablissement.id },
-    });
-    const sondages = await this.prisma.sondage.updateMany({
-      where: { etablissementId: null },
-      data: { etablissementId: etablissement.id },
-    });
-    const groupes = await this.prisma.groupe.updateMany({
-      where: { etablissementId: null },
-      data: { etablissementId: etablissement.id },
-    });
+    const proviseur = await this.creerCompte('Ousmane', 'Kaya', Role.CHEF_ETABLISSEMENT, etablissement.id);
+    const censeur = await this.creerCompte('Halimé', 'Ndjekounkosse', Role.ADMIN, etablissement.id);
+    const surveillant = await this.creerCompte('Brahim', 'Adoum', Role.VIE_SCOLAIRE, etablissement.id);
 
     return {
-      message: `Établissement "${nomEtab}" créé et données existantes rattachées`,
-      etablissement: { id: etablissement.id, nom: nomEtab, code },
-      rattaches: {
-        utilisateurs: utilisateurs.count,
-        classes: classes.count,
-        matieres: matieres.count,
-        parametres: parametres.count,
-        actualites: actualites.count,
-        sondages: sondages.count,
-        groupes: groupes.count,
-      },
+      message: 'Comptes proviseur, censeur et surveillant créés pour "Lycée Exemple"',
+      comptes: [
+        { titre: 'Proviseur', ...proviseur },
+        { titre: 'Censeur', ...censeur },
+        { titre: 'Surveillant', ...surveillant },
+      ],
     };
   }
 }
