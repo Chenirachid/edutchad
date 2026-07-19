@@ -1,10 +1,10 @@
 import { Controller, Get, Query, UnauthorizedException } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Role, TypeEvaluation, JourSemaine } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 
 // Route de maintenance TEMPORAIRE — à retirer une fois utilisée.
-const CLE_MAINTENANCE = 'cheni-recreation-2026';
+const CLE_MAINTENANCE = 'cheni-seed-riche-2026';
 const SALT_ROUNDS = 10;
 
 function normaliser(s: string): string {
@@ -77,13 +77,13 @@ export class MaintenanceController {
     return { id: user.id, prenom, nom, role, identifiant, codeActivation };
   }
 
-  @Get('recreer-lycee-exemple')
-  async recreerLyceeExemple(@Query('cle') cle: string) {
+  @Get('seed-etablissement-riche')
+  async seedEtablissementRiche(@Query('cle') cle: string) {
     if (cle !== CLE_MAINTENANCE) {
       throw new UnauthorizedException('Clé invalide');
     }
 
-    const nomEtab = 'Lycée Exemple';
+    const nomEtab = 'Dossier scientifique de la Renaissance';
     const base = slugify(nomEtab);
     let code = base;
     let i = 1;
@@ -92,14 +92,13 @@ export class MaintenanceController {
       code = `${base}-${i}`;
     }
 
-    const etablissement = await this.prisma.etablissement.create({
-      data: { nom: nomEtab, code },
-    });
+    const etablissement = await this.prisma.etablissement.create({ data: { nom: nomEtab, code } });
     await this.prisma.parametrePlateforme.create({
       data: { nomEtablissement: nomEtab, etablissementId: etablissement.id },
     });
 
-    const classesNoms = ['6ème A', '5ème B', 'Terminale S'];
+    // Classes
+    const classesNoms = ['Seconde A', 'Première S', 'Terminale S'];
     const classes: Record<string, number> = {};
     for (const nom of classesNoms) {
       const c = await this.prisma.classe.create({
@@ -108,12 +107,13 @@ export class MaintenanceController {
       classes[nom] = c.id;
     }
 
+    // Matières
     const matieresDef: [string, number][] = [
       ['Mathématiques', 4],
-      ['Français', 3],
-      ['Histoire-Géographie', 2],
-      ['Anglais', 2],
+      ['Physique-Chimie', 3],
       ['SVT', 2],
+      ['Français', 3],
+      ['Anglais', 2],
     ];
     const matieres: Record<string, number> = {};
     for (const [nom, coefficient] of matieresDef) {
@@ -125,75 +125,175 @@ export class MaintenanceController {
 
     const comptes: any[] = [];
 
-    const admin = await this.creerCompte('Aïcha', 'Moussa', Role.ADMIN, etablissement.id);
-    comptes.push({ titre: 'Admin', ...admin });
+    // Administrateurs
+    const admin1 = await this.creerCompte('Camille', 'Duterte', Role.ADMIN, etablissement.id);
+    const admin2 = await this.creerCompte('Antoine', 'Vidal', Role.ADMIN, etablissement.id);
+    comptes.push({ titre: 'Admin', ...admin1 }, { titre: 'Admin', ...admin2 });
 
-    const profsDef: [string, string][] = [
-      ['Nadia', 'Boukar'],
-      ['Ismael', 'Youssouf'],
-      ['Fatimé', 'Abakar'],
-      ['Moussa', 'Idriss'],
+    // Professeurs (un par matière)
+    const profsDef: [string, string, string][] = [
+      ['Karim', 'Delacroix', 'Mathématiques'],
+      ['Sophie', 'Renard', 'Physique-Chimie'],
+      ['Julien', 'Faucher', 'SVT'],
+      ['Amélie', 'Rostand', 'Français'],
+      ['Thomas', 'Vasseur', 'Anglais'],
     ];
     const profs: Record<string, number> = {};
-    for (const [prenom, nom] of profsDef) {
+    for (const [prenom, nom, matiereNom] of profsDef) {
       const p = await this.creerCompte(prenom, nom, Role.PROFESSEUR, etablissement.id);
-      profs[`${prenom} ${nom}`] = p.id;
-      comptes.push({ titre: 'Professeur', ...p });
+      profs[matiereNom] = p.id;
+      comptes.push({ titre: `Professeur (${matiereNom})`, ...p });
     }
 
-    const enseignementsDef: [string, string, string][] = [
-      ['6ème A', 'Mathématiques', 'Nadia Boukar'],
-      ['6ème A', 'Français', 'Ismael Youssouf'],
-      ['6ème A', 'Anglais', 'Moussa Idriss'],
-      ['5ème B', 'Mathématiques', 'Nadia Boukar'],
-      ['5ème B', 'Histoire-Géographie', 'Fatimé Abakar'],
-      ['5ème B', 'SVT', 'Moussa Idriss'],
-      ['Terminale S', 'Mathématiques', 'Nadia Boukar'],
-      ['Terminale S', 'Français', 'Ismael Youssouf'],
-      ['Terminale S', 'Histoire-Géographie', 'Fatimé Abakar'],
-      ['Terminale S', 'Anglais', 'Moussa Idriss'],
-      ['Terminale S', 'SVT', 'Moussa Idriss'],
+    // Enseignements : chaque classe a les 5 matières, chacune avec son prof dédié
+    const enseignements: Record<string, number> = {};
+    for (const classeNom of classesNoms) {
+      for (const [, , matiereNom] of profsDef) {
+        const e = await this.prisma.enseignement.create({
+          data: {
+            classeId: classes[classeNom],
+            matiereId: matieres[matiereNom],
+            professeurId: profs[matiereNom],
+          },
+        });
+        enseignements[`${classeNom}|${matiereNom}`] = e.id;
+      }
+    }
+
+    // Emploi du temps : 5 créneaux par classe, sans conflit de prof/classe
+    const plagesHoraires: [string, string][] = [
+      ['08:00', '09:00'],
+      ['09:00', '10:00'],
+      ['10:00', '11:00'],
+      ['11:00', '12:00'],
+      ['14:00', '15:00'],
     ];
-    for (const [classeNom, matiereNom, profNom] of enseignementsDef) {
-      await this.prisma.enseignement.create({
-        data: {
-          classeId: classes[classeNom],
-          matiereId: matieres[matiereNom],
-          professeurId: profs[profNom],
-        },
-      });
+    const jours: JourSemaine[] = [
+      JourSemaine.LUNDI,
+      JourSemaine.MARDI,
+      JourSemaine.MERCREDI,
+      JourSemaine.JEUDI,
+      JourSemaine.VENDREDI,
+    ];
+    const matiereNoms = profsDef.map(([, , m]) => m);
+    const salles = ['A1', 'A2', 'B1', 'B2', 'Labo'];
+
+    for (let ci = 0; ci < classesNoms.length; ci++) {
+      const classeNom = classesNoms[ci];
+      for (let mi = 0; mi < matiereNoms.length; mi++) {
+        // décalage circulaire pour éviter les conflits de prof entre les 3 classes
+        const decalage = (mi + ci) % matiereNoms.length;
+        const jour = jours[decalage % jours.length];
+        const [heureDebut, heureFin] = plagesHoraires[decalage];
+        await this.prisma.creneau.create({
+          data: {
+            enseignementId: enseignements[`${classeNom}|${matiereNoms[mi]}`],
+            jour,
+            heureDebut,
+            heureFin,
+            salle: salles[mi],
+          },
+        });
+      }
     }
 
+    // Élèves (3 par classe)
     const elevesDef: [string, string, string][] = [
-      ['Amina', 'Hassan', '6ème A'],
-      ['Djibrine', 'Oumar', '6ème A'],
-      ['Halima', 'Adam', '6ème A'],
-      ['Youssouf', 'Brahim', '6ème A'],
-      ['Mariam', 'Idriss', '5ème B'],
-      ['Abakar', 'Souleymane', '5ème B'],
-      ['Zara', 'Mahamat', '5ème B'],
-      ['Kaltouma', 'Djime', 'Terminale S'],
-      ['Ahmat', 'Souleymane', 'Terminale S'],
-      ['Fatime', 'Hassan', 'Terminale S'],
+      ['Lucas', 'Martin', 'Seconde A'],
+      ['Chloé', 'Bernard', 'Seconde A'],
+      ['Nathan', 'Petit', 'Seconde A'],
+      ['Léa', 'Dubois', 'Première S'],
+      ['Hugo', 'Moreau', 'Première S'],
+      ['Manon', 'Girard', 'Première S'],
+      ['Enzo', 'Lambert', 'Terminale S'],
+      ['Camille', 'Fontaine', 'Terminale S'],
+      ['Sarah', 'Leroy', 'Terminale S'],
     ];
+    const eleves: { id: number; classeNom: string }[] = [];
     for (const [prenom, nom, classeNom] of elevesDef) {
       const e = await this.creerCompte(prenom, nom, Role.ETUDIANT, etablissement.id, classes[classeNom]);
-      comptes.push({ titre: 'Élève', ...e });
+      eleves.push({ id: e.id, classeNom });
+      comptes.push({ titre: `Élève (${classeNom})`, ...e });
     }
 
-    // Hiérarchie proviseur / censeur / surveillant
-    const proviseur = await this.creerCompte('Ousmane', 'Kaya', Role.CHEF_ETABLISSEMENT, etablissement.id);
-    comptes.push({ titre: 'Proviseur (chef établissement)', ...proviseur });
-    const censeur = await this.creerCompte('Halimé', 'Ndjekounkosse', Role.ADMIN, etablissement.id);
-    comptes.push({ titre: 'Censeur (admin)', ...censeur });
-    const surveillant = await this.creerCompte('Brahim', 'Adoum', Role.VIE_SCOLAIRE, etablissement.id);
-    comptes.push({ titre: 'Surveillant (vie scolaire)', ...surveillant });
+    // Cahier de texte : une entrée par enseignement, avec devoirs déjà donnés
+    const aujourdHui = new Date();
+    for (const classeNom of classesNoms) {
+      for (const matiereNom of matiereNoms) {
+        await this.prisma.cahierTexte.create({
+          data: {
+            enseignementId: enseignements[`${classeNom}|${matiereNom}`],
+            date: aujourdHui,
+            contenu: `Cours sur les notions clés du chapitre en cours de ${matiereNom}.`,
+            devoirs: `Exercices 1 à 5 à préparer pour la prochaine séance de ${matiereNom}.`,
+          },
+        });
+      }
+    }
+
+    // Notes : une note par élève et par matière de sa classe
+    const typesEval = [TypeEvaluation.CONTROLE, TypeEvaluation.DEVOIR, TypeEvaluation.EXAMEN];
+    for (const eleve of eleves) {
+      for (const matiereNom of matiereNoms) {
+        const enseignementId = enseignements[`${eleve.classeNom}|${matiereNom}`];
+        const valeur = Math.round((8 + Math.random() * 12) * 4) / 4; // entre 8 et 20
+        await this.prisma.note.create({
+          data: {
+            etudiantId: eleve.id,
+            enseignementId,
+            valeur,
+            coefficient: 1,
+            type: typesEval[Math.floor(Math.random() * typesEval.length)],
+            commentaire: valeur >= 14 ? 'Très bon travail.' : valeur >= 10 ? 'Correct, peut mieux faire.' : 'À retravailler.',
+          },
+        });
+      }
+    }
+
+    // Réunions organisées par un admin, avec deux profs invités
+    const dansTroisJours = new Date();
+    dansTroisJours.setDate(dansTroisJours.getDate() + 3);
+    dansTroisJours.setHours(14, 0, 0, 0);
+    const reunion1 = await this.prisma.reunion.create({
+      data: {
+        sujet: 'Conseil de classe — Terminale S',
+        lieu: 'Salle des professeurs',
+        date: dansTroisJours,
+        organisateurId: admin1.id,
+        invitations: {
+          create: [{ inviteId: profs['Mathématiques'] }, { inviteId: profs['Physique-Chimie'] }],
+        },
+      },
+    });
+
+    const dansUneSemaine = new Date();
+    dansUneSemaine.setDate(dansUneSemaine.getDate() + 7);
+    dansUneSemaine.setHours(10, 0, 0, 0);
+    const reunion2 = await this.prisma.reunion.create({
+      data: {
+        sujet: 'Réunion pédagogique — préparation du bulletin',
+        lieu: 'Bureau de la direction',
+        date: dansUneSemaine,
+        organisateurId: admin2.id,
+        invitations: {
+          create: [{ inviteId: profs['Français'] }, { inviteId: profs['Anglais'] }, { inviteId: profs['SVT'] }],
+        },
+      },
+    });
 
     return {
-      message: 'Établissement "Lycée Exemple" recréé avec toute sa hiérarchie',
+      message: `Établissement "${nomEtab}" créé avec profs, admins, emploi du temps, cahier de texte, notes et réunions`,
       etablissement: { id: etablissement.id, nom: nomEtab, code },
       classes: classesNoms,
       matieres: matieresDef.map(([n]) => n),
+      resume: {
+        comptes: comptes.length,
+        enseignements: Object.keys(enseignements).length,
+        creneaux: classesNoms.length * matiereNoms.length,
+        cahierTexte: classesNoms.length * matiereNoms.length,
+        notes: eleves.length * matiereNoms.length,
+        reunions: 2,
+      },
       comptes,
     };
   }
