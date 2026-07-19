@@ -287,10 +287,10 @@ export class UsersService {
       where: { OR: [{ cibleId: id }, { demandeurId: id }, { traiteParId: id }] },
     });
 
-    // Rendez-vous parents-profs
+    // Rendez-vous parents-administration
     await this.prisma.reservationRdv.deleteMany({ where: { OR: [{ parentId: id }, { etudiantId: id }] } });
     const creneauxRdv = await this.prisma.creneauRendezVous.findMany({
-      where: { professeurId: id },
+      where: { organisateurId: id },
       select: { id: true },
     });
     const creneauxRdvIds = creneauxRdv.map((c) => c.id);
