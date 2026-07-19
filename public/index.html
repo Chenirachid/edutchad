@@ -158,6 +158,13 @@
   .nav-icon{display:flex;flex-shrink:0;}
   .nav-icon svg{display:block;}
   .topnav-user{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  .hamburger-btn{
+    display:none;flex-shrink:0;width:38px;height:38px;border-radius:9px;
+    background:transparent;border:1px solid rgba(255,255,255,.2);
+    color:#fff;align-items:center;justify-content:center;
+  }
+  .hamburger-btn:hover{background:rgba(255,255,255,.08);}
+  .mobile-nav-backdrop{display:none;}
   .role-badge{
     display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;
     text-transform:uppercase;padding:3px 8px;border-radius:20px;
@@ -192,6 +199,24 @@
     .user-line{display:none;}
     .topbar{padding:0 16px;}
     .content{padding:18px 16px 40px;}
+  }
+  @media (max-width:768px){
+    .hamburger-btn{display:flex;}
+    .topnav-items{
+      display:none;position:fixed;top:64px;left:0;right:0;bottom:0;
+      background:var(--teal-900);flex-direction:column;align-items:stretch;
+      gap:2px;overflow-y:auto;z-index:500;padding:10px;
+    }
+    .topnav-items.mobile-open{display:flex;}
+    .topnav-items .nav-item{
+      width:100%;padding:15px 16px;font-size:15px;border-radius:10px;
+      justify-content:flex-start;
+    }
+    .topnav-items .nav-item .nav-icon svg{width:20px;height:20px;}
+    .mobile-nav-backdrop.mobile-open{
+      display:block;position:fixed;top:64px;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,.4);z-index:400;
+    }
   }
 
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
@@ -405,7 +430,11 @@
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span>EduCheni</span>
     </div>
+    <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
     <div id="nav-list" class="topnav-items"></div>
+    <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
     <div class="topnav-user">
       <div class="lang-dropdown-wrap lang-dropdown-wrap-app">
         <button class="lang-dropdown-btn lang-dropdown-btn-app" id="lang-dropdown-btn-app" type="button">
@@ -943,10 +972,24 @@ function enterApp(){
   if(items.length) selectMenu(items[0].id);
 }
 
+function fermerMenuMobile(){
+  document.getElementById('nav-list').classList.remove('mobile-open');
+  document.getElementById('mobile-nav-backdrop').classList.remove('mobile-open');
+}
+
+function toggleMenuMobile(){
+  document.getElementById('nav-list').classList.toggle('mobile-open');
+  document.getElementById('mobile-nav-backdrop').classList.toggle('mobile-open');
+}
+
+document.getElementById('hamburger-btn').addEventListener('click', toggleMenuMobile);
+document.getElementById('mobile-nav-backdrop').addEventListener('click', fermerMenuMobile);
+
 function selectMenu(menuId){
   document.querySelectorAll('.nav-item').forEach(b => {
     b.classList.toggle('active', b.dataset.menuId === menuId);
   });
+  fermerMenuMobile();
   document.getElementById('page-title').textContent = t('title_' + menuId.replace(/-/g,'_'));
   const items = MENUS[state.user.role] || [];
   const item = items.find(i => i.id === menuId);
