@@ -852,7 +852,7 @@ const MENUS = {
     { id:'bulletin', label:'Mon bulletin', render: renderEtudiantBulletin },
     { id:'absences', label:'Mes absences', render: renderEtudiantAbsences },
     { id:'comportement', label:'Mon comportement', render: renderComportement },
-    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
+    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte, hidden: true },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
@@ -861,7 +861,7 @@ const MENUS = {
     { id:'actualites', label:'Actualités', render: renderActualites },
     { id:'enseignements', label:'Mes classes', render: renderProfEnseignements },
     { id:'appel', label:"Faire l'appel", render: renderProfAppel },
-    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
+    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte, hidden: true },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
     { id:'mes-documents', label:'Mes documents', render: renderProfDocuments },
@@ -987,7 +987,8 @@ function enterApp(){
   const nav = document.getElementById('nav-list');
   nav.innerHTML = '';
   const items = MENUS[u.role] || [];
-  items.forEach((item, idx) => {
+  const itemsVisibles = items.filter(item => !item.hidden);
+  itemsVisibles.forEach((item, idx) => {
     const btn = document.createElement('button');
     btn.className = 'nav-item' + (idx === 0 ? ' active' : '');
     btn.innerHTML = navButtonHtml(item);
@@ -996,7 +997,7 @@ function enterApp(){
     nav.appendChild(btn);
   });
 
-  if(items.length) selectMenu(items[0].id);
+  if(itemsVisibles.length) selectMenu(itemsVisibles[0].id);
 }
 
 function fermerMenuMobile(){
@@ -1176,7 +1177,7 @@ async function renderEmploiDuTemps(){
           <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
           <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
           ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
-          ${estMonCours(c) ? `<div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;" data-cahier-enseignement="${c.enseignement.id}">📖 Cahier de texte →</div>` : ''}
+          <div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;" data-cahier-enseignement="${c.enseignement.id}">📖 Cahier de texte →</div>
           ${estMonCours(c) && estCoursEnCours(c) ? `<div style="font-size:10px;color:var(--success);font-weight:700;margin-top:3px;cursor:pointer;" data-appel-enseignement="${c.enseignement.id}">✅ Faire l'appel →</div>` : ''}
         </div>`).join('');
       const contenuReunions = reunionsCellule.map(r => `
@@ -3280,18 +3281,21 @@ async function renderCahierTexte(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
   const isProf = state.user.role === 'PROFESSEUR';
-  const entrees = await api('/cahiers-texte');
+  const enseignementIdFiltre = cahierTextePrefillEnseignementId;
+  cahierTextePrefillEnseignementId = null;
+  const entreesTous = await api('/cahiers-texte');
+  const entrees = enseignementIdFiltre !== null
+    ? entreesTous.filter(e => e.enseignement.id === enseignementIdFiltre)
+    : entreesTous;
 
   let creationCard = '';
   if(isProf){
     const mine = await getMesEnseignements();
-    const enseignementOptions = mine.map(e => `<option value="${e.id}" ${cahierTextePrefillEnseignementId === e.id ? 'selected' : ''}>${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('');
-    const venaitDeLEmploi = cahierTextePrefillEnseignementId !== null;
-    cahierTextePrefillEnseignementId = null;
+    const enseignementOptions = mine.map(e => `<option value="${e.id}" ${enseignementIdFiltre === e.id ? 'selected' : ''}>${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('');
     creationCard = `
       <div class="card">
         <h2>Nouvelle entrée</h2>
-        ${venaitDeLEmploi ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis ton emploi du temps.</p>` : ''}
+        ${enseignementIdFiltre !== null ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis ton emploi du temps.</p>` : ''}
         <form class="inline-form" id="cahier-texte-form">
           <div class="f" style="min-width:220px;">
             <label>Classe / matière</label>
@@ -3321,8 +3325,14 @@ async function renderCahierTexte(){
     ${creationCard}
     <div class="card">
       <h2>${entrees.length} entrée${entrees.length > 1 ? 's' : ''}</h2>
+      ${enseignementIdFiltre !== null ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Filtré depuis ton emploi du temps — <a href="#" id="cahier-voir-tout">voir toutes les entrées</a>.</p>` : ''}
       ${entrees.length ? `<table><thead><tr><th>Date</th><th>Classe</th><th>Matière</th><th>Contenu</th><th>Devoirs</th><th>Pièce jointe</th>${isProf ? '<th></th>' : ''}</tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune entrée pour l\'instant.</div>'}
     </div>`;
+
+  const lienVoirTout = document.getElementById('cahier-voir-tout');
+  if(lienVoirTout){
+    lienVoirTout.addEventListener('click', (e) => { e.preventDefault(); renderCahierTexte(); });
+  }
 
   content.querySelectorAll('[data-telecharger-piece]').forEach(link => {
     link.addEventListener('click', (e) => {
