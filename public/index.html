@@ -1318,7 +1318,7 @@ async function renderProfEnseignements(){
           const somme = notesElevePourMoyenne.reduce((acc, x) => acc + x.note.valeur * x.coef, 0);
           const poids = notesElevePourMoyenne.reduce((acc, x) => acc + x.coef, 0);
           const moyenne = poids ? somme / poids : null;
-          return `<tr><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>${cellules}<td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td></tr>`;
+          return `<tr><td style="white-space:nowrap;"><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code></td><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>${cellules}<td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td></tr>`;
         }).join('');
 
         const ligneMoyenneClasse = epreuvesClasse.map(ep => {
@@ -1357,9 +1357,9 @@ async function renderProfEnseignements(){
             ${etudiants.length && epreuvesClasse.length ? `
             <div style="overflow-x:auto;">
               <table>
-                <thead><tr><th>Étudiant</th>${entetesEpreuves}<th>Moyenne</th></tr></thead>
+                <thead><tr><th>N° étudiant</th><th>Étudiant</th>${entetesEpreuves}<th>Moyenne</th></tr></thead>
                 <tbody>${rowsGrille}</tbody>
-                <tfoot><tr style="background:var(--bg);"><td><strong>Moyenne de la classe</strong></td>${ligneMoyenneClasse}<td></td></tr></tfoot>
+                <tfoot><tr style="background:var(--bg);"><td></td><td><strong>Moyenne de la classe</strong></td>${ligneMoyenneClasse}<td></td></tr></tfoot>
               </table>
             </div>
             <button class="btn-submit" id="dossier-enregistrer-notes-btn" style="margin-top:16px;">Enregistrer les modifications</button>
@@ -1557,16 +1557,13 @@ async function loadAppelListe(){
         <td>
           <input type="text" data-observation-id="${et.id}" placeholder="Écrire une observation…" style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:6px;font-size:13px;" />
         </td>
-        <td>
-          <input type="text" data-punition-id="${et.id}" placeholder="Avertissement…" style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:6px;font-size:13px;" />
-        </td>
       </tr>`).join('');
 
     zone.innerHTML = `
       <div class="card">
         <h2>Appel — ${etudiants.length} étudiant${etudiants.length > 1 ? 's' : ''}</h2>
         <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Coche <strong>Absent</strong> ou <strong>Retard</strong> pour chaque étudiant concerné (Présent par défaut). Pour une observation ou un avertissement, écris directement dans la case correspondante.</p>
-        <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Présent</th><th>Absent</th><th>Retard</th><th>Motif</th><th>Retard (min)</th><th>Observation</th><th>Avertissement</th></tr></thead><tbody>${rows}</tbody></table>
+        <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Présent</th><th>Absent</th><th>Retard</th><th>Motif</th><th>Retard (min)</th><th>Observation</th></tr></thead><tbody>${rows}</tbody></table>
         <button class="btn-submit" id="appel-submit-btn" style="margin-top:16px;">Valider l'appel</button>
       </div>`;
 
@@ -1593,9 +1590,8 @@ async function loadAppelListe(){
       const date = document.getElementById('appel-date').value;
       const concernes = Array.from(zone.querySelectorAll('[data-statut-group]')).filter(g => g.dataset.valeur !== 'PRESENT');
       const observationsSaisies = Array.from(zone.querySelectorAll('[data-observation-id]')).filter(inp => inp.value.trim());
-      const punitionsSaisies = Array.from(zone.querySelectorAll('[data-punition-id]')).filter(inp => inp.value.trim());
 
-      if(!concernes.length && !observationsSaisies.length && !punitionsSaisies.length){
+      if(!concernes.length && !observationsSaisies.length){
         toast('Appel enregistré : tout le monde était présent.');
         return;
       }
@@ -1626,16 +1622,8 @@ async function loadAppelListe(){
         }catch(err){ failed++; }
       }
 
-      for(const inp of punitionsSaisies){
-        try{
-          await api('/punitions', { method:'POST', body: JSON.stringify({
-            etudiantId: Number(inp.dataset.punitionId), type: 'AVERTISSEMENT', motif: inp.value.trim(),
-          })});
-        }catch(err){ failed++; }
-      }
-
       if(failed === 0){
-        toast(`Appel enregistré : ${success} absence(s), ${observationsSaisies.length} observation(s), ${punitionsSaisies.length} avertissement(s).`);
+        toast(`Appel enregistré : ${success} absence(s), ${observationsSaisies.length} observation(s).`);
       } else {
         toast(`Enregistré avec ${failed} échec(s).`, 'error');
       }
