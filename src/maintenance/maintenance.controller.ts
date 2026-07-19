@@ -1,143 +1,200 @@
 import { Controller, Get, Query, UnauthorizedException } from '@nestjs/common';
+import { Role } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 
 // Route de maintenance TEMPORAIRE — à retirer une fois utilisée.
-const CLE_MAINTENANCE = 'cheni-nettoyage-2026';
-const NOM_A_GARDER = 'Lycée Exemple';
+const CLE_MAINTENANCE = 'cheni-recreation-2026';
+const SALT_ROUNDS = 10;
+
+function normaliser(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+}
+
+function slugify(s: string): string {
+  return normaliser(s.replace(/\s+/g, '-')).replace(/[^a-z-]/g, '') || 'etablissement';
+}
+
+function genererCode(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return code;
+}
 
 @Controller('maintenance')
 export class MaintenanceController {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async cascadeDeleteUser(id: number) {
-    const enseignements = await this.prisma.enseignement.findMany({
-      where: { professeurId: id },
-      select: { id: true },
-    });
-    const enseignementIds = enseignements.map((e) => e.id);
-
-    if (enseignementIds.length) {
-      await this.prisma.note.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
-      await this.prisma.absence.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
-      await this.prisma.cahierTexte.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
-      await this.prisma.epreuve.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
-      await this.prisma.creneau.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
-      await this.prisma.observation.deleteMany({ where: { enseignementId: { in: enseignementIds } } });
+  private async identifiantUnique(prenom: string, nom: string) {
+    const base = `${normaliser(prenom)}.${normaliser(nom)}`;
+    let identifiant = base;
+    let counter = 1;
+    while (await this.prisma.user.findUnique({ where: { identifiant } })) {
+      counter++;
+      identifiant = `${base}${counter}`;
     }
-
-    await this.prisma.note.deleteMany({ where: { etudiantId: id } });
-    await this.prisma.absence.deleteMany({ where: { etudiantId: id } });
-    await this.prisma.observation.deleteMany({ where: { OR: [{ etudiantId: id }, { auteurId: id }] } });
-    await this.prisma.punition.deleteMany({ where: { OR: [{ etudiantId: id }, { auteurId: id }] } });
-    await this.prisma.inscriptionMatiere.deleteMany({ where: { etudiantId: id } });
-    await this.prisma.enseignement.deleteMany({ where: { professeurId: id } });
-
-    await this.prisma.message.deleteMany({ where: { OR: [{ expediteurId: id }, { destinataireId: id }] } });
-    await this.prisma.messageGroupe.deleteMany({ where: { auteurId: id } });
-
-    await this.prisma.invitationReunion.deleteMany({ where: { inviteId: id } });
-    const reunionsOrganisees = await this.prisma.reunion.findMany({
-      where: { organisateurId: id },
-      select: { id: true },
-    });
-    const reunionIds = reunionsOrganisees.map((r) => r.id);
-    if (reunionIds.length) {
-      await this.prisma.invitationReunion.deleteMany({ where: { reunionId: { in: reunionIds } } });
-      await this.prisma.reunion.deleteMany({ where: { id: { in: reunionIds } } });
-    }
-
-    const frais = await this.prisma.fraisScolarite.findUnique({ where: { etudiantId: id } });
-    if (frais) {
-      await this.prisma.versement.deleteMany({ where: { fraisId: frais.id } });
-      await this.prisma.fraisScolarite.delete({ where: { id: frais.id } });
-    }
-
-    await this.prisma.inscriptionAdministrative.deleteMany({ where: { etudiantId: id } });
-    await this.prisma.mentionBulletin.deleteMany({ where: { etudiantId: id } });
-    await this.prisma.demandeSuppressionAdmin.deleteMany({
-      where: { OR: [{ cibleId: id }, { demandeurId: id }, { traiteParId: id }] },
-    });
-
-    await this.prisma.reservationRdv.deleteMany({ where: { OR: [{ parentId: id }, { etudiantId: id }] } });
-    const creneauxRdv = await this.prisma.creneauRendezVous.findMany({
-      where: { organisateurId: id },
-      select: { id: true },
-    });
-    const creneauxRdvIds = creneauxRdv.map((c) => c.id);
-    if (creneauxRdvIds.length) {
-      await this.prisma.reservationRdv.deleteMany({ where: { creneauId: { in: creneauxRdvIds } } });
-      await this.prisma.creneauRendezVous.deleteMany({ where: { id: { in: creneauxRdvIds } } });
-    }
-
-    await this.prisma.actualite.deleteMany({ where: { auteurId: id } });
-    await this.prisma.voteSondage.deleteMany({ where: { votantId: id } });
-    const sondages = await this.prisma.sondage.findMany({ where: { auteurId: id }, select: { id: true } });
-    const sondageIds = sondages.map((s) => s.id);
-    if (sondageIds.length) {
-      await this.prisma.voteSondage.deleteMany({ where: { sondageId: { in: sondageIds } } });
-      await this.prisma.optionSondage.deleteMany({ where: { sondageId: { in: sondageIds } } });
-      await this.prisma.sondage.deleteMany({ where: { id: { in: sondageIds } } });
-    }
-
-    const dossier = await this.prisma.dossierProfesseur.findUnique({ where: { professeurId: id } });
-    if (dossier) {
-      await this.prisma.documentProfesseur.deleteMany({ where: { dossierId: dossier.id } });
-      await this.prisma.dossierProfesseur.delete({ where: { id: dossier.id } });
-    }
-    await this.prisma.ressourceProf.deleteMany({ where: { professeurId: id } });
-
-    return this.prisma.user.delete({ where: { id } });
+    return identifiant;
   }
 
-  @Get('nettoyer-etablissements')
-  async nettoyerEtablissements(@Query('cle') cle: string) {
+  private async creerCompte(
+    prenom: string,
+    nom: string,
+    role: Role,
+    etablissementId: number,
+    classeId?: number,
+  ) {
+    const identifiant = await this.identifiantUnique(prenom, nom);
+    const codeActivation = genererCode();
+    const motDePasseTemp = await bcrypt.hash(genererCode() + genererCode(), SALT_ROUNDS);
+    const email = `${identifiant}@exemple.local`;
+
+    const user = await this.prisma.user.create({
+      data: {
+        prenom,
+        nom,
+        identifiant,
+        email,
+        codeActivation,
+        password: motDePasseTemp,
+        role,
+        etablissementId,
+        classeId,
+      },
+    });
+
+    if (role === Role.ETUDIANT) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { numeroEtudiant: `ETU-${String(user.id).padStart(5, '0')}` },
+      });
+    }
+
+    return { id: user.id, prenom, nom, role, identifiant, codeActivation };
+  }
+
+  @Get('recreer-lycee-exemple')
+  async recreerLyceeExemple(@Query('cle') cle: string) {
     if (cle !== CLE_MAINTENANCE) {
       throw new UnauthorizedException('Clé invalide');
     }
 
-    const aGarder = await this.prisma.etablissement.findFirst({ where: { nom: NOM_A_GARDER } });
-    const aSupprimer = await this.prisma.etablissement.findMany({
-      where: aGarder ? { id: { not: aGarder.id } } : {},
-    });
-
-    const resultats: { etablissement: string; comptesSupprimes: number }[] = [];
-
-    for (const etab of aSupprimer) {
-      const utilisateurs = await this.prisma.user.findMany({
-        where: { etablissementId: etab.id },
-        select: { id: true },
-      });
-
-      for (const u of utilisateurs) {
-        await this.cascadeDeleteUser(u.id);
-      }
-
-      await this.prisma.enseignement.deleteMany({ where: { classe: { etablissementId: etab.id } } });
-      await this.prisma.classe.deleteMany({ where: { etablissementId: etab.id } });
-      await this.prisma.matiere.deleteMany({ where: { etablissementId: etab.id } });
-      await this.prisma.parametrePlateforme.deleteMany({ where: { etablissementId: etab.id } });
-      await this.prisma.actualite.deleteMany({ where: { etablissementId: etab.id } });
-
-      const sondagesRestants = await this.prisma.sondage.findMany({
-        where: { etablissementId: etab.id },
-        select: { id: true },
-      });
-      const sondageIdsRestants = sondagesRestants.map((s) => s.id);
-      if (sondageIdsRestants.length) {
-        await this.prisma.voteSondage.deleteMany({ where: { sondageId: { in: sondageIdsRestants } } });
-        await this.prisma.optionSondage.deleteMany({ where: { sondageId: { in: sondageIdsRestants } } });
-        await this.prisma.sondage.deleteMany({ where: { id: { in: sondageIdsRestants } } });
-      }
-
-      await this.prisma.groupe.deleteMany({ where: { etablissementId: etab.id } });
-      await this.prisma.etablissement.delete({ where: { id: etab.id } });
-
-      resultats.push({ etablissement: etab.nom, comptesSupprimes: utilisateurs.length });
+    const nomEtab = 'Lycée Exemple';
+    const base = slugify(nomEtab);
+    let code = base;
+    let i = 1;
+    while (await this.prisma.etablissement.findUnique({ where: { code } })) {
+      i++;
+      code = `${base}-${i}`;
     }
 
+    const etablissement = await this.prisma.etablissement.create({
+      data: { nom: nomEtab, code },
+    });
+    await this.prisma.parametrePlateforme.create({
+      data: { nomEtablissement: nomEtab, etablissementId: etablissement.id },
+    });
+
+    const classesNoms = ['6ème A', '5ème B', 'Terminale S'];
+    const classes: Record<string, number> = {};
+    for (const nom of classesNoms) {
+      const c = await this.prisma.classe.create({
+        data: { nom, anneeScolaire: '2025-2026', etablissementId: etablissement.id },
+      });
+      classes[nom] = c.id;
+    }
+
+    const matieresDef: [string, number][] = [
+      ['Mathématiques', 4],
+      ['Français', 3],
+      ['Histoire-Géographie', 2],
+      ['Anglais', 2],
+      ['SVT', 2],
+    ];
+    const matieres: Record<string, number> = {};
+    for (const [nom, coefficient] of matieresDef) {
+      const m = await this.prisma.matiere.create({
+        data: { nom, coefficient, etablissementId: etablissement.id },
+      });
+      matieres[nom] = m.id;
+    }
+
+    const comptes: any[] = [];
+
+    const admin = await this.creerCompte('Aïcha', 'Moussa', Role.ADMIN, etablissement.id);
+    comptes.push({ titre: 'Admin', ...admin });
+
+    const profsDef: [string, string][] = [
+      ['Nadia', 'Boukar'],
+      ['Ismael', 'Youssouf'],
+      ['Fatimé', 'Abakar'],
+      ['Moussa', 'Idriss'],
+    ];
+    const profs: Record<string, number> = {};
+    for (const [prenom, nom] of profsDef) {
+      const p = await this.creerCompte(prenom, nom, Role.PROFESSEUR, etablissement.id);
+      profs[`${prenom} ${nom}`] = p.id;
+      comptes.push({ titre: 'Professeur', ...p });
+    }
+
+    const enseignementsDef: [string, string, string][] = [
+      ['6ème A', 'Mathématiques', 'Nadia Boukar'],
+      ['6ème A', 'Français', 'Ismael Youssouf'],
+      ['6ème A', 'Anglais', 'Moussa Idriss'],
+      ['5ème B', 'Mathématiques', 'Nadia Boukar'],
+      ['5ème B', 'Histoire-Géographie', 'Fatimé Abakar'],
+      ['5ème B', 'SVT', 'Moussa Idriss'],
+      ['Terminale S', 'Mathématiques', 'Nadia Boukar'],
+      ['Terminale S', 'Français', 'Ismael Youssouf'],
+      ['Terminale S', 'Histoire-Géographie', 'Fatimé Abakar'],
+      ['Terminale S', 'Anglais', 'Moussa Idriss'],
+      ['Terminale S', 'SVT', 'Moussa Idriss'],
+    ];
+    for (const [classeNom, matiereNom, profNom] of enseignementsDef) {
+      await this.prisma.enseignement.create({
+        data: {
+          classeId: classes[classeNom],
+          matiereId: matieres[matiereNom],
+          professeurId: profs[profNom],
+        },
+      });
+    }
+
+    const elevesDef: [string, string, string][] = [
+      ['Amina', 'Hassan', '6ème A'],
+      ['Djibrine', 'Oumar', '6ème A'],
+      ['Halima', 'Adam', '6ème A'],
+      ['Youssouf', 'Brahim', '6ème A'],
+      ['Mariam', 'Idriss', '5ème B'],
+      ['Abakar', 'Souleymane', '5ème B'],
+      ['Zara', 'Mahamat', '5ème B'],
+      ['Kaltouma', 'Djime', 'Terminale S'],
+      ['Ahmat', 'Souleymane', 'Terminale S'],
+      ['Fatime', 'Hassan', 'Terminale S'],
+    ];
+    for (const [prenom, nom, classeNom] of elevesDef) {
+      const e = await this.creerCompte(prenom, nom, Role.ETUDIANT, etablissement.id, classes[classeNom]);
+      comptes.push({ titre: 'Élève', ...e });
+    }
+
+    // Hiérarchie proviseur / censeur / surveillant
+    const proviseur = await this.creerCompte('Ousmane', 'Kaya', Role.CHEF_ETABLISSEMENT, etablissement.id);
+    comptes.push({ titre: 'Proviseur (chef établissement)', ...proviseur });
+    const censeur = await this.creerCompte('Halimé', 'Ndjekounkosse', Role.ADMIN, etablissement.id);
+    comptes.push({ titre: 'Censeur (admin)', ...censeur });
+    const surveillant = await this.creerCompte('Brahim', 'Adoum', Role.VIE_SCOLAIRE, etablissement.id);
+    comptes.push({ titre: 'Surveillant (vie scolaire)', ...surveillant });
+
     return {
-      message: `${aSupprimer.length} établissement(s) supprimé(s), "${NOM_A_GARDER}" conservé`,
-      details: resultats,
+      message: 'Établissement "Lycée Exemple" recréé avec toute sa hiérarchie',
+      etablissement: { id: etablissement.id, nom: nomEtab, code },
+      classes: classesNoms,
+      matieres: matieresDef.map(([n]) => n),
+      comptes,
     };
   }
 }
