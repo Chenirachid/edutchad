@@ -313,6 +313,13 @@ export class UsersService {
       await this.prisma.sondage.deleteMany({ where: { id: { in: sondageIds } } });
     }
 
+    const dossier = await this.prisma.dossierProfesseur.findUnique({ where: { professeurId: id } });
+    if (dossier) {
+      await this.prisma.documentProfesseur.deleteMany({ where: { dossierId: dossier.id } });
+      await this.prisma.dossierProfesseur.delete({ where: { id: dossier.id } });
+    }
+    await this.prisma.ressourceProf.deleteMany({ where: { professeurId: id } });
+
     return this.prisma.user.delete({ where: { id }, select: userSelect });
   }
 
