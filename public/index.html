@@ -1389,7 +1389,7 @@ async function loadAppelListe(){
       const punitionsSaisies = Array.from(zone.querySelectorAll('[data-punition-id]')).filter(inp => inp.value.trim());
 
       if(!concernes.length && !observationsSaisies.length && !punitionsSaisies.length){
-        toast('Rien à enregistrer — tout le monde est présent, sans observation ni avertissement.', 'error');
+        toast('Appel enregistré : tout le monde était présent.');
         return;
       }
 
