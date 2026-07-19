@@ -285,6 +285,17 @@
     border-left-color:#8B5CF6;background:#F1EBFC;margin-top:4px;
   }
 
+  .dossiers-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;}
+  .dossier-classe{
+    background:var(--bg);border:1.5px solid var(--border);border-radius:12px;
+    padding:18px 14px;text-align:center;cursor:pointer;transition:transform .1s,box-shadow .1s;
+  }
+  .dossier-classe:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--teal-500);}
+  .dossier-icone svg{width:40px;height:40px;margin:0 auto 8px;}
+  .dossier-nom{font-weight:700;font-size:14px;color:var(--teal-900);margin-bottom:6px;}
+  .dossier-matiere{margin-bottom:6px;}
+  .dossier-coef{font-size:11px;color:var(--text-muted);}
+
   .statut-toggle{display:flex;gap:12px;align-items:center;}
   .statut-case{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--text-muted);cursor:pointer;}
   .statut-case-input{width:16px;height:16px;cursor:pointer;accent-color:var(--teal-700);}
@@ -838,7 +849,6 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 const MENUS = {
   ETUDIANT: [
     { id:'actualites', label:'Actualités', render: renderActualites },
-    { id:'sondages', label:'Sondages', render: renderSondages },
     { id:'bulletin', label:'Mon bulletin', render: renderEtudiantBulletin },
     { id:'absences', label:'Mes absences', render: renderEtudiantAbsences },
     { id:'comportement', label:'Mon comportement', render: renderComportement },
@@ -849,7 +859,6 @@ const MENUS = {
   ],
   PROFESSEUR: [
     { id:'actualites', label:'Actualités', render: renderActualites },
-    { id:'sondages', label:'Sondages', render: renderSondages },
     { id:'enseignements', label:'Mes classes', render: renderProfEnseignements },
     { id:'appel', label:"Faire l'appel", render: renderProfAppel },
     { id:'saisir-note', label:'Saisir une note', render: renderProfSaisirNote },
@@ -863,14 +872,12 @@ const MENUS = {
   ],
   PARENT: [
     { id:'actualites', label:'Actualités', render: renderActualites },
-    { id:'sondages', label:'Sondages', render: renderSondages },
     { id:'enfants', label:'Mes enfants', render: renderParentEnfants },
     { id:'rendez-vous', label:'Rendez-vous profs', render: renderParentRendezVous },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
   ADMIN: [
     { id:'actualites', label:'Actualités', render: renderActualites },
-    { id:'sondages', label:'Sondages', render: renderSondages },
     { id:'eleves', label:'Élèves', render: renderAdminEleves },
     { id:'personnel', label:'Personnel', render: renderAdminPersonnel },
     { id:'inscriptions', label:'Inscriptions', render: renderAdminInscriptions },
@@ -902,7 +909,6 @@ MENUS.CHEF_ETABLISSEMENT = [
 MENUS.VIE_SCOLAIRE = [
   { id:'actualites', label:'Actualités', render: renderActualites },
   { id:'vie-scolaire', label:'Vie scolaire', render: renderVieScolaire },
-  { id:'sondages', label:'Sondages', render: renderSondages },
   { id:'groupes', label:'Groupes', render: renderGroupes },
   { id:'messagerie', label:'Messagerie', render: renderMessagerie },
 ];
@@ -1250,23 +1256,25 @@ async function renderProfEnseignements(){
   const mine = await getMesEnseignements();
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const rows = mine.map(e => `
-    <tr>
-      <td>${escapeHtml(e.classe.nom)}</td>
-      <td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td>
-      <td>${e.matiere.coefficient}</td>
-      <td><button class="btn-secondary" data-voir-eleves-enseignement="${e.id}">Voir les élèves</button></td>
-    </tr>`).join('');
+
+  const dossiers = mine.map(e => `
+    <div class="dossier-classe" data-dossier-enseignement="${e.id}">
+      <div class="dossier-icone" style="color:${stringToColor(e.matiere.nom)};">${ICONE_DOSSIER}</div>
+      <div class="dossier-nom">${escapeHtml(e.classe.nom)}</div>
+      <div class="dossier-matiere"><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></div>
+      <div class="dossier-coef">Coefficient ${e.matiere.coefficient}</div>
+    </div>`).join('');
+
   content.innerHTML = `
     <div class="card">
-      <h2>Mes enseignements</h2>
-      ${mine.length ? `<table><thead><tr><th>Classe</th><th>Matière</th><th>Coefficient</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">Aucun enseignement ne vous est encore assigné.</div>`}
+      <h2>Mes classes</h2>
+      ${mine.length ? `<div class="dossiers-grille">${dossiers}</div>` : `<div class="empty-state">Aucun enseignement ne vous est encore assigné.</div>`}
     </div>
     <div id="roster-zone"></div>`;
 
-  content.querySelectorAll('[data-voir-eleves-enseignement]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const enseignementId = btn.dataset.voirElevesEnseignement;
+  content.querySelectorAll('[data-dossier-enseignement]').forEach(carte => {
+    carte.addEventListener('click', async () => {
+      const enseignementId = carte.dataset.dossierEnseignement;
       const ligne = mine.find(e => String(e.id) === enseignementId);
       const zone = document.getElementById('roster-zone');
       zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
@@ -1279,9 +1287,24 @@ async function renderProfEnseignements(){
           </tr>`).join('');
         zone.innerHTML = `
           <div class="card">
-            <h2>${escapeHtml(ligne.classe.nom)} — ${escapeHtml(ligne.matiere.nom)} (${etudiants.length} élève${etudiants.length > 1 ? 's' : ''})</h2>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+              <h2 style="margin:0;">${escapeHtml(ligne.classe.nom)} — ${escapeHtml(ligne.matiere.nom)} (${etudiants.length} élève${etudiants.length > 1 ? 's' : ''})</h2>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-secondary" id="dossier-cahier-btn">📖 Cahier de texte</button>
+                <button class="btn-secondary" id="dossier-appel-btn">✅ Faire l'appel</button>
+              </div>
+            </div>
             ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
           </div>`;
+
+        document.getElementById('dossier-cahier-btn').addEventListener('click', () => {
+          cahierTextePrefillEnseignementId = Number(enseignementId);
+          selectMenu('cahier-texte');
+        });
+        document.getElementById('dossier-appel-btn').addEventListener('click', () => {
+          appelPrefillEnseignementId = Number(enseignementId);
+          selectMenu('appel');
+        });
       }catch(err){ zone.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`; }
     });
   });
