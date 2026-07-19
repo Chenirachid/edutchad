@@ -279,15 +279,11 @@
     padding:6px 8px;font-size:11.5px;height:100%;
   }
 
-  .statut-toggle{display:flex;gap:4px;}
-  .statut-btn{
-    padding:6px 10px;border-radius:6px;border:1.5px solid var(--border);
-    background:#fff;color:var(--text-muted);font-size:12px;font-weight:600;
-  }
-  .statut-btn:hover{filter:brightness(.97);}
-  .statut-btn.statut-present.active{background:var(--success);border-color:var(--success);color:#fff;}
-  .statut-btn.statut-absent.active{background:var(--danger);border-color:var(--danger);color:#fff;}
-  .statut-btn.statut-retard.active{background:var(--warning);border-color:var(--warning);color:#fff;}
+  .statut-toggle{display:flex;gap:12px;align-items:center;}
+  .statut-case{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--text-muted);cursor:pointer;}
+  .statut-case-input{width:16px;height:16px;cursor:pointer;accent-color:var(--teal-700);}
+  .statut-case-input[data-val="ABSENCE"]{accent-color:var(--danger);}
+  .statut-case-input[data-val="RETARD"]{accent-color:var(--warning);}
 
   .child-card{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:between;gap:14px;}
   .child-card .name{font-weight:600;}
@@ -1342,9 +1338,9 @@ async function loadAppelListe(){
         <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
         <td>
           <div class="statut-toggle" data-statut-group="${et.id}" data-valeur="PRESENT">
-            <button type="button" class="statut-btn statut-present active" data-val="PRESENT">Présent</button>
-            <button type="button" class="statut-btn statut-absent" data-val="ABSENCE">Absent</button>
-            <button type="button" class="statut-btn statut-retard" data-val="RETARD">Retard</button>
+            <label class="statut-case"><input type="checkbox" class="statut-case-input" data-val="PRESENT" checked /> Présent</label>
+            <label class="statut-case"><input type="checkbox" class="statut-case-input" data-val="ABSENCE" /> Absent</label>
+            <label class="statut-case"><input type="checkbox" class="statut-case-input" data-val="RETARD" /> Retard</label>
           </div>
         </td>
         <td>
@@ -1370,17 +1366,18 @@ async function loadAppelListe(){
       </div>`;
 
     zone.querySelectorAll('[data-statut-group]').forEach(groupe => {
-      groupe.querySelectorAll('.statut-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+      groupe.querySelectorAll('.statut-case-input').forEach(chk => {
+        chk.addEventListener('change', () => {
           const etudiantId = groupe.dataset.statutGroup;
-          groupe.dataset.valeur = btn.dataset.val;
-          groupe.querySelectorAll('.statut-btn').forEach(b => b.classList.toggle('active', b === btn));
+          if(!chk.checked){ chk.checked = true; return; } // au moins une case cochée
+          groupe.querySelectorAll('.statut-case-input').forEach(c => { if(c !== chk) c.checked = false; });
+          groupe.dataset.valeur = chk.dataset.val;
           const motifInput = zone.querySelector(`[data-motif-id="${etudiantId}"]`);
           const dureeInput = zone.querySelector(`[data-duree-id="${etudiantId}"]`);
-          motifInput.disabled = btn.dataset.val === 'PRESENT';
-          dureeInput.disabled = btn.dataset.val !== 'RETARD';
-          if(btn.dataset.val === 'PRESENT'){ motifInput.value = ''; dureeInput.value = ''; }
-          if(btn.dataset.val !== 'RETARD'){ dureeInput.value = ''; }
+          motifInput.disabled = chk.dataset.val === 'PRESENT';
+          dureeInput.disabled = chk.dataset.val !== 'RETARD';
+          if(chk.dataset.val === 'PRESENT'){ motifInput.value = ''; dureeInput.value = ''; }
+          if(chk.dataset.val !== 'RETARD'){ dureeInput.value = ''; }
         });
       });
     });
