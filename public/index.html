@@ -198,6 +198,7 @@
   .table-shrink-btn:hover{background:var(--border);}
   .table-shrink-btn.active{background:var(--teal-500);color:#04302F;border-color:var(--teal-500);}
   table.table-compact, table.table-compact th, table.table-compact td{font-size:10.5px !important;padding:4px 5px !important;}
+  table.table-compact button{font-size:10px !important;padding:4px 7px !important;}
   .card h2{font-size:15px;margin:0 0 16px;color:var(--teal-900);}
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
   .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
@@ -1601,13 +1602,15 @@ async function renderAdminUsers(){
       </td>
       <td><input type="number" data-user-classe="${u.id}" value="${u.classeId ?? ''}" placeholder="—" style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;" /></td>
       <td>${u.actif === false ? '<span class="badge-non-justifiee">Désactivé</span>' : '<span class="badge-justifiee">Actif</span>'} ${libelleEnLigne(u.derniereActivite)}</td>
-      <td style="white-space:nowrap;">
-        <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
-        <button class="btn-secondary" data-reset-password="${u.id}" style="margin-left:6px;">Réinitialiser MDP</button>
-        <button class="btn-secondary" data-regenerer-activation="${u.id}" style="margin-left:6px;">Réimprimer activation</button>
-        ${u.role === 'PROFESSEUR' ? `<button class="btn-secondary" data-dossier-prof="${u.id}" style="margin-left:6px;display:inline-flex;align-items:center;gap:5px;">${ICONE_DOSSIER} Dossier</button>` : ''}
-        <button class="btn-secondary" data-toggle-actif="${u.id}" style="margin-left:6px;">${u.actif === false ? 'Réactiver' : 'Désactiver'}</button>
-        <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
+      <td style="min-width:180px;">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
+          <button class="btn-secondary" data-reset-password="${u.id}">Réinitialiser MDP</button>
+          <button class="btn-secondary" data-regenerer-activation="${u.id}">Réimprimer activation</button>
+          ${u.role === 'PROFESSEUR' ? `<button class="btn-secondary" data-dossier-prof="${u.id}" style="display:inline-flex;align-items:center;gap:5px;">${ICONE_DOSSIER} Dossier</button>` : ''}
+          <button class="btn-secondary" data-toggle-actif="${u.id}">${u.actif === false ? 'Réactiver' : 'Désactiver'}</button>
+          <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button>
+        </div>
       </td>
     </tr>`).join('');
 
