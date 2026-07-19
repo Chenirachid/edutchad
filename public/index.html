@@ -1287,11 +1287,10 @@ async function renderProfEnseignements(){
       const zone = document.getElementById('roster-zone');
       zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
       try{
-        const [etudiants, epreuvesTous, notesTous, absencesTous] = await Promise.all([
+        const [etudiants, epreuvesTous, notesTous] = await Promise.all([
           api('/enseignements/' + enseignementId + '/etudiants'),
           api('/epreuves'),
           api('/notes'),
-          api('/absences'),
         ]);
         const rowsEtudiants = etudiants.map(et => `
           <tr>
@@ -1328,88 +1327,12 @@ async function renderProfEnseignements(){
           return `<td><strong>${moy !== null ? moy.toFixed(2) : '—'}</strong></td>`;
         }).join('');
 
-        // Grille d'appel : une colonne par date où l'appel a été fait pour cette classe
-        const absencesClasse = absencesTous.filter(a => a.enseignementId === Number(enseignementId));
-        const absenceCellule = (etudiantId, date) => absencesClasse.find(a => a.etudiantId === etudiantId && new Date(a.date).toISOString().slice(0, 10) === date);
-        let datesAppelActuelles = Array.from(new Set(absencesClasse.map(a => new Date(a.date).toISOString().slice(0, 10)))).sort();
-
-        function construireGrilleAppel(){
-          const entetesDates = datesAppelActuelles.map(d => `<th>${new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' })}</th>`).join('');
-          const rowsAppel = etudiants.map(et => {
-            const cellules = datesAppelActuelles.map(d => {
-              const a = absenceCellule(et.id, d);
-              return `<td>
-                <select data-appel-etudiant="${et.id}" data-appel-date="${d}" data-appel-id="${a ? a.id : ''}" style="padding:4px 5px;border:1px solid var(--border);border-radius:5px;font-size:12px;">
-                  <option value="PRESENT" ${!a ? 'selected' : ''}>P</option>
-                  <option value="ABSENCE" ${a && a.type === 'ABSENCE' ? 'selected' : ''}>A</option>
-                  <option value="RETARD" ${a && a.type === 'RETARD' ? 'selected' : ''}>R</option>
-                </select>
-              </td>`;
-            }).join('');
-            return `<tr><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>${cellules}</tr>`;
-          }).join('');
-          const ligneAbsentsParDate = datesAppelActuelles.map(d => {
-            const nbAbsents = etudiants.filter(et => { const a = absenceCellule(et.id, d); return a && a.type === 'ABSENCE'; }).length;
-            return `<td><strong>${nbAbsents}</strong></td>`;
-          }).join('');
-
-          if(!etudiants.length || !datesAppelActuelles.length){
-            return '<div class="empty-state">Ajoute une première date ci-dessus pour commencer l\'appel.</div>';
-          }
-          return `
-            <div style="overflow-x:auto;">
-              <table>
-                <thead><tr><th>Étudiant</th>${entetesDates}</tr></thead>
-                <tbody>${rowsAppel}</tbody>
-                <tfoot><tr style="background:var(--bg);"><td><strong>Absents</strong></td>${ligneAbsentsParDate}</tr></tfoot>
-              </table>
-            </div>
-            <button class="btn-submit" id="dossier-enregistrer-appel-btn" style="margin-top:16px;">Enregistrer les modifications</button>`;
-        }
-
-        function attacherHandlerEnregistrerAppel(){
-          const btn = document.getElementById('dossier-enregistrer-appel-btn');
-          if(!btn) return;
-          btn.addEventListener('click', async () => {
-            const zoneAppel = document.getElementById('appel-grille-zone');
-            const selects = zoneAppel.querySelectorAll('[data-appel-etudiant]');
-            let creations = 0, maj = 0, suppressions = 0, echecs = 0;
-            for(const sel of selects){
-              const etudiantId = Number(sel.dataset.appelEtudiant);
-              const date = sel.dataset.appelDate;
-              const absenceId = sel.dataset.appelId;
-              const valeur = sel.value;
-              try{
-                if(!absenceId && valeur !== 'PRESENT'){
-                  await api('/absences', { method:'POST', body: JSON.stringify({
-                    enseignementId: Number(enseignementId), etudiantId, type: valeur, date: new Date(date).toISOString(),
-                  })});
-                  creations++;
-                } else if(absenceId && valeur === 'PRESENT'){
-                  await api('/absences/' + absenceId, { method:'DELETE' });
-                  suppressions++;
-                } else if(absenceId){
-                  const absenceOriginale = absencesClasse.find(a => String(a.id) === absenceId);
-                  if(absenceOriginale && absenceOriginale.type !== valeur){
-                    await api('/absences/' + absenceId, { method:'PATCH', body: JSON.stringify({ type: valeur })});
-                    maj++;
-                  }
-                }
-              }catch(err){ echecs++; }
-            }
-            if(!creations && !maj && !suppressions && !echecs){ toast('Aucune modification à enregistrer.'); return; }
-            toast(`Appel enregistré : ${creations} créée(s), ${maj} modifiée(s), ${suppressions} supprimée(s)${echecs ? `, ${echecs} échec(s)` : ''}.`, echecs ? 'error' : undefined);
-            carte.click();
-          });
-        }
-
         zone.innerHTML = `
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
               <h2 style="margin:0;">${escapeHtml(ligne.classe.nom)} — ${escapeHtml(ligne.matiere.nom)} (${etudiants.length} élève${etudiants.length > 1 ? 's' : ''})</h2>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn-secondary" id="dossier-cahier-btn">📖 Cahier de texte</button>
-                <button class="btn-secondary" id="dossier-appel-btn">✅ Faire l'appel</button>
               </div>
             </div>
             ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
@@ -1441,38 +1364,11 @@ async function renderProfEnseignements(){
             </div>
             <button class="btn-submit" id="dossier-enregistrer-notes-btn" style="margin-top:16px;">Enregistrer les modifications</button>
             ` : '<div class="empty-state">Crée une première évaluation ci-dessus pour commencer à saisir des notes.</div>'}
-          </div>
-          <div class="card">
-            <h2>Appel — historique par date</h2>
-            <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Une colonne par date d'appel. P = présent (défaut), A = absent, R = retard. Ajoute une date, modifie les cases, puis enregistre.</p>
-            <form class="inline-form" id="dossier-nouvelle-date-appel-form" style="margin-bottom:18px;">
-              <div class="f"><label>Nouvelle date d'appel</label><input type="date" name="date" required value="${new Date().toISOString().slice(0,10)}" /></div>
-              <button class="btn-submit" type="submit">Ajouter la colonne</button>
-            </form>
-            <div id="appel-grille-zone">${construireGrilleAppel()}</div>
           </div>`;
-
-        attacherHandlerEnregistrerAppel();
-
-        document.getElementById('dossier-nouvelle-date-appel-form').addEventListener('submit', (e) => {
-          e.preventDefault();
-          const fd = new FormData(e.target);
-          const nouvelleDate = fd.get('date');
-          if(!datesAppelActuelles.includes(nouvelleDate)){
-            datesAppelActuelles.push(nouvelleDate);
-            datesAppelActuelles.sort();
-          }
-          document.getElementById('appel-grille-zone').innerHTML = construireGrilleAppel();
-          attacherHandlerEnregistrerAppel();
-        });
 
         document.getElementById('dossier-cahier-btn').addEventListener('click', () => {
           cahierTextePrefillEnseignementId = Number(enseignementId);
           selectMenu('cahier-texte');
-        });
-        document.getElementById('dossier-appel-btn').addEventListener('click', () => {
-          appelPrefillEnseignementId = Number(enseignementId);
-          selectMenu('appel');
         });
 
         document.getElementById('dossier-epreuve-form').addEventListener('submit', async (e) => {
@@ -1649,13 +1545,9 @@ async function loadAppelListe(){
       <tr>
         <td><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code></td>
         <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
-        <td>
-          <div class="statut-toggle" data-statut-group="${et.id}" data-valeur="PRESENT">
-            <label class="statut-case"><input type="checkbox" class="statut-case-input" data-val="PRESENT" checked /> Présent</label>
-            <label class="statut-case"><input type="checkbox" class="statut-case-input" data-val="ABSENCE" /> Absent</label>
-            <label class="statut-case"><input type="checkbox" class="statut-case-input" data-val="RETARD" /> Retard</label>
-          </div>
-        </td>
+        <td style="text-align:center;" data-statut-group="${et.id}" data-valeur="PRESENT"><input type="checkbox" class="statut-case-input" data-val="PRESENT" checked /></td>
+        <td style="text-align:center;"><input type="checkbox" class="statut-case-input" data-val="ABSENCE" /></td>
+        <td style="text-align:center;"><input type="checkbox" class="statut-case-input" data-val="RETARD" /></td>
         <td>
           <input type="text" data-motif-id="${et.id}" placeholder="Motif (facultatif)" style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:6px;font-size:13px;" disabled />
         </td>
@@ -1673,18 +1565,20 @@ async function loadAppelListe(){
     zone.innerHTML = `
       <div class="card">
         <h2>Appel — ${etudiants.length} étudiant${etudiants.length > 1 ? 's' : ''}</h2>
-        <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Clique sur <strong>Absent</strong> ou <strong>Retard</strong> pour chaque étudiant concerné (Présent par défaut). Pour une observation ou un avertissement, écris directement dans la case correspondante.</p>
-        <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Statut</th><th>Motif</th><th>Retard (min)</th><th>Observation</th><th>Avertissement</th></tr></thead><tbody>${rows}</tbody></table>
+        <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Coche <strong>Absent</strong> ou <strong>Retard</strong> pour chaque étudiant concerné (Présent par défaut). Pour une observation ou un avertissement, écris directement dans la case correspondante.</p>
+        <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Présent</th><th>Absent</th><th>Retard</th><th>Motif</th><th>Retard (min)</th><th>Observation</th><th>Avertissement</th></tr></thead><tbody>${rows}</tbody></table>
         <button class="btn-submit" id="appel-submit-btn" style="margin-top:16px;">Valider l'appel</button>
       </div>`;
 
-    zone.querySelectorAll('[data-statut-group]').forEach(groupe => {
-      groupe.querySelectorAll('.statut-case-input').forEach(chk => {
+    zone.querySelectorAll('[data-statut-group]').forEach(cellulePresent => {
+      const ligne = cellulePresent.closest('tr');
+      const cases = ligne.querySelectorAll('.statut-case-input');
+      cases.forEach(chk => {
         chk.addEventListener('change', () => {
-          const etudiantId = groupe.dataset.statutGroup;
+          const etudiantId = cellulePresent.dataset.statutGroup;
           if(!chk.checked){ chk.checked = true; return; } // au moins une case cochée
-          groupe.querySelectorAll('.statut-case-input').forEach(c => { if(c !== chk) c.checked = false; });
-          groupe.dataset.valeur = chk.dataset.val;
+          cases.forEach(c => { if(c !== chk) c.checked = false; });
+          cellulePresent.dataset.valeur = chk.dataset.val;
           const motifInput = zone.querySelector(`[data-motif-id="${etudiantId}"]`);
           const dureeInput = zone.querySelector(`[data-duree-id="${etudiantId}"]`);
           motifInput.disabled = chk.dataset.val === 'PRESENT';
