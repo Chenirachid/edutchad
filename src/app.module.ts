@@ -32,7 +32,6 @@ import { ActualitesModule } from './actualites/actualites.module';
 import { SondagesModule } from './sondages/sondages.module';
 import { DossiersProfesseurModule } from './dossiers-professeur/dossiers-professeur.module';
 import { RessourcesProfModule } from './ressources-prof/ressources-prof.module';
-import { MaintenanceModule } from './maintenance/maintenance.module';
 
 @Module({
   imports: [
@@ -74,7 +73,6 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
     SondagesModule,
     DossiersProfesseurModule,
     RessourcesProfModule,
-    MaintenanceModule,
   ],
   controllers: [],
   providers: [

@@ -1113,6 +1113,27 @@ function prochaineDatePour(jour, heureDebut){
   return date;
 }
 
+let semaineEmploiAffichee = null;
+
+function numeroSemaineISO(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const jour = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - jour);
+  const debutAnnee = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return { annee: d.getUTCFullYear(), semaine: Math.ceil((((d - debutAnnee) / 86400000) + 1) / 7) };
+}
+
+function lundiDeLaSemaineISO(annee, semaine){
+  const jan4 = new Date(annee, 0, 4);
+  const jourJan4 = jan4.getDay() || 7;
+  const lundiSemaine1 = new Date(jan4);
+  lundiSemaine1.setDate(jan4.getDate() - jourJan4 + 1);
+  const lundi = new Date(lundiSemaine1);
+  lundi.setDate(lundiSemaine1.getDate() + (semaine - 1) * 7);
+  lundi.setHours(0,0,0,0);
+  return lundi;
+}
+
 async function renderEmploiDuTemps(){
   const estProf = state.user.role === 'PROFESSEUR';
   const [creneaux, reunions] = await Promise.all([
@@ -1122,13 +1143,13 @@ async function renderEmploiDuTemps(){
   const content = document.getElementById('content');
   const estMonCours = (c) => estProf && c.enseignement.professeur && c.enseignement.professeur.id === state.user.id;
 
-  // Réunions de la semaine en cours (lundi à samedi), placées dans la grille
-  const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
   const maintenant = new Date();
-  const lundi = new Date(maintenant);
-  const decalage = maintenant.getDay() === 0 ? -6 : 1 - maintenant.getDay();
-  lundi.setDate(lundi.getDate() + decalage);
-  lundi.setHours(0,0,0,0);
+  if(!semaineEmploiAffichee) semaineEmploiAffichee = numeroSemaineISO(maintenant);
+  const { annee, semaine } = semaineEmploiAffichee;
+
+  // Semaine affichée (lundi à samedi), servant à placer les réunions dans la grille
+  const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
+  const lundi = lundiDeLaSemaineISO(annee, semaine);
   const samedi = new Date(lundi);
   samedi.setDate(samedi.getDate() + 5);
   samedi.setHours(23,59,59,999);
@@ -1170,16 +1191,45 @@ async function renderEmploiDuTemps(){
     return `<tr><td class="heure-col">${debut}<br>–<br>${fin}</td>${cellules}</tr>`;
   }).join('');
 
+  const finSemaineAffichee = new Date(lundi);
+  finSemaineAffichee.setDate(finSemaineAffichee.getDate() + 5);
+  const formatCourt = (d) => d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' });
+
   content.innerHTML = `
     <div class="card">
-      <h2>Semaine type</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine.</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+        <h2 style="margin:0;">Semaine ${semaine} — ${formatCourt(lundi)} au ${formatCourt(finSemaineAffichee)} (${annee})</h2>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn-secondary" id="semaine-precedente-btn">◀ Semaine précédente</button>
+          <input type="number" id="semaine-input" min="1" max="53" value="${semaine}" style="width:60px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;text-align:center;" />
+          <button class="btn-secondary" id="semaine-suivante-btn">Semaine suivante ▶</button>
+          <button class="btn-secondary" id="semaine-actuelle-btn">Aujourd'hui</button>
+        </div>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-2px 0 14px;">🗓️ = réunion prévue cette semaine-là.</p>
       ${plages.length ? `
       <table class="emploi-grille">
         <thead><tr><th></th>${enTetes}</tr></thead>
         <tbody>${lignes}</tbody>
       </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
     </div>`;
+
+  document.getElementById('semaine-precedente-btn').addEventListener('click', () => {
+    semaineEmploiAffichee = numeroSemaineISO(new Date(lundi.getTime() - 2*24*3600*1000));
+    renderEmploiDuTemps();
+  });
+  document.getElementById('semaine-suivante-btn').addEventListener('click', () => {
+    semaineEmploiAffichee = numeroSemaineISO(new Date(finSemaineAffichee.getTime() + 2*24*3600*1000));
+    renderEmploiDuTemps();
+  });
+  document.getElementById('semaine-actuelle-btn').addEventListener('click', () => {
+    semaineEmploiAffichee = numeroSemaineISO(new Date());
+    renderEmploiDuTemps();
+  });
+  document.getElementById('semaine-input').addEventListener('change', (e) => {
+    const n = Number(e.target.value);
+    if(n >= 1 && n <= 53){ semaineEmploiAffichee = { annee, semaine: n }; renderEmploiDuTemps(); }
+  });
 
   content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
     bloc.addEventListener('click', () => {
