@@ -267,13 +267,17 @@
   .toast.error{background:var(--danger);color:#fff;}
   @keyframes toastIn{from{transform:translateY(8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
-  .day-col-head{font-size:12px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;}
-  .creneau-block{
-    border-left:4px solid var(--teal-500);background:var(--teal-100);border-radius:8px;
-    padding:9px 11px;margin-bottom:8px;font-size:12.5px;
+  .emploi-grille{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;}
+  .emploi-grille th{text-align:center;font-size:12px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.03em;padding:10px 6px;border-bottom:2px solid var(--border);}
+  .emploi-grille td{border:1px solid var(--border);vertical-align:top;padding:4px;height:1px;}
+  .emploi-grille .heure-col{
+    text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);
+    white-space:nowrap;width:70px;background:var(--bg);
   }
-  .creneau-block .heure{font-weight:700;color:var(--teal-900);}
-  .creneau-block .salle{color:var(--text-muted);font-size:11.5px;}
+  .creneau-case{
+    border-left:4px solid var(--teal-500);background:var(--teal-100);border-radius:6px;
+    padding:6px 8px;font-size:11.5px;height:100%;
+  }
 
   .child-card{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:between;gap:14px;}
   .child-card .name{font-weight:600;}
@@ -1078,27 +1082,39 @@ async function renderEmploiDuTemps(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
   const estProf = state.user.role === 'PROFESSEUR';
-
-  const parJour = {};
-  JOURS_ORDRE.forEach(j => parJour[j] = []);
-  creneaux.forEach(c => { if(parJour[c.jour]) parJour[c.jour].push(c); });
-  Object.values(parJour).forEach(list => list.sort((a,b) => a.heureDebut.localeCompare(b.heureDebut)));
-
   const estMonCours = (c) => estProf && c.enseignement.professeur && c.enseignement.professeur.id === state.user.id;
 
-  const cols = JOURS_ORDRE.map(jour => {
-    const blocks = parJour[jour].map(c => `
-      <div class="creneau-block" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)};${estMonCours(c) ? 'cursor:pointer;' : ''}" ${estMonCours(c) ? `data-cahier-enseignement="${c.enseignement.id}"` : ''}>
-        <div class="heure">${c.heureDebut} – ${c.heureFin}</div>
-        <div>${escapeHtml(c.enseignement.matiere.nom)}</div>
-        <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
-        ${c.salle ? `<div class="salle">Salle ${escapeHtml(c.salle)}</div>` : ''}
-        ${estMonCours(c) ? '<div style="font-size:10.5px;color:var(--teal-700);font-weight:600;margin-top:4px;">📖 Remplir le cahier de texte →</div>' : ''}
-      </div>`).join('');
-    return `<div><div class="day-col-head">${jour}</div>${blocks || '<div class="empty-state" style="padding:10px 0;">—</div>'}</div>`;
+  // Une ligne par plage horaire distincte (début-fin), triée chronologiquement
+  const plagesSet = new Set(creneaux.map(c => c.heureDebut + '|' + c.heureFin));
+  const plages = Array.from(plagesSet).sort().map(p => p.split('|'));
+
+  const enTetes = JOURS_ORDRE.map(j => `<th>${j.charAt(0) + j.slice(1).toLowerCase()}</th>`).join('');
+
+  const lignes = plages.map(([debut, fin]) => {
+    const cellules = JOURS_ORDRE.map(jour => {
+      const cours = creneaux.filter(c => c.jour === jour && c.heureDebut === debut && c.heureFin === fin);
+      if(!cours.length) return '<td></td>';
+      const contenu = cours.map(c => `
+        <div class="creneau-case" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)};${estMonCours(c) ? 'cursor:pointer;' : ''}" ${estMonCours(c) ? `data-cahier-enseignement="${c.enseignement.id}"` : ''}>
+          <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
+          ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
+          ${estMonCours(c) ? '<div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;">📖 Cahier de texte →</div>' : ''}
+        </div>`).join('');
+      return `<td>${contenu}</td>`;
+    }).join('');
+    return `<tr><td class="heure-col">${debut}<br>–<br>${fin}</td>${cellules}</tr>`;
   }).join('');
 
-  content.innerHTML = `<div class="card"><h2>Semaine type</h2><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;">${cols}</div></div>`;
+  content.innerHTML = `
+    <div class="card">
+      <h2>Semaine type</h2>
+      ${plages.length ? `
+      <table class="emploi-grille">
+        <thead><tr><th></th>${enTetes}</tr></thead>
+        <tbody>${lignes}</tbody>
+      </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
+    </div>`;
 
   content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
     bloc.addEventListener('click', () => {
@@ -3083,9 +3099,23 @@ const STATUT_INSCRIPTION_COLORS = { EN_ATTENTE:'var(--warning)', VALIDEE:'var(--
 async function renderAdminInscriptions(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const inscriptions = await api('/inscriptions-administratives');
+  const [inscriptions, classes] = await Promise.all([
+    api('/inscriptions-administratives'), api('/classes'),
+  ]);
 
-  const rows = inscriptions.map(i => `
+  const nomClasse = (classeId) => {
+    const c = classes.find(cl => cl.id === classeId);
+    return c ? c.nom : 'Sans classe assignée';
+  };
+
+  const parClasse = {};
+  inscriptions.forEach(i => {
+    const nom = nomClasse(i.etudiant.classeId);
+    if(!parClasse[nom]) parClasse[nom] = [];
+    parClasse[nom].push(i);
+  });
+
+  const ligneInscription = (i) => `
     <tr>
       <td><code style="font-size:12px;">${escapeHtml(i.etudiant.numeroEtudiant || '—')}</code></td>
       <td>${escapeHtml(i.etudiant.prenom)} ${escapeHtml(i.etudiant.nom)}</td>
@@ -3095,7 +3125,14 @@ async function renderAdminInscriptions(){
         <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="VALIDEE" style="border-color:var(--success);color:var(--success);">Valider</button>
         <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+
+  const sectionsParClasse = Object.keys(parClasse).sort().map(nom => `
+    <div style="margin-bottom:22px;">
+      <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${parClasse[nom].length})</h3>
+      <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Statut</th><th></th></tr></thead><tbody>${parClasse[nom].map(ligneInscription).join('')}</tbody></table>
+    </div>`).join('');
+
 
   content.innerHTML = `
     <div class="card">
@@ -3127,8 +3164,8 @@ async function renderAdminInscriptions(){
       </form>
     </div>
     <div class="card">
-      <h2>Dossiers (${inscriptions.length})</h2>
-      ${inscriptions.length ? `<table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune inscription administrative enregistrée.</div>'}
+      <h2>Dossiers par classe (${inscriptions.length})</h2>
+      ${inscriptions.length ? sectionsParClasse : '<div class="empty-state">Aucune inscription administrative enregistrée.</div>'}
     </div>
     <div class="card">
       <h2>Inscription pédagogique</h2>
