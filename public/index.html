@@ -861,8 +861,6 @@ const MENUS = {
     { id:'actualites', label:'Actualités', render: renderActualites },
     { id:'enseignements', label:'Mes classes', render: renderProfEnseignements },
     { id:'appel', label:"Faire l'appel", render: renderProfAppel },
-    { id:'saisir-note', label:'Saisir une note', render: renderProfSaisirNote },
-    { id:'epreuves', label:'Épreuves', render: renderProfEpreuves },
     { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
@@ -1289,12 +1287,50 @@ async function renderProfEnseignements(){
       const zone = document.getElementById('roster-zone');
       zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
       try{
-        const etudiants = await api('/enseignements/' + enseignementId + '/etudiants');
+        const [etudiants, epreuvesTous, notesTous] = await Promise.all([
+          api('/enseignements/' + enseignementId + '/etudiants'),
+          api('/epreuves'),
+          api('/notes'),
+        ]);
         const rowsEtudiants = etudiants.map(et => `
           <tr>
             <td>${et.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(et.numeroEtudiant)}</code>` : '—'}</td>
             <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
           </tr>`).join('');
+
+        const epreuvesClasse = epreuvesTous.filter(ep => ep.enseignement.id === Number(enseignementId));
+        const rowsEpreuves = epreuvesClasse.map(ep => `
+          <tr>
+            <td>${escapeHtml(ep.titre)}</td>
+            <td>${new Date(ep.date).toLocaleDateString('fr-FR')}</td>
+            <td>${ep.coefficient}</td>
+            <td><button class="btn-secondary" data-saisir-epreuve-dossier="${ep.id}">Saisir/modifier les notes</button></td>
+          </tr>`).join('');
+
+        const notesClasse = notesTous.filter(n => n.enseignementId === Number(enseignementId));
+        const notesParEtudiant = {};
+        notesClasse.forEach(n => {
+          if(!notesParEtudiant[n.etudiantId]) notesParEtudiant[n.etudiantId] = [];
+          notesParEtudiant[n.etudiantId].push(n);
+        });
+        const rowsMoyennes = etudiants.map(et => {
+          const notes = notesParEtudiant[et.id] || [];
+          const somme = notes.reduce((acc, n) => acc + n.valeur * n.coefficient, 0);
+          const poids = notes.reduce((acc, n) => acc + n.coefficient, 0);
+          const moyenne = poids ? somme / poids : null;
+          const notesTexte = notes.map(n => `
+            <span style="display:inline-flex;align-items:center;gap:4px;margin:2px 6px 2px 0;padding:3px 6px;background:var(--teal-100);border-radius:6px;">
+              ${TYPE_EVALUATION_LABELS[n.type] || n.type}
+              <input type="number" data-note-id="${n.id}" min="0" max="20" step="0.25" value="${n.valeur}" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;" />
+            </span>`).join('');
+          return `
+            <tr>
+              <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
+              <td>${notesTexte || '<span style="color:var(--text-muted);font-size:12px;">Aucune note</span>'}</td>
+              <td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td>
+            </tr>`;
+        }).join('');
+
         zone.innerHTML = `
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
@@ -1305,7 +1341,35 @@ async function renderProfEnseignements(){
               </div>
             </div>
             ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
-          </div>`;
+          </div>
+          <div class="card">
+            <h2>Notes de la classe — moyennes</h2>
+            <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Modifie une note directement dans sa case, puis clique « Enregistrer les modifications ».</p>
+            ${etudiants.length ? `<table><thead><tr><th>Étudiant</th><th>Notes</th><th>Moyenne</th></tr></thead><tbody>${rowsMoyennes}</tbody></table>` : '<div class="empty-state">Aucun élève.</div>'}
+            <button class="btn-submit" id="dossier-enregistrer-notes-btn" style="margin-top:14px;">Enregistrer les modifications</button>
+          </div>
+          <div class="card">
+            <h2>Créer une épreuve pour cette classe</h2>
+            <form class="inline-form" id="dossier-epreuve-form">
+              <div class="f" style="min-width:200px;"><label>Titre</label><input type="text" name="titre" required placeholder="Ex : Contrôle chapitre 3" /></div>
+              <div class="f">
+                <label>Type</label>
+                <select name="type">
+                  <option value="CONTROLE">Contrôle</option>
+                  <option value="DEVOIR">Devoir</option>
+                  <option value="EXAMEN">Examen</option>
+                </select>
+              </div>
+              <div class="f"><label>Date</label><input type="date" name="date" required /></div>
+              <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
+              <button class="btn-submit" type="submit">Créer et saisir les notes</button>
+            </form>
+          </div>
+          <div class="card">
+            <h2>Épreuves de cette classe (${epreuvesClasse.length})</h2>
+            ${epreuvesClasse.length ? `<table><thead><tr><th>Titre</th><th>Date</th><th>Coeff.</th><th></th></tr></thead><tbody>${rowsEpreuves}</tbody></table>` : '<div class="empty-state">Aucune épreuve pour l\'instant.</div>'}
+          </div>
+          <div id="feuille-notes-zone"></div>`;
 
         document.getElementById('dossier-cahier-btn').addEventListener('click', () => {
           cahierTextePrefillEnseignementId = Number(enseignementId);
@@ -1314,6 +1378,43 @@ async function renderProfEnseignements(){
         document.getElementById('dossier-appel-btn').addEventListener('click', () => {
           appelPrefillEnseignementId = Number(enseignementId);
           selectMenu('appel');
+        });
+
+        document.getElementById('dossier-enregistrer-notes-btn').addEventListener('click', async () => {
+          const inputs = zone.querySelectorAll('[data-note-id]');
+          let maj = 0, echecs = 0;
+          for(const inp of inputs){
+            const noteId = Number(inp.dataset.noteId);
+            const noteOriginale = notesClasse.find(n => n.id === noteId);
+            const nouvelleValeur = Number(inp.value);
+            if(noteOriginale && nouvelleValeur !== noteOriginale.valeur){
+              try{
+                await api('/notes/' + noteId, { method:'PATCH', body: JSON.stringify({ valeur: nouvelleValeur })});
+                maj++;
+              }catch(err){ echecs++; }
+            }
+          }
+          if(maj === 0 && echecs === 0){ toast('Aucune modification à enregistrer.'); return; }
+          toast(`${maj} note(s) mise(s) à jour${echecs ? `, ${echecs} échec(s)` : ''}.`);
+          carte.click();
+        });
+
+        document.getElementById('dossier-epreuve-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          try{
+            const nouvelleEpreuve = await api('/epreuves', { method:'POST', body: JSON.stringify({
+              enseignementId: Number(enseignementId), titre: fd.get('titre'),
+              type: fd.get('type'), date: new Date(fd.get('date')).toISOString(),
+              coefficient: Number(fd.get('coefficient')) || 1,
+            })});
+            toast('Épreuve créée.');
+            chargerFeuilleDeNotes(nouvelleEpreuve.id);
+          }catch(err){ toast(err.message, 'error'); }
+        });
+
+        zone.querySelectorAll('[data-saisir-epreuve-dossier]').forEach(btn => {
+          btn.addEventListener('click', () => chargerFeuilleDeNotes(Number(btn.dataset.saisirEpreuveDossier)));
         });
       }catch(err){ zone.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`; }
     });
