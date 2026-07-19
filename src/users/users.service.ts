@@ -351,7 +351,18 @@ export class UsersService {
     }
     await this.cascadeDeleteUser(chefId);
 
-    // Filet de sécurité : enseignements restants de cet établissement
+    // Filet de sécurité : enseignements et groupes restants de cet établissement
+    // (les groupes doivent être supprimés AVANT les classes, car ils y font référence)
+    const groupesRestants = await this.prisma.groupe.findMany({
+      where: { etablissementId },
+      select: { id: true },
+    });
+    const groupeIdsRestants = groupesRestants.map((g) => g.id);
+    if (groupeIdsRestants.length) {
+      await this.prisma.messageGroupe.deleteMany({ where: { groupeId: { in: groupeIdsRestants } } });
+      await this.prisma.groupe.deleteMany({ where: { id: { in: groupeIdsRestants } } });
+    }
+
     await this.prisma.enseignement.deleteMany({ where: { classe: { etablissementId } } });
     await this.prisma.classe.deleteMany({ where: { etablissementId } });
     await this.prisma.matiere.deleteMany({ where: { etablissementId } });
@@ -369,7 +380,6 @@ export class UsersService {
       await this.prisma.sondage.deleteMany({ where: { id: { in: sondageIdsRestants } } });
     }
 
-    await this.prisma.groupe.deleteMany({ where: { etablissementId } });
     await this.prisma.etablissement.delete({ where: { id: etablissementId } });
 
     return {
