@@ -281,6 +281,9 @@
   .creneau-case.reunion-case{
     border-left-color:var(--warning);background:#FBF0DD;margin-top:4px;
   }
+  .creneau-case.rdv-case{
+    border-left-color:#8B5CF6;background:#F1EBFC;margin-top:4px;
+  }
 
   .statut-toggle{display:flex;gap:12px;align-items:center;}
   .statut-case{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--text-muted);cursor:pointer;}
@@ -855,7 +858,6 @@ const MENUS = {
     { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'groupes', label:'Groupes', render: renderGroupes },
-    { id:'rendez-vous', label:'Rendez-vous parents', render: renderProfRendezVous },
     { id:'mes-documents', label:'Mes documents', render: renderProfDocuments },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
@@ -1106,12 +1108,13 @@ function prochaineDatePour(jour, heureDebut){
 }
 
 async function renderEmploiDuTemps(){
-  const [creneaux, reunions] = await Promise.all([
+  const estProf = state.user.role === 'PROFESSEUR';
+  const [creneaux, reunions, rdv] = await Promise.all([
     api('/creneaux'), api('/reunions').catch(() => []),
+    estProf ? api('/rendez-vous/mes-creneaux').catch(() => []) : Promise.resolve([]),
   ]);
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const estProf = state.user.role === 'PROFESSEUR';
   const estMonCours = (c) => estProf && c.enseignement.professeur && c.enseignement.professeur.id === state.user.id;
 
   // Réunions de la semaine en cours (lundi à samedi), placées dans la grille
@@ -1132,9 +1135,17 @@ async function renderEmploiDuTemps(){
       return { ...r, jour: joursNoms[d.getDay()], heure: d.toTimeString().slice(0,5) };
     });
 
-  // Une ligne par plage horaire distincte (début-fin des cours + heure des réunions), triée chronologiquement
+  const rdvSemaine = rdv
+    .filter(c => { const d = new Date(c.date); return d >= lundi && d <= samedi; })
+    .map(c => {
+      const d = new Date(c.date);
+      return { ...c, jour: joursNoms[d.getDay()], heure: d.toTimeString().slice(0,5) };
+    });
+
+  // Une ligne par plage horaire distincte (début-fin des cours + heure des réunions/rendez-vous), triée chronologiquement
   const plagesSet = new Set(creneaux.map(c => c.heureDebut + '|' + c.heureFin));
   reunionsSemaine.forEach(r => plagesSet.add(r.heure + '|' + r.heure));
+  rdvSemaine.forEach(c => plagesSet.add(c.heure + '|' + c.heure));
   const plages = Array.from(plagesSet).sort().map(p => p.split('|'));
 
   const enTetes = JOURS_ORDRE.map(j => `<th>${j.charAt(0) + j.slice(1).toLowerCase()}</th>`).join('');
@@ -1143,7 +1154,8 @@ async function renderEmploiDuTemps(){
     const cellules = JOURS_ORDRE.map(jour => {
       const cours = creneaux.filter(c => c.jour === jour && c.heureDebut === debut && c.heureFin === fin);
       const reunionsCellule = reunionsSemaine.filter(r => r.jour === jour && r.heure === debut);
-      if(!cours.length && !reunionsCellule.length) return '<td></td>';
+      const rdvCellule = rdvSemaine.filter(c => c.jour === jour && c.heure === debut);
+      if(!cours.length && !reunionsCellule.length && !rdvCellule.length) return '<td></td>';
       const contenuCours = cours.map(c => `
         <div class="creneau-case" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)};">
           <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
@@ -1157,21 +1169,52 @@ async function renderEmploiDuTemps(){
           <div style="font-weight:600;">🗓️ ${escapeHtml(r.sujet)}</div>
           ${r.lieu ? `<div style="font-size:10.5px;color:var(--text-muted);">${escapeHtml(r.lieu)}</div>` : ''}
         </div>`).join('');
-      return `<td>${contenuCours}${contenuReunions}</td>`;
+      const contenuRdv = rdvCellule.map(c => `
+        <div class="creneau-case rdv-case">
+          <div style="font-weight:600;">🤝 ${c.reservation ? `${escapeHtml(c.reservation.parent.prenom)} ${escapeHtml(c.reservation.parent.nom)}` : 'Créneau libre'}</div>
+          ${c.reservation ? `<div style="font-size:10.5px;color:var(--text-muted);">Pour ${escapeHtml(c.reservation.etudiant.prenom)} ${escapeHtml(c.reservation.etudiant.nom)}</div>` : `<div style="font-size:10.5px;color:var(--text-muted);">${c.dureeMinutes} min, pas encore réservé</div>`}
+        </div>`).join('');
+      return `<td>${contenuCours}${contenuReunions}${contenuRdv}</td>`;
     }).join('');
     return `<tr><td class="heure-col">${debut}<br>–<br>${fin}</td>${cellules}</tr>`;
   }).join('');
 
   content.innerHTML = `
+    ${estProf ? `
+    <div class="card">
+      <h2>Ouvrir un créneau de rendez-vous parent</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Les parents des élèves de tes classes pourront réserver ce créneau. Il apparaîtra ensuite ci-dessous, dans ton emploi du temps.</p>
+      <form class="inline-form" id="creneau-rdv-emploi-form">
+        <div class="f"><label>Date et heure</label><input type="datetime-local" name="date" required /></div>
+        <div class="f"><label>Durée (minutes)</label><input type="number" name="dureeMinutes" min="5" value="15" /></div>
+        <button class="btn-submit" type="submit">Créer le créneau</button>
+      </form>
+    </div>` : ''}
     <div class="card">
       <h2>Semaine type</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine. 🤝 = créneau de rendez-vous parent (libre ou réservé).</p>
       ${plages.length ? `
       <table class="emploi-grille">
         <thead><tr><th></th>${enTetes}</tr></thead>
         <tbody>${lignes}</tbody>
       </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
     </div>`;
+
+  const formRdv = document.getElementById('creneau-rdv-emploi-form');
+  if(formRdv){
+    formRdv.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try{
+        await api('/rendez-vous/creneaux', { method:'POST', body: JSON.stringify({
+          date: new Date(fd.get('date')).toISOString(),
+          dureeMinutes: Number(fd.get('dureeMinutes')) || 15,
+        })});
+        toast('Créneau créé.');
+        renderEmploiDuTemps();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  }
 
   content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
     bloc.addEventListener('click', () => {
