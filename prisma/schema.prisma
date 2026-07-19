@@ -73,7 +73,7 @@ model User {
   demandesSuppressionEmises    DemandeSuppressionAdmin[] @relation("DemandeDemandeur")
   demandesSuppressionTraitees  DemandeSuppressionAdmin[] @relation("DemandeTraitant")
 
-  creneauxRdv        CreneauRendezVous[] @relation("CreneauxRdvProf")
+  creneauxRdv        CreneauRendezVous[] @relation("CreneauxRdvOrganisateur")
   reservationsRdv    ReservationRdv[]    @relation("ReservationsRdvParent")
   rendezVousEnfant   ReservationRdv[]    @relation("ReservationsRdvEtudiant")
   actualites         Actualite[]
@@ -481,8 +481,8 @@ model CreneauRendezVous {
   dureeMinutes Int      @default(15)
   createdAt    DateTime @default(now())
 
-  professeur   User @relation("CreneauxRdvProf", fields: [professeurId], references: [id])
-  professeurId Int
+  organisateur   User @relation("CreneauxRdvOrganisateur", fields: [organisateurId], references: [id])
+  organisateurId Int
 
   reservation ReservationRdv?
 }

@@ -16,7 +16,7 @@ const userSelect = {
 } as const;
 
 const include = {
-  professeur: { select: userSelect },
+  organisateur: { select: userSelect },
   reservation: {
     include: {
       parent: { select: userSelect },
@@ -34,7 +34,7 @@ export class RendezVousService {
       data: {
         date: new Date(dto.date),
         dureeMinutes: dto.dureeMinutes ?? 15,
-        professeurId: currentUser.sub,
+        organisateurId: currentUser.sub,
       },
       include,
     });
@@ -42,34 +42,18 @@ export class RendezVousService {
 
   getMesCreneaux(currentUser: JwtPayload) {
     return this.prisma.creneauRendezVous.findMany({
-      where: { professeurId: currentUser.sub },
+      where: { organisateurId: currentUser.sub },
       include,
       orderBy: { date: 'asc' },
     });
   }
 
   async getCreneauxDisponibles(currentUser: JwtPayload) {
-    const parent = await this.prisma.user.findUnique({
-      where: { id: currentUser.sub },
-      include: { enfants: { select: { classeId: true } } },
-    });
-
-    const classeIds = (parent?.enfants ?? [])
-      .map((e) => e.classeId)
-      .filter((id): id is number => id !== null);
-
-    if (!classeIds.length) return [];
-
-    const enseignements = await this.prisma.enseignement.findMany({
-      where: { classeId: { in: classeIds } },
-      select: { professeurId: true },
-      distinct: ['professeurId'],
-    });
-    const professeurIds = enseignements.map((e) => e.professeurId);
-
+    // Rendez-vous parent <-> administration : tous les créneaux libres ouverts par
+    // un admin/chef d'établissement du même établissement que le parent.
     return this.prisma.creneauRendezVous.findMany({
       where: {
-        professeurId: { in: professeurIds },
+        organisateur: { etablissementId: currentUser.etablissementId },
         reservation: null,
         date: { gte: new Date() },
       },
@@ -127,7 +111,7 @@ export class RendezVousService {
     }
     if (
       creneau.reservation.parentId !== currentUser.sub &&
-      creneau.professeurId !== currentUser.sub
+      creneau.organisateurId !== currentUser.sub
     ) {
       throw new ForbiddenException("Vous n'êtes pas concerné par cette réservation");
     }
@@ -144,7 +128,7 @@ export class RendezVousService {
     if (!creneau) {
       throw new NotFoundException(`Créneau ${creneauId} introuvable`);
     }
-    if (creneau.professeurId !== currentUser.sub) {
+    if (creneau.organisateurId !== currentUser.sub) {
       throw new ForbiddenException('Ce créneau ne vous appartient pas');
     }
     if (creneau.reservation) {

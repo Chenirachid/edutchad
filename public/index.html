@@ -873,7 +873,7 @@ const MENUS = {
   PARENT: [
     { id:'actualites', label:'Actualités', render: renderActualites },
     { id:'enfants', label:'Mes enfants', render: renderParentEnfants },
-    { id:'rendez-vous', label:'Rendez-vous profs', render: renderParentRendezVous },
+    { id:'rendez-vous', label:'Rendez-vous administration', render: renderParentRendezVous },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
   ADMIN: [
@@ -886,6 +886,7 @@ const MENUS = {
     { id:'enseignements-admin', label:'Enseignements', render: renderAdminEnseignements },
     { id:'creneaux-admin', label:'Emploi du temps', render: renderAdminCreneaux },
     { id:'liaisons', label:'Liaisons parents', render: renderAdminLiaisons },
+    { id:'rendez-vous', label:'Rendez-vous parents', render: renderAdminRendezVous },
     { id:'vie-scolaire', label:'Vie scolaire', render: renderVieScolaire },
     { id:'bulletins-pdf', label:'Bulletins PDF', render: renderAdminBulletinsPdf },
     { id:'certificats', label:'Certificats', render: renderAdminCertificats },
@@ -1114,9 +1115,8 @@ function prochaineDatePour(jour, heureDebut){
 
 async function renderEmploiDuTemps(){
   const estProf = state.user.role === 'PROFESSEUR';
-  const [creneaux, reunions, rdv] = await Promise.all([
+  const [creneaux, reunions] = await Promise.all([
     api('/creneaux'), api('/reunions').catch(() => []),
-    estProf ? api('/rendez-vous/mes-creneaux').catch(() => []) : Promise.resolve([]),
   ]);
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
@@ -1140,17 +1140,9 @@ async function renderEmploiDuTemps(){
       return { ...r, jour: joursNoms[d.getDay()], heure: d.toTimeString().slice(0,5) };
     });
 
-  const rdvSemaine = rdv
-    .filter(c => { const d = new Date(c.date); return d >= lundi && d <= samedi; })
-    .map(c => {
-      const d = new Date(c.date);
-      return { ...c, jour: joursNoms[d.getDay()], heure: d.toTimeString().slice(0,5) };
-    });
-
-  // Une ligne par plage horaire distincte (début-fin des cours + heure des réunions/rendez-vous), triée chronologiquement
+  // Une ligne par plage horaire distincte (début-fin des cours + heure des réunions), triée chronologiquement
   const plagesSet = new Set(creneaux.map(c => c.heureDebut + '|' + c.heureFin));
   reunionsSemaine.forEach(r => plagesSet.add(r.heure + '|' + r.heure));
-  rdvSemaine.forEach(c => plagesSet.add(c.heure + '|' + c.heure));
   const plages = Array.from(plagesSet).sort().map(p => p.split('|'));
 
   const enTetes = JOURS_ORDRE.map(j => `<th>${j.charAt(0) + j.slice(1).toLowerCase()}</th>`).join('');
@@ -1159,8 +1151,7 @@ async function renderEmploiDuTemps(){
     const cellules = JOURS_ORDRE.map(jour => {
       const cours = creneaux.filter(c => c.jour === jour && c.heureDebut === debut && c.heureFin === fin);
       const reunionsCellule = reunionsSemaine.filter(r => r.jour === jour && r.heure === debut);
-      const rdvCellule = rdvSemaine.filter(c => c.jour === jour && c.heure === debut);
-      if(!cours.length && !reunionsCellule.length && !rdvCellule.length) return '<td></td>';
+      if(!cours.length && !reunionsCellule.length) return '<td></td>';
       const contenuCours = cours.map(c => `
         <div class="creneau-case" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)};">
           <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
@@ -1174,52 +1165,21 @@ async function renderEmploiDuTemps(){
           <div style="font-weight:600;">🗓️ ${escapeHtml(r.sujet)}</div>
           ${r.lieu ? `<div style="font-size:10.5px;color:var(--text-muted);">${escapeHtml(r.lieu)}</div>` : ''}
         </div>`).join('');
-      const contenuRdv = rdvCellule.map(c => `
-        <div class="creneau-case rdv-case">
-          <div style="font-weight:600;">🤝 ${c.reservation ? `${escapeHtml(c.reservation.parent.prenom)} ${escapeHtml(c.reservation.parent.nom)}` : 'Créneau libre'}</div>
-          ${c.reservation ? `<div style="font-size:10.5px;color:var(--text-muted);">Pour ${escapeHtml(c.reservation.etudiant.prenom)} ${escapeHtml(c.reservation.etudiant.nom)}</div>` : `<div style="font-size:10.5px;color:var(--text-muted);">${c.dureeMinutes} min, pas encore réservé</div>`}
-        </div>`).join('');
-      return `<td>${contenuCours}${contenuReunions}${contenuRdv}</td>`;
+      return `<td>${contenuCours}${contenuReunions}</td>`;
     }).join('');
     return `<tr><td class="heure-col">${debut}<br>–<br>${fin}</td>${cellules}</tr>`;
   }).join('');
 
   content.innerHTML = `
-    ${estProf ? `
-    <div class="card">
-      <h2>Ouvrir un créneau de rendez-vous parent</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Les parents des élèves de tes classes pourront réserver ce créneau. Il apparaîtra ensuite ci-dessous, dans ton emploi du temps.</p>
-      <form class="inline-form" id="creneau-rdv-emploi-form">
-        <div class="f"><label>Date et heure</label><input type="datetime-local" name="date" required /></div>
-        <div class="f"><label>Durée (minutes)</label><input type="number" name="dureeMinutes" min="5" value="15" /></div>
-        <button class="btn-submit" type="submit">Créer le créneau</button>
-      </form>
-    </div>` : ''}
     <div class="card">
       <h2>Semaine type</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine. 🤝 = créneau de rendez-vous parent (libre ou réservé).</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine.</p>
       ${plages.length ? `
       <table class="emploi-grille">
         <thead><tr><th></th>${enTetes}</tr></thead>
         <tbody>${lignes}</tbody>
       </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
     </div>`;
-
-  const formRdv = document.getElementById('creneau-rdv-emploi-form');
-  if(formRdv){
-    formRdv.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      try{
-        await api('/rendez-vous/creneaux', { method:'POST', body: JSON.stringify({
-          date: new Date(fd.get('date')).toISOString(),
-          dureeMinutes: Number(fd.get('dureeMinutes')) || 15,
-        })});
-        toast('Créneau créé.');
-        renderEmploiDuTemps();
-      }catch(err){ toast(err.message, 'error'); }
-    });
-  }
 
   content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
     bloc.addEventListener('click', () => {
@@ -3641,7 +3601,7 @@ function projeterDocument(doc){
 }
 
 
-async function renderProfRendezVous(){
+async function renderAdminRendezVous(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
   const creneaux = await api('/rendez-vous/mes-creneaux');
@@ -3659,7 +3619,7 @@ async function renderProfRendezVous(){
   content.innerHTML = `
     <div class="card">
       <h2>Ouvrir un créneau de disponibilité</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Les parents des élèves de tes classes pourront réserver ce créneau.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Les parents de l'établissement pourront réserver ce créneau pour un rendez-vous avec l'administration.</p>
       <form class="inline-form" id="creneau-rdv-form">
         <div class="f"><label>Date et heure</label><input type="datetime-local" name="date" required /></div>
         <div class="f"><label>Durée (minutes)</label><input type="number" name="dureeMinutes" min="5" value="15" /></div>
@@ -3680,7 +3640,7 @@ async function renderProfRendezVous(){
         dureeMinutes: Number(fd.get('dureeMinutes')) || 15,
       })});
       toast('Créneau créé.');
-      renderProfRendezVous();
+      renderAdminRendezVous();
     }catch(err){ toast(err.message, 'error'); }
   });
 
@@ -3690,7 +3650,7 @@ async function renderProfRendezVous(){
       try{
         await api('/rendez-vous/creneaux/' + btn.dataset.deleteCreneau, { method:'DELETE' });
         toast('Créneau supprimé.');
-        renderProfRendezVous();
+        renderAdminRendezVous();
       }catch(err){ toast(err.message, 'error'); }
     });
   });
@@ -3708,7 +3668,7 @@ async function renderParentRendezVous(){
   const rowsDispo = disponibles.map(c => `
     <tr>
       <td>${new Date(c.date).toLocaleString('fr-FR', { dateStyle:'medium', timeStyle:'short' })}</td>
-      <td>${escapeHtml(c.professeur.prenom)} ${escapeHtml(c.professeur.nom)}</td>
+      <td>${escapeHtml(c.organisateur.prenom)} ${escapeHtml(c.organisateur.nom)}</td>
       <td>${c.dureeMinutes} min</td>
       <td>
         <select data-enfant-select="${c.id}" style="padding:5px 7px;border:1px solid var(--border);border-radius:6px;">
@@ -3721,7 +3681,7 @@ async function renderParentRendezVous(){
   const rowsReservations = reservations.map(c => `
     <tr>
       <td>${new Date(c.date).toLocaleString('fr-FR', { dateStyle:'medium', timeStyle:'short' })}</td>
-      <td>${escapeHtml(c.professeur.prenom)} ${escapeHtml(c.professeur.nom)}</td>
+      <td>${escapeHtml(c.organisateur.prenom)} ${escapeHtml(c.organisateur.nom)}</td>
       <td>${escapeHtml(c.reservation.etudiant.prenom)} ${escapeHtml(c.reservation.etudiant.nom)}</td>
       <td><button class="btn-secondary" data-annuler-reservation="${c.id}" style="border-color:var(--danger);color:var(--danger);">Annuler</button></td>
     </tr>`).join('');
@@ -3729,11 +3689,11 @@ async function renderParentRendezVous(){
   content.innerHTML = `
     <div class="card">
       <h2>Créneaux disponibles</h2>
-      ${!enfants.length ? '<div class="empty-state">Aucun enfant lié à ton compte.</div>' : (disponibles.length ? `<table><thead><tr><th>Date</th><th>Professeur</th><th>Durée</th><th>Pour quel enfant</th><th></th></tr></thead><tbody>${rowsDispo}</tbody></table>` : '<div class="empty-state">Aucun créneau disponible pour le moment.</div>')}
+      ${!enfants.length ? '<div class="empty-state">Aucun enfant lié à ton compte.</div>' : (disponibles.length ? `<table><thead><tr><th>Date</th><th>Administration</th><th>Durée</th><th>Pour quel enfant</th><th></th></tr></thead><tbody>${rowsDispo}</tbody></table>` : '<div class="empty-state">Aucun créneau disponible pour le moment.</div>')}
     </div>
     <div class="card">
       <h2>Mes rendez-vous réservés (${reservations.length})</h2>
-      ${reservations.length ? `<table><thead><tr><th>Date</th><th>Professeur</th><th>Enfant</th><th></th></tr></thead><tbody>${rowsReservations}</tbody></table>` : '<div class="empty-state">Aucun rendez-vous réservé.</div>'}
+      ${reservations.length ? `<table><thead><tr><th>Date</th><th>Administration</th><th>Enfant</th><th></th></tr></thead><tbody>${rowsReservations}</tbody></table>` : '<div class="empty-state">Aucun rendez-vous réservé.</div>'}
     </div>`;
 
   content.querySelectorAll('[data-reserver-creneau]').forEach(btn => {

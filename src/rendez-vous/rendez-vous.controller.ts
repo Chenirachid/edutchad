@@ -19,7 +19,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
-@ApiTags('Rendez-vous parents-profs')
+@ApiTags('Rendez-vous parents-administration')
 @ApiBearerAuth('access-token')
 @Controller('rendez-vous')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -27,13 +27,13 @@ export class RendezVousController {
   constructor(private readonly rendezVousService: RendezVousService) {}
 
   @Post('creneaux')
-  @Roles(Role.PROFESSEUR)
+  @Roles(Role.ADMIN)
   creerCreneau(@Body() dto: CreateCreneauRdvDto, @CurrentUser() user: JwtPayload) {
     return this.rendezVousService.creerCreneau(dto, user);
   }
 
   @Get('mes-creneaux')
-  @Roles(Role.PROFESSEUR)
+  @Roles(Role.ADMIN)
   getMesCreneaux(@CurrentUser() user: JwtPayload) {
     return this.rendezVousService.getMesCreneaux(user);
   }
@@ -69,7 +69,7 @@ export class RendezVousController {
   }
 
   @Delete('creneaux/:id')
-  @Roles(Role.PROFESSEUR)
+  @Roles(Role.ADMIN)
   supprimerCreneau(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
