@@ -1292,12 +1292,6 @@ async function renderProfEnseignements(){
           api('/epreuves'),
           api('/notes'),
         ]);
-        const rowsEtudiants = etudiants.map(et => `
-          <tr>
-            <td>${et.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(et.numeroEtudiant)}</code>` : '—'}</td>
-            <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
-          </tr>`).join('');
-
         const epreuvesClasse = epreuvesTous
           .filter(ep => ep.enseignement.id === Number(enseignementId))
           .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -1335,7 +1329,6 @@ async function renderProfEnseignements(){
                 <button class="btn-secondary" id="dossier-cahier-btn">📖 Cahier de texte</button>
               </div>
             </div>
-            ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
           </div>
           <div class="card">
             <h2>Notes — toutes les évaluations</h2>
@@ -1549,9 +1542,6 @@ async function loadAppelListe(){
         <td style="text-align:center;"><input type="checkbox" class="statut-case-input" data-val="ABSENCE" /></td>
         <td style="text-align:center;"><input type="checkbox" class="statut-case-input" data-val="RETARD" /></td>
         <td>
-          <input type="text" data-motif-id="${et.id}" placeholder="Motif (facultatif)" style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:6px;font-size:13px;" disabled />
-        </td>
-        <td>
           <input type="number" data-duree-id="${et.id}" placeholder="min" min="1" style="width:70px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;" disabled />
         </td>
         <td>
@@ -1563,7 +1553,7 @@ async function loadAppelListe(){
       <div class="card">
         <h2>Appel — ${etudiants.length} étudiant${etudiants.length > 1 ? 's' : ''}</h2>
         <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Coche <strong>Absent</strong> ou <strong>Retard</strong> pour chaque étudiant concerné (Présent par défaut). Pour une observation ou un avertissement, écris directement dans la case correspondante.</p>
-        <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Présent</th><th>Absent</th><th>Retard</th><th>Motif</th><th>Retard (min)</th><th>Observation</th></tr></thead><tbody>${rows}</tbody></table>
+        <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Présent</th><th>Absent</th><th>Retard</th><th>Retard (min)</th><th>Observation</th></tr></thead><tbody>${rows}</tbody></table>
         <button class="btn-submit" id="appel-submit-btn" style="margin-top:16px;">Valider l'appel</button>
       </div>`;
 
@@ -1576,11 +1566,8 @@ async function loadAppelListe(){
           if(!chk.checked){ chk.checked = true; return; } // au moins une case cochée
           cases.forEach(c => { if(c !== chk) c.checked = false; });
           cellulePresent.dataset.valeur = chk.dataset.val;
-          const motifInput = zone.querySelector(`[data-motif-id="${etudiantId}"]`);
           const dureeInput = zone.querySelector(`[data-duree-id="${etudiantId}"]`);
-          motifInput.disabled = chk.dataset.val === 'PRESENT';
           dureeInput.disabled = chk.dataset.val !== 'RETARD';
-          if(chk.dataset.val === 'PRESENT'){ motifInput.value = ''; dureeInput.value = ''; }
           if(chk.dataset.val !== 'RETARD'){ dureeInput.value = ''; }
         });
       });
@@ -1599,7 +1586,6 @@ async function loadAppelListe(){
       let success = 0, failed = 0;
       for(const groupe of concernes){
         const etudiantId = Number(groupe.dataset.statutGroup);
-        const motif = zone.querySelector(`[data-motif-id="${etudiantId}"]`).value;
         const dureeRaw = zone.querySelector(`[data-duree-id="${etudiantId}"]`).value;
         try{
           await api('/absences', { method:'POST', body: JSON.stringify({
@@ -1607,7 +1593,6 @@ async function loadAppelListe(){
             etudiantId,
             type: groupe.dataset.valeur,
             date: new Date(date).toISOString(),
-            motif: motif || undefined,
             dureeMinutes: groupe.dataset.valeur === 'RETARD' && dureeRaw ? Number(dureeRaw) : undefined,
           })});
           success++;
