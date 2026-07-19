@@ -1298,37 +1298,33 @@ async function renderProfEnseignements(){
             <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
           </tr>`).join('');
 
-        const epreuvesClasse = epreuvesTous.filter(ep => ep.enseignement.id === Number(enseignementId));
-        const rowsEpreuves = epreuvesClasse.map(ep => `
-          <tr>
-            <td>${escapeHtml(ep.titre)}</td>
-            <td>${new Date(ep.date).toLocaleDateString('fr-FR')}</td>
-            <td>${ep.coefficient}</td>
-            <td><button class="btn-secondary" data-saisir-epreuve-dossier="${ep.id}">Saisir/modifier les notes</button></td>
-          </tr>`).join('');
+        const epreuvesClasse = epreuvesTous
+          .filter(ep => ep.enseignement.id === Number(enseignementId))
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
 
         const notesClasse = notesTous.filter(n => n.enseignementId === Number(enseignementId));
-        const notesParEtudiant = {};
-        notesClasse.forEach(n => {
-          if(!notesParEtudiant[n.etudiantId]) notesParEtudiant[n.etudiantId] = [];
-          notesParEtudiant[n.etudiantId].push(n);
-        });
-        const rowsMoyennes = etudiants.map(et => {
-          const notes = notesParEtudiant[et.id] || [];
-          const somme = notes.reduce((acc, n) => acc + n.valeur * n.coefficient, 0);
-          const poids = notes.reduce((acc, n) => acc + n.coefficient, 0);
+        const noteCellule = (etudiantId, epreuveId) => notesClasse.find(n => n.etudiantId === etudiantId && n.epreuveId === epreuveId);
+
+        const entetesEpreuves = epreuvesClasse.map(ep => `<th>${escapeHtml(ep.titre)}<br><span style="font-weight:400;font-size:10.5px;color:var(--text-muted);">coef. ${ep.coefficient}</span></th>`).join('');
+
+        const rowsGrille = etudiants.map(et => {
+          const cellules = epreuvesClasse.map(ep => {
+            const n = noteCellule(et.id, ep.id);
+            return `<td><input type="number" data-cellule="${et.id}-${ep.id}" data-etudiant="${et.id}" data-epreuve="${ep.id}" min="0" max="20" step="0.25" value="${n ? n.valeur : ''}" style="width:60px;padding:5px 6px;border:1px solid var(--border);border-radius:5px;text-align:center;" /></td>`;
+          }).join('');
+          const notesElevePourMoyenne = epreuvesClasse
+            .map(ep => ({ note: noteCellule(et.id, ep.id), coef: ep.coefficient }))
+            .filter(x => x.note);
+          const somme = notesElevePourMoyenne.reduce((acc, x) => acc + x.note.valeur * x.coef, 0);
+          const poids = notesElevePourMoyenne.reduce((acc, x) => acc + x.coef, 0);
           const moyenne = poids ? somme / poids : null;
-          const notesTexte = notes.map(n => `
-            <span style="display:inline-flex;align-items:center;gap:4px;margin:2px 6px 2px 0;padding:3px 6px;background:var(--teal-100);border-radius:6px;">
-              ${TYPE_EVALUATION_LABELS[n.type] || n.type}
-              <input type="number" data-note-id="${n.id}" min="0" max="20" step="0.25" value="${n.valeur}" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;" />
-            </span>`).join('');
-          return `
-            <tr>
-              <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
-              <td>${notesTexte || '<span style="color:var(--text-muted);font-size:12px;">Aucune note</span>'}</td>
-              <td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td>
-            </tr>`;
+          return `<tr><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>${cellules}<td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td></tr>`;
+        }).join('');
+
+        const ligneMoyenneClasse = epreuvesClasse.map(ep => {
+          const valeurs = etudiants.map(et => noteCellule(et.id, ep.id)).filter(Boolean);
+          const moy = valeurs.length ? valeurs.reduce((a, n) => a + n.valeur, 0) / valeurs.length : null;
+          return `<td><strong>${moy !== null ? moy.toFixed(2) : '—'}</strong></td>`;
         }).join('');
 
         zone.innerHTML = `
@@ -1343,15 +1339,10 @@ async function renderProfEnseignements(){
             ${etudiants.length ? `<table><thead><tr><th>N° étudiant</th><th>Nom</th></tr></thead><tbody>${rowsEtudiants}</tbody></table>` : '<div class="empty-state">Aucun élève dans cette classe.</div>'}
           </div>
           <div class="card">
-            <h2>Notes de la classe — moyennes</h2>
-            <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Modifie une note directement dans sa case, puis clique « Enregistrer les modifications ».</p>
-            ${etudiants.length ? `<table><thead><tr><th>Étudiant</th><th>Notes</th><th>Moyenne</th></tr></thead><tbody>${rowsMoyennes}</tbody></table>` : '<div class="empty-state">Aucun élève.</div>'}
-            <button class="btn-submit" id="dossier-enregistrer-notes-btn" style="margin-top:14px;">Enregistrer les modifications</button>
-          </div>
-          <div class="card">
-            <h2>Créer une épreuve pour cette classe</h2>
-            <form class="inline-form" id="dossier-epreuve-form">
-              <div class="f" style="min-width:200px;"><label>Titre</label><input type="text" name="titre" required placeholder="Ex : Contrôle chapitre 3" /></div>
+            <h2>Notes — toutes les évaluations</h2>
+            <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Une colonne par évaluation (avec son coefficient), une ligne par élève. Modifie une case puis clique « Enregistrer ». La moyenne de la classe pour chaque évaluation apparaît tout en bas.</p>
+            <form class="inline-form" id="dossier-epreuve-form" style="margin-bottom:18px;">
+              <div class="f" style="min-width:180px;"><label>Nouvelle évaluation — titre</label><input type="text" name="titre" required placeholder="Ex : Contrôle 4" /></div>
               <div class="f">
                 <label>Type</label>
                 <select name="type">
@@ -1360,16 +1351,21 @@ async function renderProfEnseignements(){
                   <option value="EXAMEN">Examen</option>
                 </select>
               </div>
-              <div class="f"><label>Date</label><input type="date" name="date" required /></div>
+              <div class="f"><label>Date</label><input type="date" name="date" required value="${new Date().toISOString().slice(0,10)}" /></div>
               <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
-              <button class="btn-submit" type="submit">Créer et saisir les notes</button>
+              <button class="btn-submit" type="submit">Ajouter la colonne</button>
             </form>
-          </div>
-          <div class="card">
-            <h2>Épreuves de cette classe (${epreuvesClasse.length})</h2>
-            ${epreuvesClasse.length ? `<table><thead><tr><th>Titre</th><th>Date</th><th>Coeff.</th><th></th></tr></thead><tbody>${rowsEpreuves}</tbody></table>` : '<div class="empty-state">Aucune épreuve pour l\'instant.</div>'}
-          </div>
-          <div id="feuille-notes-zone"></div>`;
+            ${etudiants.length && epreuvesClasse.length ? `
+            <div style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Étudiant</th>${entetesEpreuves}<th>Moyenne</th></tr></thead>
+                <tbody>${rowsGrille}</tbody>
+                <tfoot><tr style="background:var(--bg);"><td><strong>Moyenne de la classe</strong></td>${ligneMoyenneClasse}<td></td></tr></tfoot>
+              </table>
+            </div>
+            <button class="btn-submit" id="dossier-enregistrer-notes-btn" style="margin-top:16px;">Enregistrer les modifications</button>
+            ` : '<div class="empty-state">Crée une première évaluation ci-dessus pour commencer à saisir des notes.</div>'}
+          </div>`;
 
         document.getElementById('dossier-cahier-btn').addEventListener('click', () => {
           cahierTextePrefillEnseignementId = Number(enseignementId);
@@ -1380,42 +1376,44 @@ async function renderProfEnseignements(){
           selectMenu('appel');
         });
 
-        document.getElementById('dossier-enregistrer-notes-btn').addEventListener('click', async () => {
-          const inputs = zone.querySelectorAll('[data-note-id]');
-          let maj = 0, echecs = 0;
-          for(const inp of inputs){
-            const noteId = Number(inp.dataset.noteId);
-            const noteOriginale = notesClasse.find(n => n.id === noteId);
-            const nouvelleValeur = Number(inp.value);
-            if(noteOriginale && nouvelleValeur !== noteOriginale.valeur){
-              try{
-                await api('/notes/' + noteId, { method:'PATCH', body: JSON.stringify({ valeur: nouvelleValeur })});
-                maj++;
-              }catch(err){ echecs++; }
-            }
-          }
-          if(maj === 0 && echecs === 0){ toast('Aucune modification à enregistrer.'); return; }
-          toast(`${maj} note(s) mise(s) à jour${echecs ? `, ${echecs} échec(s)` : ''}.`);
-          carte.click();
-        });
-
         document.getElementById('dossier-epreuve-form').addEventListener('submit', async (e) => {
           e.preventDefault();
           const fd = new FormData(e.target);
           try{
-            const nouvelleEpreuve = await api('/epreuves', { method:'POST', body: JSON.stringify({
+            await api('/epreuves', { method:'POST', body: JSON.stringify({
               enseignementId: Number(enseignementId), titre: fd.get('titre'),
               type: fd.get('type'), date: new Date(fd.get('date')).toISOString(),
               coefficient: Number(fd.get('coefficient')) || 1,
             })});
-            toast('Épreuve créée.');
-            chargerFeuilleDeNotes(nouvelleEpreuve.id);
+            toast('Évaluation ajoutée.');
+            carte.click();
           }catch(err){ toast(err.message, 'error'); }
         });
 
-        zone.querySelectorAll('[data-saisir-epreuve-dossier]').forEach(btn => {
-          btn.addEventListener('click', () => chargerFeuilleDeNotes(Number(btn.dataset.saisirEpreuveDossier)));
-        });
+        const btnEnregistrer = document.getElementById('dossier-enregistrer-notes-btn');
+        if(btnEnregistrer){
+          btnEnregistrer.addEventListener('click', async () => {
+            const parEpreuve = {};
+            zone.querySelectorAll('[data-cellule]').forEach(inp => {
+              if(inp.value === '') return;
+              const epreuveId = inp.dataset.epreuve;
+              if(!parEpreuve[epreuveId]) parEpreuve[epreuveId] = [];
+              parEpreuve[epreuveId].push({ etudiantId: Number(inp.dataset.etudiant), valeur: Number(inp.value) });
+            });
+
+            const epreuveIds = Object.keys(parEpreuve);
+            if(!epreuveIds.length){ toast('Aucune note à enregistrer.', 'error'); return; }
+
+            let echecs = 0;
+            for(const epreuveId of epreuveIds){
+              try{
+                await api('/epreuves/' + epreuveId + '/notes', { method:'POST', body: JSON.stringify({ notes: parEpreuve[epreuveId] })});
+              }catch(err){ echecs++; }
+            }
+            toast(echecs ? `Notes enregistrées avec ${echecs} échec(s).` : 'Notes enregistrées.', echecs ? 'error' : undefined);
+            carte.click();
+          });
+        }
       }catch(err){ zone.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`; }
     });
   });
