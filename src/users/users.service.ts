@@ -156,7 +156,9 @@ export class UsersService {
     const where: Prisma.UserWhereInput =
       currentUser.role === Role.CHEF_PROJET
         ? { role: Role.CHEF_ETABLISSEMENT }
-        : { etablissementId: currentUser.etablissementId };
+        : currentUser.role === Role.ADMIN
+          ? { etablissementId: currentUser.etablissementId, role: { not: Role.CHEF_ETABLISSEMENT } }
+          : { etablissementId: currentUser.etablissementId };
 
     return this.prisma.user.findMany({
       where,
@@ -165,7 +167,7 @@ export class UsersService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, currentUser?: JwtPayload) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: userSelect,
@@ -175,11 +177,24 @@ export class UsersService {
       throw new NotFoundException(`Utilisateur ${id} introuvable`);
     }
 
+    this.verifierPasChefEtablissementPourAdmin(user, currentUser);
+
     return user;
   }
 
-  async update(id: number, dto: UpdateUserDto) {
-    await this.findOne(id);
+  private verifierPasChefEtablissementPourAdmin(
+    cible: { role: Role },
+    currentUser?: JwtPayload,
+  ) {
+    if (currentUser?.role === Role.ADMIN && cible.role === Role.CHEF_ETABLISSEMENT) {
+      throw new ForbiddenException(
+        "Un admin n'a pas accès aux comptes chef d'établissement.",
+      );
+    }
+  }
+
+  async update(id: number, dto: UpdateUserDto, currentUser?: JwtPayload) {
+    await this.findOne(id, currentUser);
 
     if (dto.classeId) {
       const classe = await this.prisma.classe.findUnique({
@@ -197,8 +212,8 @@ export class UsersService {
     });
   }
 
-  async resetPassword(id: number, dto: ResetPasswordDto) {
-    await this.findOne(id);
+  async resetPassword(id: number, dto: ResetPasswordDto, currentUser?: JwtPayload) {
+    await this.findOne(id, currentUser);
     const hashedPassword = await bcrypt.hash(dto.nouveauMotDePasse, SALT_ROUNDS);
     await this.prisma.user.update({
       where: { id },
@@ -207,8 +222,8 @@ export class UsersService {
     return { message: 'Mot de passe réinitialisé avec succès' };
   }
 
-  async regenererActivation(id: number) {
-    await this.findOne(id);
+  async regenererActivation(id: number, currentUser?: JwtPayload) {
+    await this.findOne(id, currentUser);
     const codeActivation = genererCodeActivation();
     const cible = await this.prisma.user.update({
       where: { id },
@@ -218,8 +233,8 @@ export class UsersService {
     return { ...cible, codeActivation };
   }
 
-  async toggleActif(id: number) {
-    const cible = await this.findOne(id);
+  async toggleActif(id: number, currentUser?: JwtPayload) {
+    const cible = await this.findOne(id, currentUser);
     return this.prisma.user.update({
       where: { id },
       data: { actif: !cible.actif },
@@ -227,8 +242,8 @@ export class UsersService {
     });
   }
 
-  async removeForce(id: number) {
-    await this.findOne(id);
+  async removeForce(id: number, currentUser?: JwtPayload) {
+    await this.findOne(id, currentUser);
     return this.cascadeDeleteUser(id);
   }
 
@@ -420,6 +435,14 @@ export class UsersService {
   async remove(id: number, currentUser: JwtPayload) {
     const cible = await this.findOne(id);
 
+    // Un admin n'a plus aucun droit sur un compte chef d'établissement — ni le voir,
+    // ni le supprimer, ni changer son mot de passe.
+    if (cible.role === Role.CHEF_ETABLISSEMENT && currentUser.role === Role.ADMIN) {
+      throw new ForbiddenException(
+        "Un admin n'a pas accès aux comptes chef d'établissement.",
+      );
+    }
+
     // Suppression d'un chef d'établissement : seul le chef de projet peut le faire directement,
     // et dans ce cas TOUT l'établissement (comptes, classes, matières...) disparaît avec lui —
     // sinon une demande est envoyée au chef de projet.
@@ -443,19 +466,8 @@ export class UsersService {
       );
     }
 
-    // Toute suppression d'un compte "normal" (admin, prof, élève, parent, vie scolaire) par
-    // un simple ADMIN doit être validée par le chef d'établissement de son établissement
-    // (ou par le chef de projet si aucun chef d'établissement n'est encore désigné).
-    if (currentUser.role === Role.ADMIN) {
-      let destinataires = await this.prisma.user.findMany({
-        where: { role: Role.CHEF_ETABLISSEMENT, etablissementId: cible.etablissementId },
-      });
-      if (!destinataires.length) {
-        destinataires = await this.prisma.user.findMany({ where: { role: Role.CHEF_PROJET } });
-      }
-      return this.creerDemandeSuppression(cible, currentUser, destinataires, cible.role.toLowerCase());
-    }
-
+    // Tous les autres comptes (admin, prof, élève, parent, vie scolaire) se suppriment
+    // directement, sans demande de validation.
     try {
       return await this.prisma.user.delete({ where: { id }, select: userSelect });
     } catch (err) {

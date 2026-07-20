@@ -40,36 +40,41 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
+    return this.usersService.findOne(id, user);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.usersService.update(id, dto, user);
   }
 
   @Patch(':id/password')
   resetPassword(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ResetPasswordDto,
+    @CurrentUser() user: JwtPayload,
   ) {
-    return this.usersService.resetPassword(id, dto);
+    return this.usersService.resetPassword(id, dto, user);
   }
 
   @Patch(':id/activation')
-  regenererActivation(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.regenererActivation(id);
+  regenererActivation(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
+    return this.usersService.regenererActivation(id, user);
   }
 
   @Patch(':id/actif')
-  toggleActif(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.toggleActif(id);
+  toggleActif(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
+    return this.usersService.toggleActif(id, user);
   }
 
   @Delete(':id/force')
-  removeForce(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.removeForce(id);
+  removeForce(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
+    return this.usersService.removeForce(id, user);
   }
 
   @Delete(':id')
