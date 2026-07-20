@@ -3056,19 +3056,29 @@ async function renderAdminCertificats(){
   const [users, classes] = await Promise.all([api('/users'), api('/classes')]);
   const etudiants = users.filter(u => u.role === 'ETUDIANT');
   const classeParId = new Map(classes.map(c => [c.id, c]));
+  const classesAvecEleves = classes.filter(c => etudiants.some(et => et.classeId === c.id)).sort((a, b) => a.nom.localeCompare(b.nom));
 
   content.innerHTML = `
     <div class="card">
       <h2>Générer un certificat de scolarité</h2>
       <form class="inline-form" id="certificat-form">
+        <div class="f"><label>Classe</label><select id="certificat-classe" required><option value="">— Choisir —</option>${classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}</select></div>
         <div class="f" style="min-width:280px;">
           <label>Étudiant</label>
-          <select name="etudiantId" required>${etudiants.map(et => `<option value="${et.id}">${escapeHtml(et.numeroEtudiant || '—')} — ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('') || '<option value="">Aucun étudiant</option>'}</select>
+          <select name="etudiantId" id="certificat-etudiant" required><option value="">— Choisir une classe d'abord —</option></select>
         </div>
         <button class="btn-submit" type="submit">Aperçu / Imprimer</button>
       </form>
       <p style="font-size:12.5px;color:var(--text-muted);margin:14px 0 0;">Dans la boîte de dialogue d'impression, choisis « Enregistrer au format PDF » pour obtenir un fichier PDF.</p>
     </div>`;
+
+  document.getElementById('certificat-classe').addEventListener('change', (e) => {
+    const classeId = Number(e.target.value);
+    const eleves = etudiants.filter(et => et.classeId === classeId).sort((a, b) => a.nom.localeCompare(b.nom));
+    document.getElementById('certificat-etudiant').innerHTML = eleves.length
+      ? eleves.map(et => `<option value="${et.id}">${escapeHtml(et.numeroEtudiant || '—')} — ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('')
+      : '<option value="">Aucun élève dans cette classe</option>';
+  });
 
   document.getElementById('certificat-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -3699,7 +3709,6 @@ function chargerChartJs(){
 }
 
 let statsGraphiqueMatieres = null;
-let statsGraphiqueProgression = null;
 
 async function renderStatistiques(){
   document.getElementById('page-subtitle').textContent = '';
@@ -3722,7 +3731,6 @@ async function renderStatistiques(){
       <div class="inline-form" style="margin-bottom:10px;">
         <div class="f"><label>Classe</label><select id="stats-classe">${classes.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}</select></div>
         <div class="f"><label>Élève (facultatif, pour le conseil de classe)</label><select id="stats-eleve"><option value="">Toute la classe</option></select></div>
-        <div class="f"><label>Matière (pour la progression)</label><select id="stats-matiere">${matieres.map(m => `<option value="${m.id}">${escapeHtml(m.nom)}</option>`).join('')}</select></div>
       </div>
     </div>
     <div class="card">
@@ -3732,12 +3740,6 @@ async function renderStatistiques(){
           <canvas id="stats-canvas-matieres"></canvas>
         </div>
         <div id="stats-liste-matieres" style="flex:1;min-width:200px;"></div>
-      </div>
-    </div>
-    <div class="card">
-      <h3 style="margin-top:0;">Progression de la classe (évaluation par évaluation)</h3>
-      <div style="max-width:460px;margin:0 auto;">
-        <canvas id="stats-canvas-progression"></canvas>
       </div>
     </div>`;
 
@@ -3751,7 +3753,6 @@ async function renderStatistiques(){
 
   function calculerEtAfficher(){
     const classeId = Number(document.getElementById('stats-classe').value);
-    const matiereId = Number(document.getElementById('stats-matiere').value);
     const eleveId = document.getElementById('stats-eleve').value ? Number(document.getElementById('stats-eleve').value) : null;
 
     // Enseignements de cette classe, pour relier notes/épreuves à leur matière
@@ -3813,24 +3814,6 @@ async function renderStatistiques(){
           </span>
         </div>`).join('')
       : '<div class="empty-state">Aucune note pour cette classe.</div>';
-
-    // Progression : épreuves de cette classe pour la matière choisie, triées par date
-    const epreuvesConcernees = epreuves
-      .filter(ep => ep.enseignement.classe.id === classeId && ep.enseignement.matiere.id === matiereId)
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    const labelsProgression = epreuvesConcernees.map(ep => ep.titre);
-    const moyennesProgression = epreuvesConcernees.map(ep => {
-      const valeurs = notes.filter(n => n.epreuveId === ep.id).map(n => n.valeur);
-      return valeurs.length ? Math.round((valeurs.reduce((a,v)=>a+v,0) / valeurs.length) * 100) / 100 : null;
-    });
-
-    if(statsGraphiqueProgression) statsGraphiqueProgression.destroy();
-    statsGraphiqueProgression = new window.Chart(document.getElementById('stats-canvas-progression'), {
-      type: 'radar',
-      data: { labels: labelsProgression, datasets: [{ label: 'Moyenne de la classe /20', data: moyennesProgression, borderColor: '#0B7285', backgroundColor: 'rgba(11,114,133,0.25)', pointBackgroundColor: '#0B7285' }] },
-      options: { scales: { r: { min: 0, max: 20, ticks: { stepSize: 5 } } }, plugins: { legend: { display: false } } },
-    });
   }
 
   document.getElementById('stats-classe').addEventListener('change', () => {
@@ -3838,7 +3821,6 @@ async function renderStatistiques(){
     calculerEtAfficher();
   });
   document.getElementById('stats-eleve').addEventListener('change', calculerEtAfficher);
-  document.getElementById('stats-matiere').addEventListener('change', calculerEtAfficher);
   remplirElevesStats();
   calculerEtAfficher();
 }
