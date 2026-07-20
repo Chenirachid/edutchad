@@ -3736,7 +3736,9 @@ async function renderStatistiques(){
     </div>
     <div class="card">
       <h3 style="margin-top:0;">Progression de la classe (évaluation par évaluation)</h3>
-      <canvas id="stats-canvas-progression" height="90"></canvas>
+      <div style="max-width:460px;margin:0 auto;">
+        <canvas id="stats-canvas-progression"></canvas>
+      </div>
     </div>`;
 
   function remplirElevesStats(){
@@ -3825,9 +3827,9 @@ async function renderStatistiques(){
 
     if(statsGraphiqueProgression) statsGraphiqueProgression.destroy();
     statsGraphiqueProgression = new window.Chart(document.getElementById('stats-canvas-progression'), {
-      type: 'line',
-      data: { labels: labelsProgression, datasets: [{ label: 'Moyenne de la classe /20', data: moyennesProgression, borderColor: '#0B7285', backgroundColor: 'rgba(11,114,133,0.15)', fill: true, tension: 0.3 }] },
-      options: { scales: { y: { min: 0, max: 20 } } },
+      type: 'radar',
+      data: { labels: labelsProgression, datasets: [{ label: 'Moyenne de la classe /20', data: moyennesProgression, borderColor: '#0B7285', backgroundColor: 'rgba(11,114,133,0.25)', pointBackgroundColor: '#0B7285' }] },
+      options: { scales: { r: { min: 0, max: 20, ticks: { stepSize: 5 } } }, plugins: { legend: { display: false } } },
     });
   }
 
