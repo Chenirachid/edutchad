@@ -4224,6 +4224,14 @@ async function renderVieScolaire(){
     return c ? c.nom : 'Sans classe assignée';
   };
 
+  const optionsElevesParClasse = classes
+    .filter(c => c.etudiants && c.etudiants.length)
+    .sort((a, b) => a.nom.localeCompare(b.nom))
+    .map(c => `
+      <optgroup label="${escapeHtml(c.nom)}">
+        ${c.etudiants.slice().sort((a, b) => a.nom.localeCompare(b.nom)).map(et => `<option value="${et.id}">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('')}
+      </optgroup>`).join('');
+
   const grouperParClasse = (liste) => {
     const groupes = {};
     liste.forEach(item => {
@@ -4294,7 +4302,7 @@ async function renderVieScolaire(){
       <h2>Donner une punition</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">La vie scolaire peut prononcer toutes les sanctions, y compris retenues et exclusions.</p>
       <form class="inline-form" id="vs-punition-form">
-        <div class="f"><label>ID étudiant</label><input type="number" name="etudiantId" required min="1" /></div>
+        <div class="f" style="min-width:200px;"><label>Élève</label><select name="etudiantId" required><option value="">— Choisir —</option>${optionsElevesParClasse}</select></div>
         <div class="f">
           <label>Type</label>
           <select name="type">
@@ -4316,7 +4324,7 @@ async function renderVieScolaire(){
     <div class="card">
       <h2>Ajouter une observation</h2>
       <form class="inline-form" id="vs-observation-form">
-        <div class="f"><label>ID étudiant</label><input type="number" name="etudiantId" required min="1" /></div>
+        <div class="f" style="min-width:200px;"><label>Élève</label><select name="etudiantId" required><option value="">— Choisir —</option>${optionsElevesParClasse}</select></div>
         <div class="f">
           <label>Type</label>
           <select name="type">
