@@ -3432,8 +3432,44 @@ async function renderAdminInscriptions(){
 
   content.innerHTML = `
     <div class="card">
-      <h2>Inscription administrative</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Validation officielle du dossier de l'élève pour l'année scolaire — indépendante de son affectation en classe/matières.</p>
+      <h2>Nouvelle inscription — élève qui se présente pour la première fois</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Crée le compte, l'affecte à sa classe et enregistre son dossier de justificatifs — tout en une seule fois.</p>
+      <form class="inline-form" id="nouvelle-inscription-form">
+        <div class="f"><label>Prénom</label><input type="text" name="prenom" required /></div>
+        <div class="f"><label>Nom</label><input type="text" name="nom" required /></div>
+        <div class="f">
+          <label>Classe</label>
+          <select name="classeId" required>
+            <option value="">— Choisir —</option>
+            ${classes.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
+        <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required /></div>
+        <div class="f">
+          <label>Type de justificatif d'identité</label>
+          <select name="typeJustificatif" required>
+            <option value="ACTE_NAISSANCE">Acte de naissance</option>
+            <option value="PIECE_IDENTITE">Pièce d'identité</option>
+            <option value="PASSEPORT">Passeport</option>
+          </select>
+        </div>
+        <div class="f"><label>Justificatif d'identité (fichier)</label><input type="file" name="justificatif" id="nouvelle-inscription-justificatif" required /></div>
+        <div class="f">
+          <label>Vient d'un autre établissement ?</label>
+          <select name="vientDAutreEtablissement" id="nouvelle-inscription-vient-autre" required>
+            <option value="">— Choisir —</option>
+            <option value="non">Non</option>
+            <option value="oui">Oui</option>
+          </select>
+        </div>
+        <div class="f hidden" id="nouvelle-inscription-transfert-zone"><label>Justificatif de transfert (obligatoire)</label><input type="file" name="justificatifTransfert" id="nouvelle-inscription-justificatif-transfert" /></div>
+        <button class="btn-submit" type="submit">Créer et inscrire</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Inscription administrative — élève déjà créé</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Si le compte de l'élève existe déjà (créé séparément), complète juste son dossier ici via son numéro étudiant.</p>
       <form class="inline-form" id="inscription-admin-form">
         <div class="f"><label>Numéro étudiant</label><input type="text" name="numeroEtudiant" required placeholder="ETU-00007" /></div>
         <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
@@ -3471,6 +3507,65 @@ async function renderAdminInscriptions(){
         <button class="btn-secondary" id="aller-matieres-btn">Inscrire un élève à une matière →</button>
       </div>
     </div>`;
+
+  document.getElementById('nouvelle-inscription-vient-autre').addEventListener('change', (e) => {
+    const zone = document.getElementById('nouvelle-inscription-transfert-zone');
+    const champFichier = document.getElementById('nouvelle-inscription-justificatif-transfert');
+    const estOui = e.target.value === 'oui';
+    zone.classList.toggle('hidden', !estOui);
+    champFichier.required = estOui;
+  });
+
+  document.getElementById('nouvelle-inscription-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const fichierJustificatif = document.getElementById('nouvelle-inscription-justificatif').files[0];
+    const fichierTransfert = document.getElementById('nouvelle-inscription-justificatif-transfert').files[0];
+    const vientDAutreEtablissement = fd.get('vientDAutreEtablissement') === 'oui';
+
+    if(!fichierJustificatif){ toast("Le justificatif d'identité est obligatoire.", 'error'); return; }
+    if(vientDAutreEtablissement && !fichierTransfert){ toast('Le justificatif de transfert est obligatoire.', 'error'); return; }
+    for(const f of [fichierJustificatif, fichierTransfert]){
+      if(f && f.size > 3 * 1024 * 1024){ toast('Un fichier dépasse 3 Mo.', 'error'); return; }
+    }
+
+    try{
+      const lireFichier = (f) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(f);
+      });
+
+      // 1. Créer le compte élève, déjà affecté à sa classe
+      const nouvelEleve = await api('/users', { method:'POST', body: JSON.stringify({
+        prenom: fd.get('prenom'), nom: fd.get('nom'), role: 'ETUDIANT',
+        classeId: Number(fd.get('classeId')),
+      })});
+
+      // 2. Enregistrer son dossier de justificatifs, rattaché via son numéro fraîchement généré
+      const body = {
+        numeroEtudiant: nouvelEleve.numeroEtudiant,
+        anneeScolaire: fd.get('anneeScolaire'),
+        dateNaissance: new Date(fd.get('dateNaissance')).toISOString(),
+        typeJustificatif: fd.get('typeJustificatif'),
+        justificatifNom: fichierJustificatif.name,
+        justificatifType: fichierJustificatif.type,
+        justificatifData: await lireFichier(fichierJustificatif),
+        vientDAutreEtablissement,
+      };
+      if(vientDAutreEtablissement && fichierTransfert){
+        body.justificatifTransfertNom = fichierTransfert.name;
+        body.justificatifTransfertType = fichierTransfert.type;
+        body.justificatifTransfertData = await lireFichier(fichierTransfert);
+      }
+      await api('/inscriptions-administratives', { method:'POST', body: JSON.stringify(body) });
+
+      toast(`Élève créé et inscrit — identifiant : ${nouvelEleve.identifiant}`);
+      await imprimerDocumentActivation(nouvelEleve);
+      renderAdminInscriptions();
+    }catch(err){ toast(err.message, 'error'); }
+  });
 
   document.getElementById('inscription-vient-autre').addEventListener('change', (e) => {
     const zone = document.getElementById('inscription-transfert-zone');
