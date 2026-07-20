@@ -4224,13 +4224,8 @@ async function renderVieScolaire(){
     return c ? c.nom : 'Sans classe assignée';
   };
 
-  const optionsElevesParClasse = classes
-    .filter(c => c.etudiants && c.etudiants.length)
-    .sort((a, b) => a.nom.localeCompare(b.nom))
-    .map(c => `
-      <optgroup label="${escapeHtml(c.nom)}">
-        ${c.etudiants.slice().sort((a, b) => a.nom.localeCompare(b.nom)).map(et => `<option value="${et.id}">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('')}
-      </optgroup>`).join('');
+  const classesAvecEleves = classes.filter(c => c.etudiants && c.etudiants.length).sort((a, b) => a.nom.localeCompare(b.nom));
+  const optionsClasses = classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('');
 
   const grouperParClasse = (liste) => {
     const groupes = {};
@@ -4302,7 +4297,8 @@ async function renderVieScolaire(){
       <h2>Donner une punition</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">La vie scolaire peut prononcer toutes les sanctions, y compris retenues et exclusions.</p>
       <form class="inline-form" id="vs-punition-form">
-        <div class="f" style="min-width:200px;"><label>Élève</label><select name="etudiantId" required><option value="">— Choisir —</option>${optionsElevesParClasse}</select></div>
+        <div class="f"><label>Classe</label><select id="vs-punition-classe"><option value="">— Choisir —</option>${optionsClasses}</select></div>
+        <div class="f" style="min-width:200px;"><label>Élève</label><select name="etudiantId" id="vs-punition-eleve" required><option value="">— Choisir une classe d'abord —</option></select></div>
         <div class="f">
           <label>Type</label>
           <select name="type">
@@ -4324,7 +4320,8 @@ async function renderVieScolaire(){
     <div class="card">
       <h2>Ajouter une observation</h2>
       <form class="inline-form" id="vs-observation-form">
-        <div class="f" style="min-width:200px;"><label>Élève</label><select name="etudiantId" required><option value="">— Choisir —</option>${optionsElevesParClasse}</select></div>
+        <div class="f"><label>Classe</label><select id="vs-observation-classe"><option value="">— Choisir —</option>${optionsClasses}</select></div>
+        <div class="f" style="min-width:200px;"><label>Élève</label><select name="etudiantId" id="vs-observation-eleve" required><option value="">— Choisir une classe d'abord —</option></select></div>
         <div class="f">
           <label>Type</label>
           <select name="type">
@@ -4351,6 +4348,22 @@ async function renderVieScolaire(){
       }catch(err){ toast(err.message, 'error'); }
     });
   });
+
+  function remplirElevesDeLaClasse(classeSelectId, eleveSelectId){
+    const classeSelect = document.getElementById(classeSelectId);
+    const eleveSelect = document.getElementById(eleveSelectId);
+    classeSelect.addEventListener('change', () => {
+      const classe = classesAvecEleves.find(c => String(c.id) === classeSelect.value);
+      if(!classe){
+        eleveSelect.innerHTML = '<option value="">— Choisir une classe d\'abord —</option>';
+        return;
+      }
+      const eleves = classe.etudiants.slice().sort((a, b) => a.nom.localeCompare(b.nom));
+      eleveSelect.innerHTML = '<option value="">— Choisir —</option>' + eleves.map(et => `<option value="${et.id}">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('');
+    });
+  }
+  remplirElevesDeLaClasse('vs-punition-classe', 'vs-punition-eleve');
+  remplirElevesDeLaClasse('vs-observation-classe', 'vs-observation-eleve');
 
   document.getElementById('vs-punition-form').addEventListener('submit', async (e) => {
     e.preventDefault();
