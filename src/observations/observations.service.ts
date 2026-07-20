@@ -13,6 +13,7 @@ const etudiantSelect = {
   nom: true,
   prenom: true,
   email: true,
+  classeId: true,
 } as const;
 
 const auteurSelect = {

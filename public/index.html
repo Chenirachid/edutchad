@@ -4211,42 +4211,73 @@ async function renderSondages(){
 async function renderVieScolaire(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const [absences, punitions, observations] = await Promise.all([
-    api('/absences'), api('/punitions'), api('/observations'),
+  const [absences, punitions, observations, classes] = await Promise.all([
+    api('/absences'), api('/punitions'), api('/observations'), api('/classes'),
   ]);
 
   const nbAbsences = absences.filter(a => a.type === 'ABSENCE').length;
   const nbRetards = absences.filter(a => a.type === 'RETARD').length;
   const nbNonJustifiees = absences.filter(a => a.type === 'ABSENCE' && !a.justifiee).length;
 
-  const rowsAbsences = absences.slice(0, 40).map(a => `
-    <tr>
-      <td>${new Date(a.date).toLocaleDateString('fr-FR')}</td>
-      <td>${escapeHtml(a.etudiant.prenom)} ${escapeHtml(a.etudiant.nom)}</td>
-      <td>${a.type === 'RETARD' ? `<span class="chip" style="background:var(--warning)">Retard</span>` : '<span class="chip" style="background:var(--teal-700)">Absence</span>'}</td>
-      <td>${escapeHtml(a.enseignement.matiere.nom)}</td>
-      <td>${a.justifiee ? '<span class="badge-justifiee">Justifiée</span>' : '<span class="badge-non-justifiee">Non justifiée</span>'}</td>
-      <td><button class="btn-secondary" data-toggle-justif="${a.id}" data-valeur="${a.justifiee ? 'false' : 'true'}">${a.justifiee ? 'Invalider' : 'Justifier'}</button></td>
-    </tr>`).join('');
+  const nomClasse = (classeId) => {
+    const c = classes.find(cl => cl.id === classeId);
+    return c ? c.nom : 'Sans classe assignée';
+  };
 
-  const rowsPunitions = punitions.slice(0, 30).map(p => `
-    <tr>
-      <td>${new Date(p.date).toLocaleDateString('fr-FR')}</td>
-      <td>${escapeHtml(p.etudiant.prenom)} ${escapeHtml(p.etudiant.nom)}</td>
-      <td><span class="chip" style="background:var(--danger)">${TYPE_PUNITION_LABELS[p.type]}</span></td>
-      <td>${escapeHtml(p.motif)}</td>
-      <td>${escapeHtml(p.auteur.prenom)} ${escapeHtml(p.auteur.nom)}</td>
-      <td><button class="btn-secondary" data-delete-punition-vs="${p.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td>
-    </tr>`).join('');
+  const grouperParClasse = (liste) => {
+    const groupes = {};
+    liste.forEach(item => {
+      const nom = nomClasse(item.etudiant.classeId);
+      if(!groupes[nom]) groupes[nom] = [];
+      groupes[nom].push(item);
+    });
+    return groupes;
+  };
 
-  const rowsObservations = observations.slice(0, 30).map(o => `
-    <tr>
-      <td>${new Date(o.date).toLocaleDateString('fr-FR')}</td>
-      <td>${escapeHtml(o.etudiant.prenom)} ${escapeHtml(o.etudiant.nom)}</td>
-      <td><span class="chip" style="background:${TYPE_OBSERVATION_COLORS[o.type]}">${TYPE_OBSERVATION_LABELS[o.type]}</span></td>
-      <td>${escapeHtml(o.contenu)}</td>
-      <td>${escapeHtml(o.auteur.prenom)} ${escapeHtml(o.auteur.nom)}</td>
-    </tr>`).join('');
+  const absencesParClasse = grouperParClasse(absences);
+  const punitionsParClasse = grouperParClasse(punitions);
+  const observationsParClasse = grouperParClasse(observations);
+
+  const sectionAbsences = Object.keys(absencesParClasse).sort().map(nom => `
+    <div style="margin-bottom:22px;">
+      <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${absencesParClasse[nom].length})</h3>
+      <table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Matière</th><th>Statut</th><th></th></tr></thead><tbody>${absencesParClasse[nom].map(a => `
+        <tr>
+          <td>${new Date(a.date).toLocaleDateString('fr-FR')}</td>
+          <td>${escapeHtml(a.etudiant.prenom)} ${escapeHtml(a.etudiant.nom)}</td>
+          <td>${a.type === 'RETARD' ? `<span class="chip" style="background:var(--warning)">Retard</span>` : '<span class="chip" style="background:var(--teal-700)">Absence</span>'}</td>
+          <td>${escapeHtml(a.enseignement.matiere.nom)}</td>
+          <td>${a.justifiee ? '<span class="badge-justifiee">Justifiée</span>' : '<span class="badge-non-justifiee">Non justifiée</span>'}</td>
+          <td><button class="btn-secondary" data-toggle-justif="${a.id}" data-valeur="${a.justifiee ? 'false' : 'true'}">${a.justifiee ? 'Invalider' : 'Justifier'}</button></td>
+        </tr>`).join('')}</tbody></table>
+    </div>`).join('');
+
+  const sectionPunitions = Object.keys(punitionsParClasse).sort().map(nom => `
+    <div style="margin-bottom:22px;">
+      <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${punitionsParClasse[nom].length})</h3>
+      <table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Motif</th><th>Rédigée par</th><th></th></tr></thead><tbody>${punitionsParClasse[nom].map(p => `
+        <tr>
+          <td>${new Date(p.date).toLocaleDateString('fr-FR')}</td>
+          <td>${escapeHtml(p.etudiant.prenom)} ${escapeHtml(p.etudiant.nom)}</td>
+          <td><span class="chip" style="background:var(--danger)">${TYPE_PUNITION_LABELS[p.type]}</span></td>
+          <td>${escapeHtml(p.motif)}</td>
+          <td>${escapeHtml(p.auteur.prenom)} ${escapeHtml(p.auteur.nom)}</td>
+          <td><button class="btn-secondary" data-delete-punition-vs="${p.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td>
+        </tr>`).join('')}</tbody></table>
+    </div>`).join('');
+
+  const sectionObservations = Object.keys(observationsParClasse).sort().map(nom => `
+    <div style="margin-bottom:22px;">
+      <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${observationsParClasse[nom].length})</h3>
+      <table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Contenu</th><th>Rédigée par</th></tr></thead><tbody>${observationsParClasse[nom].map(o => `
+        <tr>
+          <td>${new Date(o.date).toLocaleDateString('fr-FR')}</td>
+          <td>${escapeHtml(o.etudiant.prenom)} ${escapeHtml(o.etudiant.nom)}</td>
+          <td><span class="chip" style="background:${TYPE_OBSERVATION_COLORS[o.type]}">${TYPE_OBSERVATION_LABELS[o.type]}</span></td>
+          <td>${escapeHtml(o.contenu)}</td>
+          <td>${escapeHtml(o.auteur.prenom)} ${escapeHtml(o.auteur.nom)}</td>
+        </tr>`).join('')}</tbody></table>
+    </div>`).join('');
 
   content.innerHTML = `
     <div class="grid-3">
@@ -4255,9 +4286,9 @@ async function renderVieScolaire(){
       <div class="card"><h2 style="margin-bottom:4px;">${punitions.length}</h2><p style="font-size:12.5px;color:var(--text-muted);">Punitions</p></div>
     </div>
     <div class="card">
-      <h2>Absences &amp; retards — justification</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Seule la vie scolaire ou l'administration peut justifier une absence.</p>
-      ${absences.length ? `<table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Matière</th><th>Statut</th><th></th></tr></thead><tbody>${rowsAbsences}</tbody></table>` : '<div class="empty-state">Aucune absence enregistrée.</div>'}
+      <h2>Absences &amp; retards par classe — justification</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Seule la vie scolaire ou l'administration peut justifier une absence. Mis à jour dès qu'un prof fait l'appel.</p>
+      ${absences.length ? sectionAbsences : '<div class="empty-state">Aucune absence enregistrée.</div>'}
     </div>
     <div class="card">
       <h2>Donner une punition</h2>
@@ -4279,8 +4310,8 @@ async function renderVieScolaire(){
       </form>
     </div>
     <div class="card">
-      <h2>Punitions récentes</h2>
-      ${punitions.length ? `<table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Motif</th><th>Rédigée par</th><th></th></tr></thead><tbody>${rowsPunitions}</tbody></table>` : '<div class="empty-state">Aucune punition enregistrée.</div>'}
+      <h2>Punitions par classe</h2>
+      ${punitions.length ? sectionPunitions : '<div class="empty-state">Aucune punition enregistrée.</div>'}
     </div>
     <div class="card">
       <h2>Ajouter une observation</h2>
@@ -4299,8 +4330,8 @@ async function renderVieScolaire(){
       </form>
     </div>
     <div class="card">
-      <h2>Observations récentes</h2>
-      ${observations.length ? `<table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Contenu</th><th>Rédigée par</th></tr></thead><tbody>${rowsObservations}</tbody></table>` : '<div class="empty-state">Aucune observation enregistrée.</div>'}
+      <h2>Observations par classe</h2>
+      ${observations.length ? sectionObservations : '<div class="empty-state">Aucune observation enregistrée.</div>'}
     </div>`;
 
   content.querySelectorAll('[data-toggle-justif]').forEach(btn => {

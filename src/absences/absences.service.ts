@@ -15,6 +15,7 @@ const etudiantSelect = {
   prenom: true,
   email: true,
   role: true,
+  classeId: true,
 } as const;
 
 @Injectable()
