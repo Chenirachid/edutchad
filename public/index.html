@@ -3725,8 +3725,13 @@ async function renderStatistiques(){
       </div>
     </div>
     <div class="card">
-      <h3 style="margin-top:0;">Moyenne par matière</h3>
-      <canvas id="stats-canvas-matieres" height="90"></canvas>
+      <h3 style="margin-top:0;">Moyennes par matière</h3>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+        <div style="flex:1;min-width:260px;max-width:420px;">
+          <canvas id="stats-canvas-matieres"></canvas>
+        </div>
+        <div id="stats-liste-matieres" style="flex:1;min-width:200px;"></div>
+      </div>
     </div>
     <div class="card">
       <h3 style="margin-top:0;">Progression de la classe (évaluation par évaluation)</h3>
@@ -3761,10 +3766,18 @@ async function renderStatistiques(){
 
     if(statsGraphiqueMatieres) statsGraphiqueMatieres.destroy();
     statsGraphiqueMatieres = new window.Chart(document.getElementById('stats-canvas-matieres'), {
-      type: 'bar',
-      data: { labels: labelsMatieres, datasets: [{ label: 'Moyenne /20', data: moyennesMatieres, backgroundColor: labelsMatieres.map(n => stringToColor(n)) }] },
-      options: { scales: { y: { min: 0, max: 20 } }, plugins: { legend: { display: false } } },
+      type: 'radar',
+      data: { labels: labelsMatieres, datasets: [{ label: 'Moyenne /20', data: moyennesMatieres, borderColor: '#0B7285', backgroundColor: 'rgba(11,114,133,0.25)', pointBackgroundColor: '#0B7285' }] },
+      options: { scales: { r: { min: 0, max: 20, ticks: { stepSize: 5 } } }, plugins: { legend: { display: false } } },
     });
+
+    document.getElementById('stats-liste-matieres').innerHTML = labelsMatieres.length
+      ? labelsMatieres.map((nom, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="display:flex;align-items:center;gap:8px;"><span class="chip" style="background:${stringToColor(nom)}">${escapeHtml(nom)}</span></span>
+          <span class="moy-pill ${moyennePillClass(moyennesMatieres[i])}">${moyennesMatieres[i].toFixed(2)}</span>
+        </div>`).join('')
+      : '<div class="empty-state">Aucune note pour cette classe.</div>';
 
     // Progression : épreuves de cette classe pour la matière choisie, triées par date
     const epreuvesConcernees = epreuves
