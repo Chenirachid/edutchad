@@ -3721,6 +3721,7 @@ async function renderStatistiques(){
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Moyennes par matière et progression des élèves au fil des évaluations, comme dans Pronote.</p>
       <div class="inline-form" style="margin-bottom:10px;">
         <div class="f"><label>Classe</label><select id="stats-classe">${classes.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}</select></div>
+        <div class="f"><label>Élève (facultatif, pour le conseil de classe)</label><select id="stats-eleve"><option value="">Toute la classe</option></select></div>
         <div class="f"><label>Matière (pour la progression)</label><select id="stats-matiere">${matieres.map(m => `<option value="${m.id}">${escapeHtml(m.nom)}</option>`).join('')}</select></div>
       </div>
     </div>
@@ -3738,9 +3739,18 @@ async function renderStatistiques(){
       <canvas id="stats-canvas-progression" height="90"></canvas>
     </div>`;
 
+  function remplirElevesStats(){
+    const classeId = Number(document.getElementById('stats-classe').value);
+    const classe = classes.find(c => c.id === classeId);
+    const eleves = (classe && classe.etudiants ? classe.etudiants.slice() : []).sort((a, b) => a.nom.localeCompare(b.nom));
+    document.getElementById('stats-eleve').innerHTML = '<option value="">Toute la classe</option>' +
+      eleves.map(et => `<option value="${et.id}">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('');
+  }
+
   function calculerEtAfficher(){
     const classeId = Number(document.getElementById('stats-classe').value);
     const matiereId = Number(document.getElementById('stats-matiere').value);
+    const eleveId = document.getElementById('stats-eleve').value ? Number(document.getElementById('stats-eleve').value) : null;
 
     // Enseignements de cette classe, pour relier notes/épreuves à leur matière
     const enseignementsClasse = new Map();
@@ -3764,18 +3774,41 @@ async function renderStatistiques(){
       return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
     });
 
+    const datasets = [{ label: 'Moyenne de la classe /20', data: moyennesMatieres, borderColor: '#0B7285', backgroundColor: 'rgba(11,114,133,0.25)', pointBackgroundColor: '#0B7285' }];
+
+    let moyennesEleve = null;
+    if(eleveId){
+      const parMatiereEleve = {};
+      notes.forEach(n => {
+        if(n.etudiantId !== eleveId) return;
+        const matiereDeLEns = enseignementsClasse.get(n.enseignementId);
+        if(!matiereDeLEns) return;
+        if(!parMatiereEleve[matiereDeLEns.nom]) parMatiereEleve[matiereDeLEns.nom] = [];
+        parMatiereEleve[matiereDeLEns.nom].push(n.valeur);
+      });
+      moyennesEleve = labelsMatieres.map(nom => {
+        const vals = parMatiereEleve[nom];
+        return vals && vals.length ? Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100 : 0;
+      });
+      const nomEleve = document.getElementById('stats-eleve').selectedOptions[0].textContent;
+      datasets.push({ label: `${nomEleve} /20`, data: moyennesEleve, borderColor: '#B8790F', backgroundColor: 'rgba(184,121,15,0.25)', pointBackgroundColor: '#B8790F' });
+    }
+
     if(statsGraphiqueMatieres) statsGraphiqueMatieres.destroy();
     statsGraphiqueMatieres = new window.Chart(document.getElementById('stats-canvas-matieres'), {
       type: 'radar',
-      data: { labels: labelsMatieres, datasets: [{ label: 'Moyenne /20', data: moyennesMatieres, borderColor: '#0B7285', backgroundColor: 'rgba(11,114,133,0.25)', pointBackgroundColor: '#0B7285' }] },
-      options: { scales: { r: { min: 0, max: 20, ticks: { stepSize: 5 } } }, plugins: { legend: { display: false } } },
+      data: { labels: labelsMatieres, datasets },
+      options: { scales: { r: { min: 0, max: 20, ticks: { stepSize: 5 } } }, plugins: { legend: { display: !!eleveId } } },
     });
 
     document.getElementById('stats-liste-matieres').innerHTML = labelsMatieres.length
       ? labelsMatieres.map((nom, i) => `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
           <span style="display:flex;align-items:center;gap:8px;"><span class="chip" style="background:${stringToColor(nom)}">${escapeHtml(nom)}</span></span>
-          <span class="moy-pill ${moyennePillClass(moyennesMatieres[i])}">${moyennesMatieres[i].toFixed(2)}</span>
+          <span>
+            <span class="moy-pill ${moyennePillClass(moyennesMatieres[i])}">${moyennesMatieres[i].toFixed(2)}</span>
+            ${moyennesEleve ? ` <span class="moy-pill ${moyennePillClass(moyennesEleve[i])}" style="margin-left:6px;">${moyennesEleve[i].toFixed(2)}</span>` : ''}
+          </span>
         </div>`).join('')
       : '<div class="empty-state">Aucune note pour cette classe.</div>';
 
@@ -3798,8 +3831,13 @@ async function renderStatistiques(){
     });
   }
 
-  document.getElementById('stats-classe').addEventListener('change', calculerEtAfficher);
+  document.getElementById('stats-classe').addEventListener('change', () => {
+    remplirElevesStats();
+    calculerEtAfficher();
+  });
+  document.getElementById('stats-eleve').addEventListener('change', calculerEtAfficher);
   document.getElementById('stats-matiere').addEventListener('change', calculerEtAfficher);
+  remplirElevesStats();
   calculerEtAfficher();
 }
 
