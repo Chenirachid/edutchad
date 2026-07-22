@@ -56,6 +56,12 @@ async function bootstrap() {
   // dotfiles: 'allow' est nécessaire pour que /.well-known/security.txt soit servi
   app.useStaticAssets(join(process.cwd(), 'public'), { dotfiles: 'allow' });
 
+  // Lien personnalisé par établissement (ex: /e/lycee-exemple) : sert le même frontend,
+  // qui détectera le code dans l'URL pour personnaliser l'écran de connexion.
+  app.getHttpAdapter().getInstance().get('/e/:code', (req, res) => {
+    res.sendFile(join(process.cwd(), 'public', 'index.html'));
+  });
+
   const config = new DocumentBuilder()
     .setTitle('EduCheni API')
     .setDescription(

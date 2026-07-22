@@ -64,6 +64,10 @@ export class EtablissementsService {
     return etablissement;
   }
 
+  findByCode(code: string) {
+    return this.prisma.etablissement.findUnique({ where: { code } });
+  }
+
   async update(id: number, dto: UpdateEtablissementDto) {
     await this.findOne(id);
     return this.prisma.etablissement.update({

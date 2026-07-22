@@ -412,6 +412,7 @@
       <span>EduCheni</span>
     </div>
     <p class="login-sub">Choisis ton espace pour te connecter.</p>
+    <p class="hidden" id="etablissement-personnalise-banniere" style="text-align:center;font-size:13px;font-weight:700;color:var(--teal-700);background:var(--teal-100);padding:8px 12px;border-radius:8px;margin:-4px 0 14px;"></p>
     <div class="espaces-grille">
       <button class="espace-carte" data-espace="etudiant" data-label="Espace Élève">
         <span class="espace-icone"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
@@ -4763,6 +4764,21 @@ initReductionTableaux();
 if(restoreSession()){
   enterApp();
 } else {
+  const correspondanceEspace = window.location.pathname.match(/^\/e\/([a-z0-9-]+)\/?$/i);
+  if(correspondanceEspace){
+    const codeEtab = correspondanceEspace[1];
+    fetch(API_BASE + '/etablissements/public/' + encodeURIComponent(codeEtab))
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if(data && data.nom){
+          const banniere = document.getElementById('etablissement-personnalise-banniere');
+          banniere.textContent = '🏫 ' + data.nom;
+          banniere.classList.remove('hidden');
+        }
+      })
+      .catch(() => {});
+  }
+
   const params = new URLSearchParams(window.location.search);
   const identifiantQr = params.get('identifiant');
   const codeQr = params.get('code');
