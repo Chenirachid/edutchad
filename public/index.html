@@ -16,37 +16,37 @@
 <meta name="twitter:card" content="summary" />
 <link rel="icon" type="image/svg+xml" href="educheni-logo.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --teal-900:#063C3F;
-    --teal-700:#0B7285;
-    --teal-600:#0E8C93;
-    --teal-500:#12B8B0;
-    --teal-100:#E3F6F5;
-    --bg:#F3F8F8;
+    --teal-900:#1E3A5F;
+    --teal-700:#2563EB;
+    --teal-600:#3B82F6;
+    --teal-500:#60A5FA;
+    --teal-100:#DBEAFE;
+    --bg:#FFFBEB;
     --surface:#FFFFFF;
-    --text:#1B2733;
-    --text-muted:#5B6B72;
-    --border:#DCE6E6;
-    --danger:#D64550;
-    --danger-bg:#FCEBEC;
-    --success:#2F9E44;
-    --success-bg:#EAF7ED;
-    --warning:#B8790F;
-    --warning-bg:#FBF1DE;
+    --text:#1F2937;
+    --text-muted:#6B7280;
+    --border:#E5E7EB;
+    --danger:#EF4444;
+    --danger-bg:#FEE2E2;
+    --success:#16A34A;
+    --success-bg:#DCFCE7;
+    --warning:#F59E0B;
+    --warning-bg:#FEF3C7;
     --radius:14px;
-    --shadow:0 1px 2px rgba(6,60,63,.06), 0 8px 24px rgba(6,60,63,.08);
+    --shadow:0 1px 2px rgba(30,58,95,.08), 0 8px 24px rgba(30,58,95,.10);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;}
   body{
-    font-family:'Inter',system-ui,sans-serif;
+    font-family:'Nunito',system-ui,sans-serif;
     background:var(--bg);
     color:var(--text);
     min-height:100vh;
   }
-  h1,h2,h3,.brand,.nav-item{font-family:'Poppins',system-ui,sans-serif;}
+  h1,h2,h3,.brand,.nav-item{font-family:'Quicksand',system-ui,sans-serif;}
   .hidden{display:none !important;}
   button{font-family:inherit;cursor:pointer;}
   input,select{font-family:inherit;}
@@ -72,7 +72,7 @@
   .lang-dropdown-wrap-app{margin-bottom:0;}
   .lang-dropdown-btn-app{background:rgba(255,255,255,.1);color:#EAF6F6;border-color:rgba(255,255,255,.25);}
   .lang-dropdown-btn-app:hover{background:rgba(255,255,255,.16);}
-  html[dir="rtl"] body{font-family:'Inter',Tahoma,sans-serif;}
+  html[dir="rtl"] body{font-family:'Nunito',Tahoma,sans-serif;}
   html[dir="rtl"] .msg-bubble-row.mine{justify-content:flex-start;}
   html[dir="rtl"] .msg-bubble.mine{border-radius:14px 14px 14px 3px;}
   html[dir="rtl"] .msg-bubble{border-radius:14px 14px 3px 14px;}
@@ -250,7 +250,7 @@
   .moy-low{background:var(--danger-bg);color:var(--danger);}
 
   .stat{display:flex;flex-direction:column;gap:4px;}
-  .stat .big{font-size:30px;font-weight:700;color:var(--teal-900);font-family:'Poppins',sans-serif;}
+  .stat .big{font-size:30px;font-weight:700;color:var(--teal-900);font-family:'Quicksand',sans-serif;}
   .stat .label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
 
   .badge-justifiee{background:var(--success-bg);color:var(--success);padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap;}
@@ -320,7 +320,7 @@
   /* ---------- IMPRESSION BULLETIN ---------- */
   #print-root{display:none;}
   .bulletin-sheet{
-    padding:32px 40px;font-family:'Inter',sans-serif;color:#111;
+    padding:32px 40px;font-family:'Nunito',sans-serif;color:#111;
     page-break-after:always;
   }
   .bulletin-sheet:last-child{page-break-after:auto;}
@@ -340,7 +340,7 @@
   .bulletin-footer{margin-top:24px;font-size:11px;color:#999;text-align:right;}
 
   /* ---------- CERTIFICAT DE SCOLARITÉ ---------- */
-  .certificat-sheet{padding:50px 60px;font-family:'Inter',sans-serif;color:#111;page-break-after:always;}
+  .certificat-sheet{padding:50px 60px;font-family:'Nunito',sans-serif;color:#111;page-break-after:always;}
   .certificat-sheet:last-child{page-break-after:auto;}
   .certificat-entete{text-align:center;margin-bottom:36px;}
   .certificat-entete h1{font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-900);margin:0 0 4px;}
@@ -3839,7 +3839,7 @@ async function renderStatistiques(){
       return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
     });
 
-    const datasets = [{ label: 'Moyenne de la classe /20', data: moyennesMatieres, borderColor: '#0B7285', backgroundColor: 'rgba(11,114,133,0.25)', pointBackgroundColor: '#0B7285' }];
+    const datasets = [{ label: 'Moyenne de la classe /20', data: moyennesMatieres, borderColor: '#2563EB', backgroundColor: 'rgba(37,99,235,0.25)', pointBackgroundColor: '#2563EB' }];
 
     let moyennesEleve = null;
     if(eleveId){
