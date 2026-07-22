@@ -3717,11 +3717,15 @@ async function renderEtablissements(){
   const rows = etablissements.map(e => `
     <tr>
       <td>${e.id}</td>
-      <td>${escapeHtml(e.nom)}</td>
+      <td><input type="text" data-etab-nom="${e.id}" value="${escapeHtml(e.nom)}" style="width:100%;padding:5px 7px;border:1px solid var(--border);border-radius:6px;" /></td>
       <td><code style="font-size:12px;">${escapeHtml(e.code)}</code></td>
       <td>${e.nbUtilisateurs}</td>
       <td>${e.nbClasses}</td>
       <td>${new Date(e.createdAt).toLocaleDateString('fr-FR')}</td>
+      <td>
+        <button class="btn-secondary" data-save-etab="${e.id}">Enregistrer</button>
+        <button class="btn-secondary" data-delete-etab="${e.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
+      </td>
     </tr>`).join('');
 
   content.innerHTML = `
@@ -3735,7 +3739,8 @@ async function renderEtablissements(){
     </div>
     <div class="card">
       <h2>Établissements (${etablissements.length})</h2>
-      ${etablissements.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Code</th><th>Utilisateurs</th><th>Classes</th><th>Créé le</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun établissement pour l\'instant.</div>'}
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Modifie le nom directement dans la case puis clique « Enregistrer ». ⚠️ Supprimer un établissement supprime aussi définitivement tous ses comptes, classes et matières.</p>
+      ${etablissements.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Code</th><th>Utilisateurs</th><th>Classes</th><th>Créé le</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun établissement pour l\'instant.</div>'}
     </div>
     <div class="card">
       <h2>Prochaine étape après création</h2>
@@ -3750,6 +3755,30 @@ async function renderEtablissements(){
       toast('Établissement créé.');
       renderEtablissements();
     }catch(err){ toast(err.message, 'error'); }
+  });
+
+  content.querySelectorAll('[data-save-etab]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.saveEtab;
+      const nouveauNom = content.querySelector(`[data-etab-nom="${id}"]`).value;
+      try{
+        await api('/etablissements/' + id, { method:'PATCH', body: JSON.stringify({ nom: nouveauNom })});
+        toast('Établissement modifié.');
+        renderEtablissements();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-delete-etab]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const e = etablissements.find(et => String(et.id) === btn.dataset.deleteEtab);
+      if(!confirm(`Supprimer définitivement « ${e.nom} » ? Tous ses comptes (${e.nbUtilisateurs}), classes (${e.nbClasses}) et matières seront supprimés avec lui. Cette action est irréversible.`)) return;
+      try{
+        await api('/etablissements/' + btn.dataset.deleteEtab, { method:'DELETE' });
+        toast('Établissement supprimé.');
+        renderEtablissements();
+      }catch(err){ toast(err.message, 'error'); }
+    });
   });
 }
 

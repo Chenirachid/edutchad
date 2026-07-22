@@ -351,20 +351,30 @@ export class UsersService {
   }
 
   /**
+   * Suppression directe d'un établissement (par le chef de projet), sans passer
+   * par la suppression d'un compte chef d'établissement précis.
+   */
+  async supprimerEtablissement(etablissementId: number) {
+    return this.removeEtablissementCascade(etablissementId);
+  }
+
+  /**
    * Suppression d'un chef d'établissement par le chef de projet : tout l'établissement
    * disparaît avec lui (tous ses comptes, classes, matières, etc.), comme fermer une école.
    */
-  private async removeEtablissementCascade(etablissementId: number, chefId: number) {
+  private async removeEtablissementCascade(etablissementId: number, chefId?: number) {
     const utilisateurs = await this.prisma.user.findMany({
       where: { etablissementId },
       select: { id: true },
     });
 
     for (const u of utilisateurs) {
-      if (u.id === chefId) continue;
+      if (chefId !== undefined && u.id === chefId) continue;
       await this.cascadeDeleteUser(u.id);
     }
-    await this.cascadeDeleteUser(chefId);
+    if (chefId !== undefined) {
+      await this.cascadeDeleteUser(chefId);
+    }
 
     // Filet de sécurité : enseignements et groupes restants de cet établissement
     // (les groupes doivent être supprimés AVANT les classes, car ils y font référence)

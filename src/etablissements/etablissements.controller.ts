@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -11,6 +13,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { EtablissementsService } from './etablissements.service';
 import { CreateEtablissementDto } from './dto/create-etablissement.dto';
+import { UpdateEtablissementDto } from './dto/update-etablissement.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -36,5 +39,15 @@ export class EtablissementsController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.etablissementsService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEtablissementDto) {
+    return this.etablissementsService.update(id, dto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.etablissementsService.remove(id);
   }
 }

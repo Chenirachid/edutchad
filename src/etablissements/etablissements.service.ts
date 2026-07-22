@@ -1,11 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEtablissementDto } from './dto/create-etablissement.dto';
+import { UpdateEtablissementDto } from './dto/update-etablissement.dto';
 import { slugify } from '../common/email-generator';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class EtablissementsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly usersService: UsersService,
+  ) {}
 
   private async genererCodeUnique(nom: string) {
     const base = slugify(nom) || 'etablissement';
@@ -57,5 +62,18 @@ export class EtablissementsService {
       throw new NotFoundException(`Établissement ${id} introuvable`);
     }
     return etablissement;
+  }
+
+  async update(id: number, dto: UpdateEtablissementDto) {
+    await this.findOne(id);
+    return this.prisma.etablissement.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  async remove(id: number) {
+    await this.findOne(id);
+    return this.usersService.supprimerEtablissement(id);
   }
 }
