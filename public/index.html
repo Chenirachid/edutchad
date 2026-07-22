@@ -18,12 +18,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
   :root{
-    --teal-900:#5C2A1F;
-    --teal-700:#B5451E;
-    --teal-600:#C85A32;
-    --teal-500:#E08052;
-    --teal-100:#FBE4D5;
-    --bg:#FAF6F1;
+    --teal-900:#0B4F52;
+    --teal-700:#0F8B8D;
+    --teal-600:#17A2A5;
+    --teal-500:#2EC4C6;
+    --teal-100:#E0F5F5;
+    --bg:#F2F7F7;
     --surface:#FFFFFF;
     --text:#1F2937;
     --text-muted:#6B7280;
@@ -77,41 +77,31 @@
   html[dir="rtl"] .msg-bubble{border-radius:14px 14px 3px 14px;}
 
   /* ---------- LOGIN ---------- */
-  #login-screen.portail-connexion{
+  #login-screen{
     min-height:100vh;
     display:flex;
-    background:var(--surface);
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(18,184,176,.16), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(11,114,133,.18), transparent 50%),
+      var(--teal-900);
   }
-  .portail-panneau-gauche{
-    flex:1.1;position:relative;overflow:hidden;display:flex;align-items:center;
-    background:linear-gradient(160deg,var(--teal-900),var(--teal-700));
-    padding:60px;
+  .espaces-grille{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;}
+  .espace-carte{
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding:20px 10px;border:1.5px solid var(--border);border-radius:12px;
+    background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:var(--teal-900);
+    transition:transform .1s,box-shadow .1s;
   }
-  .portail-motif{
-    position:absolute;inset:0;opacity:.10;
-    background-image:radial-gradient(circle,#fff 2px,transparent 2px);
-    background-size:34px 34px;
-  }
-  .portail-contenu-gauche{position:relative;z-index:1;max-width:460px;}
-  .portail-etablissement{font-size:15px;font-weight:700;color:#fff;margin:18px 0 2px;}
-  .portail-titre{font-size:34px;font-weight:700;color:#fff;margin:14px 0 14px;line-height:1.2;}
-  .portail-sous-titre{font-size:14.5px;color:rgba(255,255,255,.82);line-height:1.6;max-width:400px;}
-  .portail-panneau-droit{
-    flex:1;display:flex;align-items:center;justify-content:center;padding:40px;
-    background:var(--bg);
-  }
-  .portail-form-titre{font-size:22px;font-weight:700;color:var(--teal-900);text-align:center;margin:4px 0 2px;}
-  @media (max-width:900px){
-    #login-screen.portail-connexion{flex-direction:column;}
-    .portail-panneau-gauche{padding:36px 28px;flex:none;}
-    .portail-titre{font-size:26px;}
-  }
+  .espace-carte:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--teal-500);}
+  .espace-icone{color:var(--teal-700);}
   .login-card{
     width:380px;
     max-width:90vw;
     background:var(--surface);
     border-radius:var(--radius);
-    box-shadow:0 20px 60px rgba(0,0,0,.12);
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
     padding:40px 36px 32px;
   }
   .login-brand{
@@ -414,77 +404,96 @@
 
 <!-- ================= ACCUEIL ================= -->
 <!-- ================= LOGIN ================= -->
-<div id="login-screen" class="portail-connexion">
-  <div class="portail-panneau-gauche">
-    <div class="portail-motif"></div>
-    <div class="portail-contenu-gauche">
-      <div class="login-brand">
-        <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L2 8l10 5 10-5-10-5z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.5V15c0 1.5 3 3 6 3s6-1.5 6-3v-4.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 8v5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span>EduCheni</span>
-      </div>
-      <p class="portail-etablissement hidden" id="marque-etablissement-nom"></p>
-      <h1 class="portail-titre">Espace Numérique de Travail</h1>
-      <p class="portail-sous-titre">Notes, absences, emploi du temps, messagerie et vie scolaire — réunis au même endroit pour élèves, familles et personnel.</p>
+<div id="login-screen">
+  <div class="login-card" id="espace-selection-card">
+    <div class="login-brand">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L2 8l10 5 10-5-10-5z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.5V15c0 1.5 3 3 6 3s6-1.5 6-3v-4.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 8v5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <span>EduCheni</span>
+    </div>
+    <p class="hidden" id="marque-etablissement-nom" style="text-align:center;font-size:14px;font-weight:700;color:var(--teal-700);margin:-4px 0 10px;"></p>
+    <p class="login-sub">Choisis ton espace pour te connecter.</p>
+    <div class="espaces-grille">
+      <button class="espace-carte" data-espace="etudiant" data-label="Espace Élève">
+        <span class="espace-icone"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
+        <span>Élève</span>
+      </button>
+      <button class="espace-carte" data-espace="professeur" data-label="Espace Professeur">
+        <span class="espace-icone"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg></span>
+        <span>Professeur</span>
+      </button>
+      <button class="espace-carte" data-espace="parent" data-label="Espace Parent">
+        <span class="espace-icone"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M2 20c0-3.5 2.5-6 6-6s6 2.5 6 6M14 20c0-2.5 1.5-4.5 4-4.8"/></svg></span>
+        <span>Parent</span>
+      </button>
+      <button class="espace-carte" data-espace="administration" data-label="Espace Administration">
+        <span class="espace-icone"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.3"/><path d="M3 20c0-3.5 3-6 6-6s6 2.5 6 6M15 20c0-2 1.3-3.8 3.5-4.6"/></svg></span>
+        <span>Administration</span>
+      </button>
     </div>
   </div>
-  <div class="portail-panneau-droit">
-    <div class="login-card" id="login-card-connexion">
-      <div class="lang-dropdown-wrap">
-        <button class="lang-dropdown-btn" id="lang-dropdown-btn" type="button">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
-          <span id="lang-dropdown-label">FR</span>
-        </button>
-        <div class="lang-dropdown-menu hidden" id="lang-dropdown-menu">
-          <button class="lang-dropdown-item" data-lang-btn="fr">Français</button>
-          <button class="lang-dropdown-item" data-lang-btn="en">English</button>
-          <button class="lang-dropdown-item" data-lang-btn="ar">العربية</button>
-        </div>
+  <div class="login-card hidden" id="login-card-connexion">
+    <div class="lang-dropdown-wrap">
+      <button class="lang-dropdown-btn" id="lang-dropdown-btn" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
+        <span id="lang-dropdown-label">FR</span>
+      </button>
+      <div class="lang-dropdown-menu hidden" id="lang-dropdown-menu">
+        <button class="lang-dropdown-item" data-lang-btn="fr">Français</button>
+        <button class="lang-dropdown-item" data-lang-btn="en">English</button>
+        <button class="lang-dropdown-item" data-lang-btn="ar">العربية</button>
       </div>
-      <p class="portail-form-titre">Connexion</p>
-      <p class="login-sub" id="login-sous-titre-el">Connecte-toi à ton espace.</p>
-      <div class="login-error" id="login-error"></div>
-      <form id="login-form">
-        <div class="field">
-          <label id="login-email-label">Nom d'utilisateur</label>
-          <input type="text" id="login-email" required autocomplete="username" />
-        </div>
-        <div class="field">
-          <label id="login-password-label">Mot de passe</label>
-          <input type="password" id="login-password" required autocomplete="current-password" />
-        </div>
-        <button class="btn-primary" type="submit" id="login-submit-btn">Se connecter</button>
-      </form>
-      <p style="text-align:center;margin:14px 0 0;">
-        <a href="#" id="activer-compte-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Activer mon compte (premier accès)</a>
-      </p>
-      <p style="text-align:center;margin:8px 0 0;">
-        <a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Mot de passe oublié ?</a>
-      </p>
-      <div class="login-hint">
-        <span id="login-connecte-a-label">Connecté à</span> <code id="api-base-display"></code>
+    </div>
+    <div class="login-brand">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L2 8l10 5 10-5-10-5z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.5V15c0 1.5 3 3 6 3s6-1.5 6-3v-4.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 8v5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <span>EduCheni</span>
+    </div>
+    <p style="text-align:center;font-size:12.5px;font-weight:700;color:var(--teal-700);margin:-6px 0 6px;" id="espace-choisi-titre">Espace Élève</p>
+    <p class="login-sub" id="login-sous-titre-el">Connecte-toi à ton espace.</p>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="field">
+        <label id="login-email-label">Nom d'utilisateur</label>
+        <input type="text" id="login-email" required autocomplete="username" />
       </div>
+      <div class="field">
+        <label id="login-password-label">Mot de passe</label>
+        <input type="password" id="login-password" required autocomplete="current-password" />
+      </div>
+      <button class="btn-primary" type="submit" id="login-submit-btn">Se connecter</button>
+    </form>
+    <p style="text-align:center;margin:14px 0 0;">
+      <a href="#" id="activer-compte-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Activer mon compte (premier accès)</a>
+    </p>
+    <p style="text-align:center;margin:8px 0 0;">
+      <a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--teal-700);text-decoration:none;font-weight:600;">Mot de passe oublié ?</a>
+    </p>
+    <div class="login-hint">
+      <span id="login-connecte-a-label">Connecté à</span> <code id="api-base-display"></code>
+    </div>
+    <p style="text-align:center;margin:10px 0 0;">
+      <a href="#" id="changer-espace-link" style="font-size:12px;color:var(--text-muted);text-decoration:none;">← Changer d'espace</a>
+    </p>
 
-      <div id="activation-panel" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-        <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 10px;">Activer mon compte</p>
-        <form id="activation-form">
-          <div class="field">
-            <label>Nom d'utilisateur</label>
-            <input type="text" id="activation-identifiant" required />
-          </div>
-          <div class="field">
-            <label>Code d'activation (reçu sur papier)</label>
-            <input type="text" id="activation-code" required style="text-transform:uppercase;" />
-          </div>
-          <div class="field">
-            <label>Choisis ton mot de passe</label>
-            <input type="password" id="activation-password" required minlength="8" placeholder="Min. 8 car., Maj+min+chiffre" />
-          </div>
-          <button class="btn-primary" type="submit">Activer et se connecter</button>
-        </form>
-        <p style="text-align:center;margin:10px 0 0;">
-          <a href="#" id="retour-connexion-link" style="font-size:12px;color:var(--text-muted);text-decoration:none;">← Retour à la connexion</a>
-        </p>
-      </div>
+    <div id="activation-panel" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+      <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 10px;">Activer mon compte</p>
+      <form id="activation-form">
+        <div class="field">
+          <label>Nom d'utilisateur</label>
+          <input type="text" id="activation-identifiant" required />
+        </div>
+        <div class="field">
+          <label>Code d'activation (reçu sur papier)</label>
+          <input type="text" id="activation-code" required style="text-transform:uppercase;" />
+        </div>
+        <div class="field">
+          <label>Choisis ton mot de passe</label>
+          <input type="password" id="activation-password" required minlength="8" placeholder="Min. 8 car., Maj+min+chiffre" />
+        </div>
+        <button class="btn-primary" type="submit">Activer et se connecter</button>
+      </form>
+      <p style="text-align:center;margin:10px 0 0;">
+        <a href="#" id="retour-connexion-link" style="font-size:12px;color:var(--text-muted);text-decoration:none;">← Retour à la connexion</a>
+      </p>
     </div>
   </div>
 </div>
@@ -866,10 +875,31 @@ document.getElementById('forgot-password-link').addEventListener('click', (e) =>
   alert("Les comptes n'ont pas d'adresse email réelle : seul un administrateur peut réinitialiser ton mot de passe. Contacte-le (via la messagerie, ou en personne) pour qu'il t'en attribue un nouveau depuis son espace « Utilisateurs ».");
 });
 
+document.querySelectorAll('.espace-carte').forEach(carte => {
+  carte.addEventListener('click', () => {
+    document.getElementById('espace-selection-card').classList.add('hidden');
+    document.getElementById('login-card-connexion').classList.remove('hidden');
+    document.getElementById('espace-choisi-titre').textContent = etablissementDetecteNom ? `${etablissementDetecteNom} — ${carte.dataset.label}` : carte.dataset.label;
+    document.getElementById('login-email').focus();
+  });
+});
+
+document.getElementById('changer-espace-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('login-card-connexion').classList.add('hidden');
+  document.getElementById('espace-selection-card').classList.remove('hidden');
+  document.getElementById('login-form').reset();
+  document.getElementById('login-error').classList.add('hidden');
+  document.getElementById('activation-panel').classList.add('hidden');
+  document.getElementById('login-form').classList.remove('hidden');
+});
+
 document.getElementById('logout-btn').addEventListener('click', () => {
   clearSession();
   document.getElementById('app-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-card-connexion').classList.add('hidden');
+  document.getElementById('espace-selection-card').classList.remove('hidden');
   document.getElementById('login-form').reset();
 });
 
