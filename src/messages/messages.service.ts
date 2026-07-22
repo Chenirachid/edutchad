@@ -42,10 +42,19 @@ export class MessagesService {
       throw new BadRequestException('Vous ne pouvez pas vous envoyer un message à vous-même');
     }
 
-    if (
-      currentUser.role !== Role.CHEF_PROJET &&
-      destinataire.etablissementId !== currentUser.etablissementId
-    ) {
+    if (currentUser.role === Role.CHEF_PROJET) {
+      if (destinataire.role !== Role.CHEF_ETABLISSEMENT) {
+        throw new ForbiddenException(
+          "Le chef de projet ne peut envoyer un message qu'à des chefs d'établissement",
+        );
+      }
+    } else if (destinataire.role === Role.CHEF_PROJET) {
+      if (currentUser.role !== Role.CHEF_ETABLISSEMENT) {
+        throw new ForbiddenException(
+          "Seul un chef d'établissement peut contacter le chef de projet",
+        );
+      }
+    } else if (destinataire.etablissementId !== currentUser.etablissementId) {
       throw new ForbiddenException(
         "Vous ne pouvez contacter que des personnes de votre établissement",
       );
@@ -127,8 +136,10 @@ export class MessagesService {
   contacts(currentUser: JwtPayload) {
     const where: Prisma.UserWhereInput =
       currentUser.role === Role.CHEF_PROJET
-        ? { id: { not: currentUser.sub } }
-        : { id: { not: currentUser.sub }, etablissementId: currentUser.etablissementId };
+        ? { role: Role.CHEF_ETABLISSEMENT }
+        : currentUser.role === Role.CHEF_ETABLISSEMENT
+          ? { id: { not: currentUser.sub }, OR: [{ etablissementId: currentUser.etablissementId }, { role: Role.CHEF_PROJET }] }
+          : { id: { not: currentUser.sub }, etablissementId: currentUser.etablissementId };
 
     return this.prisma.user.findMany({
       where,
