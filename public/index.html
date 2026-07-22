@@ -407,12 +407,15 @@
 <!-- ================= LOGIN ================= -->
 <div id="login-screen">
   <div class="login-card" id="espace-selection-card">
-    <div class="login-brand">
+    <div class="login-brand" id="marque-generique">
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span>EduCheni</span>
     </div>
-    <p class="login-sub">Choisis ton espace pour te connecter.</p>
-    <p class="hidden" id="etablissement-personnalise-banniere" style="text-align:center;font-size:13px;font-weight:700;color:var(--teal-700);background:var(--teal-100);padding:8px 12px;border-radius:8px;margin:-4px 0 14px;"></p>
+    <div class="hidden" id="marque-etablissement" style="text-align:center;margin-bottom:6px;">
+      <p style="font-size:22px;font-weight:700;color:var(--teal-900);margin:0 0 2px;" id="marque-etablissement-nom"></p>
+      <p style="font-size:11.5px;color:var(--text-muted);margin:0;">Espace numérique — propulsé par EduCheni</p>
+    </div>
+    <p class="login-sub" id="espace-selection-sous-titre">Choisis ton espace pour te connecter.</p>
     <div class="espaces-grille">
       <button class="espace-carte" data-espace="etudiant" data-label="Espace Élève">
         <span class="espace-icone"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
@@ -551,6 +554,7 @@
 // de configurer d'adresse — ça fonctionne pareil en local (http://localhost:3001)
 // et une fois déployé en ligne.
 const API_BASE = window.location.origin;
+let etablissementDetecteNom = null;
 document.getElementById('api-base-display').textContent = API_BASE;
 
 let state = { token: null, user: null };
@@ -826,7 +830,7 @@ document.querySelectorAll('.espace-carte').forEach(carte => {
   carte.addEventListener('click', () => {
     document.getElementById('espace-selection-card').classList.add('hidden');
     document.getElementById('login-card-connexion').classList.remove('hidden');
-    document.getElementById('espace-choisi-titre').textContent = carte.dataset.label;
+    document.getElementById('espace-choisi-titre').textContent = etablissementDetecteNom ? `${etablissementDetecteNom} — ${carte.dataset.label}` : carte.dataset.label;
     document.getElementById('login-email').focus();
   });
 });
@@ -4771,9 +4775,11 @@ if(restoreSession()){
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if(data && data.nom){
-          const banniere = document.getElementById('etablissement-personnalise-banniere');
-          banniere.textContent = '🏫 ' + data.nom;
-          banniere.classList.remove('hidden');
+          etablissementDetecteNom = data.nom;
+          document.getElementById('marque-generique').classList.add('hidden');
+          document.getElementById('marque-etablissement').classList.remove('hidden');
+          document.getElementById('marque-etablissement-nom').textContent = data.nom;
+          document.getElementById('espace-selection-sous-titre').textContent = 'Connecte-toi à ton espace élève, professeur ou administrateur.';
         }
       })
       .catch(() => {});
