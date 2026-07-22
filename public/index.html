@@ -1910,11 +1910,18 @@ async function renderAdminUsers(filtreRoles){
   const content = document.getElementById('content');
   const titrePage = filtreRoles && filtreRoles.includes('ETUDIANT') ? 'Élèves' : filtreRoles ? 'Personnel' : 'Tous les utilisateurs';
 
+  const estChefProjet = state.user.role === 'CHEF_PROJET';
+  const nomEtablissementDe = (u) => {
+    const e = etablissementsListe.find(et => et.id === u.etablissementId);
+    return e ? e.nom : '—';
+  };
+
   const rows = users.map(u => `
     <tr style="${u.actif === false ? 'opacity:.55;' : ''}">
       <td>${u.id}</td>
       <td>${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</td>
       <td><code style="font-size:12px;">${escapeHtml(u.identifiant || '—')}</code></td>
+      ${estChefProjet ? `<td><strong>${escapeHtml(nomEtablissementDe(u))}</strong></td>` : ''}
       <td>${u.numeroEtudiant ? `<code style="font-size:12px;">${escapeHtml(u.numeroEtudiant)}</code>` : '—'}</td>
       <td>
         <select data-user-role="${u.id}">
@@ -1966,7 +1973,7 @@ async function renderAdminUsers(filtreRoles){
     </div>
     <div class="card">
       <h2>${titrePage} (${users.length})</h2>
-      <table><thead><tr><th>ID</th><th>Nom</th><th>Identifiant</th><th>N° étudiant</th><th>Rôle</th><th>Classe</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>ID</th><th>Nom</th><th>Identifiant</th>${estChefProjet ? '<th>Établissement</th>' : ''}<th>N° étudiant</th><th>Rôle</th><th>Classe</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>
     <div id="dossier-prof-zone"></div>`;
 
