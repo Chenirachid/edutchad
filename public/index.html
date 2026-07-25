@@ -800,6 +800,13 @@ function stringToColor(str){
   return `hsl(${hue}, 55%, 45%)`;
 }
 
+function stringToPastel(str){
+  let hash = 0;
+  for(let i=0;i<str.length;i++){ hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 65%, 94%)`;
+}
+
 function libelleEnLigne(derniereActivite){
   if(!derniereActivite) return '<span style="font-size:11px;color:var(--text-muted);">— jamais connecté</span>';
   const minutes = (Date.now() - new Date(derniereActivite).getTime()) / 60000;
@@ -1278,7 +1285,7 @@ async function renderEmploiDuTemps(){
       const reunionsCellule = reunionsSemaine.filter(r => r.jour === jour && r.heure === debut);
       if(!cours.length && !reunionsCellule.length) return '<td></td>';
       const contenuCours = cours.map(c => `
-        <div class="creneau-case" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)};">
+        <div class="creneau-case" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)};background:${stringToPastel(c.enseignement.matiere.nom)};">
           <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
           <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
           ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
@@ -4668,7 +4675,7 @@ async function renderVieScolaire(){
     <div style="margin-bottom:22px;">
       <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${absencesParClasse[nom].length})</h3>
       <table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Matière</th><th>Statut</th><th></th></tr></thead><tbody>${absencesParClasse[nom].map(a => `
-        <tr>
+        <tr style="background:${stringToPastel(a.enseignement.matiere.nom)};">
           <td>${new Date(a.date).toLocaleDateString('fr-FR')}</td>
           <td>${escapeHtml(a.etudiant.prenom)} ${escapeHtml(a.etudiant.nom)}</td>
           <td>${a.type === 'RETARD' ? `<span class="chip" style="background:var(--warning)">Retard</span>` : '<span class="chip" style="background:var(--teal-700)">Absence</span>'}</td>
@@ -4682,7 +4689,7 @@ async function renderVieScolaire(){
     <div style="margin-bottom:22px;">
       <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${punitionsParClasse[nom].length})</h3>
       <table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Motif</th><th>Rédigée par</th><th></th></tr></thead><tbody>${punitionsParClasse[nom].map(p => `
-        <tr>
+        <tr style="background:${stringToPastel(p.type)};">
           <td>${new Date(p.date).toLocaleDateString('fr-FR')}</td>
           <td>${escapeHtml(p.etudiant.prenom)} ${escapeHtml(p.etudiant.nom)}</td>
           <td><span class="chip" style="background:var(--danger)">${TYPE_PUNITION_LABELS[p.type]}</span></td>
@@ -4696,7 +4703,7 @@ async function renderVieScolaire(){
     <div style="margin-bottom:22px;">
       <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${observationsParClasse[nom].length})</h3>
       <table><thead><tr><th>Date</th><th>Étudiant</th><th>Type</th><th>Contenu</th><th>Rédigée par</th><th></th></tr></thead><tbody>${observationsParClasse[nom].map(o => `
-        <tr>
+        <tr style="background:${stringToPastel(o.type)};">
           <td>${new Date(o.date).toLocaleDateString('fr-FR')}</td>
           <td>${escapeHtml(o.etudiant.prenom)} ${escapeHtml(o.etudiant.nom)}</td>
           <td><span class="chip" style="background:${TYPE_OBSERVATION_COLORS[o.type]}">${TYPE_OBSERVATION_LABELS[o.type]}</span></td>
