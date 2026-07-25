@@ -2622,7 +2622,17 @@ async function renderAdminEnseignements(){
   document.getElementById('page-subtitle').textContent = enseignements.length + ' enseignements';
   const content = document.getElementById('content');
 
-  const rows = enseignements.map(e => `<tr><td>${e.id}</td><td>${escapeHtml(e.classe.nom)}</td><td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td><td>${escapeHtml(e.professeur.prenom)} ${escapeHtml(e.professeur.nom)}</td></tr>`).join('');
+  const parClasse = {};
+  enseignements.forEach(e => {
+    const nom = e.classe.nom;
+    if(!parClasse[nom]) parClasse[nom] = [];
+    parClasse[nom].push(e);
+  });
+  const sectionsParClasse = Object.keys(parClasse).sort().map(nom => `
+    <div style="margin-bottom:22px;">
+      <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${parClasse[nom].length})</h3>
+      <table><thead><tr><th>ID</th><th>Matière</th><th>Professeur</th></tr></thead><tbody>${parClasse[nom].map(e => `<tr><td>${e.id}</td><td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td><td>${escapeHtml(e.professeur.prenom)} ${escapeHtml(e.professeur.nom)}</td></tr>`).join('')}</tbody></table>
+    </div>`).join('');
 
   content.innerHTML = `
     <div class="card">
@@ -2635,8 +2645,8 @@ async function renderAdminEnseignements(){
       </form>
     </div>
     <div class="card">
-      <h2>Enseignements existants</h2>
-      ${enseignements.length ? `<table><thead><tr><th>ID</th><th>Classe</th><th>Matière</th><th>Professeur</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun enseignement.</div>'}
+      <h2>Enseignements existants par classe</h2>
+      ${enseignements.length ? sectionsParClasse : '<div class="empty-state">Aucun enseignement.</div>'}
     </div>`;
 
   document.getElementById('ens-form').addEventListener('submit', async (e) => {
