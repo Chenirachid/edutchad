@@ -1212,7 +1212,6 @@ async function renderEtudiantBulletin(){
     </div>`).join('');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="grid-2">
       <div class="card">
         <div class="stat">
@@ -1231,7 +1230,6 @@ async function renderEtudiantBulletin(){
       <h2>Détail par matière</h2>
       ${b.matieres.length ? cartes : `<div class="empty-state">Aucune note pour l'instant.</div>`}
     </div>`;
-  attacherBarreIconesEDT();
 }
 
 async function renderEtudiantAbsences(){
@@ -1378,15 +1376,12 @@ async function renderEmploiDuTemps(){
         <button class="rond-nav" id="semaine-actuelle-btn" title="Aujourd'hui" style="background:var(--teal-700);color:#fff;">⌂</button>
       </div>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine-là.</p>
-      <div style="position:relative;padding-right:52px;">
-        <div style="overflow-x:auto;">
-          ${plages.length ? `
-          <table class="emploi-grille">
-            <thead><tr><th></th>${enTetes}</tr></thead>
-            <tbody>${lignes}</tbody>
-          </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
-        </div>
-        ${genererBarreIconesEDT('absolute')}
+      <div style="overflow-x:auto;">
+        ${plages.length ? `
+        <table class="emploi-grille">
+          <thead><tr><th></th>${enTetes}</tr></thead>
+          <tbody>${lignes}</tbody>
+        </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
       </div>
     </div>`;
 
@@ -1407,7 +1402,6 @@ async function renderEmploiDuTemps(){
     if(n >= 1 && n <= 53){ semaineEmploiAffichee = { annee, semaine: n }; renderEmploiDuTemps(); }
   });
 
-  attacherBarreIconesEDT();
 
   content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
     bloc.addEventListener('click', () => {
@@ -1677,7 +1671,6 @@ async function renderProfAppel(){
   appelPrefillEnseignementId = null;
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Choisir la classe et la date</h2>
       ${venaitDeLEmploi ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis ton emploi du temps.</p>` : ''}
@@ -1695,7 +1688,6 @@ async function renderProfAppel(){
     </div>
     <div id="appel-liste"></div>`;
 
-  attacherBarreIconesEDT();
 
   document.getElementById('appel-select-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -2101,7 +2093,6 @@ async function renderAdminUsers(filtreRoles){
     : rolesDisponiblesTous;
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Créer ${titrePage === 'Élèves' ? 'un élève' : titrePage === 'Personnel' ? 'un compte personnel' : 'un utilisateur'}</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Un nom d'utilisateur est généré automatiquement (prénom.nom selon le rôle). La personne créera elle-même son mot de passe grâce au document d'activation imprimable fourni après la création.${state.user.role === 'CHEF_PROJET' ? " En tant que chef de projet, tu ne peux créer que des comptes chef d'établissement." : state.user.role === 'CHEF_ETABLISSEMENT' ? " En tant que chef d'établissement, tu ne peux créer que des comptes admin — c'est ensuite à eux de créer les comptes profs, élèves, parents et vie scolaire." : ''}</p>
@@ -2382,7 +2373,6 @@ async function afficherDossierProfesseur(profId, u){
       }catch(err){ toast(err.message, 'error'); }
     });
   });
-  attacherBarreIconesEDT();
 }
 
 async function renderAdminClasses(){
@@ -2393,7 +2383,6 @@ async function renderAdminClasses(){
   const rows = classes.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.nom)}</td><td>${escapeHtml(c.anneeScolaire)}</td><td>${c.etudiants ? c.etudiants.length : 0}</td><td><button class="btn-secondary" data-voir-eleves-classe="${c.id}">Voir les élèves</button> <button class="btn-secondary" data-delete-classe="${c.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Créer une classe</h2>
       <form class="inline-form" id="classe-form">
@@ -2448,7 +2437,6 @@ async function renderAdminClasses(){
   });
 
   bindDeleteButtons(content, 'data-delete-classe', '/classes', renderAdminClasses, 'cette classe');
-  attacherBarreIconesEDT();
 }
 
 async function renderAdminMatieres(){
@@ -2459,7 +2447,6 @@ async function renderAdminMatieres(){
   const rows = matieres.map(m => `<tr><td>${m.id}</td><td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td><td>${m.coefficient}</td><td><button class="btn-secondary" data-voir-classes-matiere="${m.id}">Voir les classes/profs</button> <button class="btn-secondary" data-delete-matiere="${m.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Créer une matière</h2>
       <form class="inline-form" id="matiere-form">
@@ -2580,7 +2567,6 @@ async function renderAdminMatieres(){
       }
     });
   });
-  attacherBarreIconesEDT();
 }
 
 async function renderAdminEnseignements(){
@@ -2594,7 +2580,6 @@ async function renderAdminEnseignements(){
   const rows = enseignements.map(e => `<tr><td>${e.id}</td><td>${escapeHtml(e.classe.nom)}</td><td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td><td>${escapeHtml(e.professeur.prenom)} ${escapeHtml(e.professeur.nom)}</td></tr>`).join('');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Lier une classe, une matière et un professeur</h2>
       <form class="inline-form" id="ens-form">
@@ -2620,7 +2605,6 @@ async function renderAdminEnseignements(){
       renderAdminEnseignements();
     }catch(err){ toast(err.message, 'error'); }
   });
-  attacherBarreIconesEDT();
 }
 
 async function renderAdminCreneaux(){
@@ -2631,7 +2615,6 @@ async function renderAdminCreneaux(){
   const rows = creneaux.map(c => `<tr><td>${c.jour}</td><td>${c.heureDebut} – ${c.heureFin}</td><td><span class="chip" style="background:${stringToColor(c.enseignement.matiere.nom)}">${escapeHtml(c.enseignement.matiere.nom)}</span></td><td>${escapeHtml(c.enseignement.classe.nom)}</td><td>${escapeHtml(c.salle || '—')}</td><td><button class="btn-secondary" data-programmer-reunion="${c.id}">📅 Réunion</button> <button class="btn-secondary" data-delete-creneau="${c.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button></td></tr>`).join('');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Ajouter un créneau</h2>
       <form class="inline-form" id="creneau-form">
@@ -2694,7 +2677,6 @@ async function renderAdminCreneaux(){
   });
 
   bindDeleteButtons(content, 'data-delete-creneau', '/creneaux', renderAdminCreneaux, 'ce créneau');
-  attacherBarreIconesEDT();
 }
 
 async function renderAdminLiaisons(){
@@ -2705,7 +2687,6 @@ async function renderAdminLiaisons(){
   const content = document.getElementById('content');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Lier un parent à un enfant</h2>
       <form class="inline-form" id="liaison-form">
@@ -2723,7 +2704,6 @@ async function renderAdminLiaisons(){
       <div id="liaison-result" style="margin-top:14px;"></div>
     </div>`;
 
-  attacherBarreIconesEDT();
 
   document.getElementById('liaison-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -3187,7 +3167,6 @@ async function renderAdminBulletinsPdf(){
   const classes = await api('/classes');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Générer les bulletins d'une classe</h2>
       <form class="inline-form" id="bulletins-pdf-form">
@@ -3199,7 +3178,6 @@ async function renderAdminBulletinsPdf(){
       </form>
     </div>
     <div id="bulletins-pdf-liste"></div>`;
-  attacherBarreIconesEDT();
 
   document.getElementById('bulletins-pdf-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -3351,7 +3329,6 @@ async function renderAdminCertificats(){
   const classesAvecEleves = classes.filter(c => etudiants.some(et => et.classeId === c.id)).sort((a, b) => a.nom.localeCompare(b.nom));
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Générer un certificat de scolarité</h2>
       <form class="inline-form" id="certificat-form">
@@ -3364,7 +3341,6 @@ async function renderAdminCertificats(){
       </form>
       <p style="font-size:12.5px;color:var(--text-muted);margin:14px 0 0;">Dans la boîte de dialogue d'impression, choisis « Enregistrer au format PDF » pour obtenir un fichier PDF.</p>
     </div>`;
-  attacherBarreIconesEDT();
 
   document.getElementById('certificat-classe').addEventListener('change', (e) => {
     const classeId = Number(e.target.value);
@@ -3459,7 +3435,6 @@ async function renderAdminFrais(){
     </div>`).join('');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Définir les frais d'un étudiant</h2>
       <form class="inline-form" id="frais-form">
@@ -3535,7 +3510,6 @@ async function renderAdminFrais(){
       }catch(err){ toast(err.message, 'error'); }
     });
   });
-  attacherBarreIconesEDT();
 }
 
 /* ============================================================
@@ -3793,7 +3767,6 @@ async function renderAdminInscriptions(){
 
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Nouvelle inscription — élève qui se présente pour la première fois</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Crée le compte, l'affecte à sa classe et enregistre son dossier de justificatifs — tout en une seule fois.</p>
@@ -3993,7 +3966,6 @@ async function renderAdminInscriptions(){
 
   document.getElementById('aller-utilisateurs-btn').addEventListener('click', () => selectMenu('utilisateurs'));
   document.getElementById('aller-matieres-btn').addEventListener('click', () => selectMenu('matieres'));
-  attacherBarreIconesEDT();
 }
 
 /* ============================================================
@@ -4361,7 +4333,6 @@ async function renderAdminRendezVous(){
     </tr>`).join('');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Ouvrir un créneau de disponibilité</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Les parents de l'établissement pourront réserver ce créneau pour un rendez-vous avec l'administration.</p>
@@ -4399,7 +4370,6 @@ async function renderAdminRendezVous(){
       }catch(err){ toast(err.message, 'error'); }
     });
   });
-  attacherBarreIconesEDT();
 }
 
 async function renderParentRendezVous(){
@@ -4811,7 +4781,6 @@ async function renderVieScolaire(){
     </div>`).join('');
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="grid-3">
       <div class="card"><h2 style="margin-bottom:4px;">${nbAbsences}</h2><p style="font-size:12.5px;color:var(--text-muted);">Absences (${nbNonJustifiees} non justifiées)</p></div>
       <div class="card"><h2 style="margin-bottom:4px;">${nbRetards}</h2><p style="font-size:12.5px;color:var(--text-muted);">Retards</p></div>
@@ -4868,7 +4837,6 @@ async function renderVieScolaire(){
       ${observations.length ? sectionObservations : '<div class="empty-state">Aucune observation enregistrée.</div>'}
     </div>`;
 
-  attacherBarreIconesEDT();
 
   content.querySelectorAll('[data-toggle-justif]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -4971,7 +4939,6 @@ async function renderParametres(){
   }
 
   content.innerHTML = `
-    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Mon compte</h2>
       <div class="stat" style="margin-bottom:16px;">
@@ -5014,7 +4981,6 @@ async function renderParametres(){
       }catch(err){ toast(err.message, 'error'); }
     });
   }
-  attacherBarreIconesEDT();
 }
 
 /* ============================================================
