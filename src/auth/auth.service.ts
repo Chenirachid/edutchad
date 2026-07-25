@@ -212,6 +212,7 @@ export class AuthService {
     role: JwtPayload['role'];
     numeroEtudiant?: string | null;
     etablissementId: number | null;
+    classeId?: number | null;
   }) {
     const payload: JwtPayload = {
       sub: user.id,
@@ -231,6 +232,7 @@ export class AuthService {
         role: user.role,
         numeroEtudiant: user.numeroEtudiant ?? null,
         etablissementId: user.etablissementId,
+        classeId: user.classeId ?? null,
       },
     };
   }

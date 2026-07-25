@@ -79,6 +79,55 @@ export class BulletinsService {
     };
   }
 
+  async getMoyennesClasse(classeId: number, currentUser: JwtPayload) {
+    if (currentUser.role === Role.ETUDIANT) {
+      const moi = await this.prisma.user.findUnique({ where: { id: currentUser.sub } });
+      if (!moi || moi.classeId !== classeId) {
+        throw new ForbiddenException("Vous ne pouvez consulter que la moyenne de votre propre classe");
+      }
+    }
+    if (currentUser.role === Role.PARENT) {
+      const enfant = await this.prisma.user.findFirst({
+        where: { classeId, parents: { some: { id: currentUser.sub } } },
+      });
+      if (!enfant) {
+        throw new ForbiddenException("Aucun de vos enfants n'appartient à cette classe");
+      }
+    }
+
+    const classe = await this.prisma.classe.findUnique({
+      where: { id: classeId },
+      include: {
+        etudiants: { select: { id: true, nom: true, prenom: true, numeroEtudiant: true, classeId: true, etablissementId: true } },
+      },
+    });
+    if (!classe) {
+      throw new NotFoundException(`Classe ${classeId} introuvable`);
+    }
+
+    const bulletins = await Promise.all(
+      classe.etudiants.map((etudiant) => this.computeBulletin(etudiant)),
+    );
+
+    const parMatiere = new Map<number, { nom: string; valeurs: number[] }>();
+    for (const b of bulletins) {
+      for (const m of b.matieres) {
+        if (m.moyenne === null) continue;
+        const entry = parMatiere.get(m.matiereId) ?? { nom: m.nom, valeurs: [] };
+        entry.valeurs.push(m.moyenne);
+        parMatiere.set(m.matiereId, entry);
+      }
+    }
+
+    const moyennesParMatiere = Array.from(parMatiere.entries()).map(([matiereId, e]) => ({
+      matiereId,
+      nom: e.nom,
+      moyenneClasse: arrondi(e.valeurs.reduce((a, v) => a + v, 0) / e.valeurs.length),
+    }));
+
+    return { classeId, moyennesParMatiere };
+  }
+
   private async assertParentDe(enfantId: number, parentId: number) {
     const lien = await this.prisma.user.findFirst({
       where: { id: enfantId, parents: { some: { id: parentId } } },

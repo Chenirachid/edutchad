@@ -27,4 +27,12 @@ export class BulletinsController {
   ) {
     return this.bulletinsService.getBulletinClasse(id, user);
   }
+
+  @Get('classe/:id/moyennes')
+  getMoyennesClasse(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.bulletinsService.getMoyennesClasse(id, user);
+  }
 }
