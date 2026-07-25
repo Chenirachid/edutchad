@@ -304,10 +304,31 @@
     border-left:4px solid var(--teal-500);background:var(--bg);border-radius:10px;
     padding:14px 16px;margin-bottom:12px;
   }
+  .emploi-grille td.case-cours{background:#FDF8D6;}
+  .emploi-grille td.case-libre{background:#EBEBEB;}
+  .emploi-grille tr.ligne-pause-midi td{border-top:2px solid #3FBF6F;}
   .creneau-case{
-    border-left:4px solid var(--teal-500);background:var(--teal-100);border-radius:6px;
+    border-left:4px solid #E8D97A;background:transparent;border-radius:4px;
     padding:6px 8px;font-size:11.5px;height:100%;
   }
+  .rond-nav{
+    width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
+    background:#fff;color:var(--teal-700);font-size:16px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .rond-nav:hover{background:var(--teal-100);}
+  .pilule-date{
+    padding:6px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);
+  }
+  .barre-icones-edt{
+    display:flex;flex-direction:column;gap:8px;flex-shrink:0;
+  }
+  .barre-icones-edt button{
+    width:38px;height:38px;border-radius:50%;border:1px solid var(--border);
+    background:#fff;color:var(--teal-700);font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .barre-icones-edt button:hover{background:var(--teal-100);}
   .creneau-case.reunion-case{
     border-left-color:var(--warning);background:#FBF0DD;margin-top:4px;
   }
@@ -1283,9 +1304,9 @@ async function renderEmploiDuTemps(){
     const cellules = JOURS_ORDRE.map(jour => {
       const cours = creneaux.filter(c => c.jour === jour && c.heureDebut === debut && c.heureFin === fin);
       const reunionsCellule = reunionsSemaine.filter(r => r.jour === jour && r.heure === debut);
-      if(!cours.length && !reunionsCellule.length) return '<td></td>';
+      const occupee = cours.length || reunionsCellule.length;
       const contenuCours = cours.map(c => `
-        <div class="creneau-case" style="border-left-color:${stringToColor(c.enseignement.matiere.nom)};background:${stringToPastel(c.enseignement.matiere.nom)};">
+        <div class="creneau-case">
           <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
           <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
           ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
@@ -1297,9 +1318,9 @@ async function renderEmploiDuTemps(){
           <div style="font-weight:600;">🗓️ ${escapeHtml(r.sujet)}</div>
           ${r.lieu ? `<div style="font-size:10.5px;color:var(--text-muted);">${escapeHtml(r.lieu)}</div>` : ''}
         </div>`).join('');
-      return `<td>${contenuCours}${contenuReunions}</td>`;
+      return `<td class="${occupee ? 'case-cours' : 'case-libre'}">${contenuCours}${contenuReunions}</td>`;
     }).join('');
-    return `<tr><td class="heure-col">${debut}<br>–<br>${fin}</td>${cellules}</tr>`;
+    return `<tr class="${debut === plages.find(([d]) => d >= '12:00')?.[0] ? 'ligne-pause-midi' : ''}"><td class="heure-col">${debut}</td>${cellules}</tr>`;
   }).join('');
 
   const finSemaineAffichee = new Date(lundi);
@@ -1307,22 +1328,35 @@ async function renderEmploiDuTemps(){
   const formatCourt = (d) => d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' });
 
   content.innerHTML = `
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
-        <h2 style="margin:0;">Semaine ${semaine} — ${formatCourt(lundi)} au ${formatCourt(finSemaineAffichee)} (${annee})</h2>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="btn-secondary" id="semaine-precedente-btn">◀ Semaine précédente</button>
-          <input type="number" id="semaine-input" min="1" max="53" value="${semaine}" style="width:60px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;text-align:center;" />
-          <button class="btn-secondary" id="semaine-suivante-btn">Semaine suivante ▶</button>
-          <button class="btn-secondary" id="semaine-actuelle-btn">Aujourd'hui</button>
+    <div class="card" style="text-align:center;">
+      <h2 style="color:var(--teal-700);margin-bottom:14px;">Emploi du temps (semaine ${semaine})</h2>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px;">
+        <button class="rond-nav" id="semaine-precedente-btn" title="Semaine précédente">‹</button>
+        <div class="pilule-date">
+          <select id="semaine-input" style="border:none;background:transparent;font-size:13px;font-weight:600;color:var(--teal-900);text-align:center;cursor:pointer;">
+            ${Array.from({length:53}, (_, i) => i+1).map(n => `<option value="${n}" ${n===semaine?'selected':''}>du ${formatCourt(lundi)} au ${formatCourt(finSemaineAffichee)}</option>`).join('')}
+          </select>
+        </div>
+        <button class="rond-nav" id="semaine-suivante-btn" title="Semaine suivante">›</button>
+        <button class="rond-nav" id="semaine-actuelle-btn" title="Aujourd'hui" style="background:var(--teal-700);color:#fff;">⌂</button>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine-là.</p>
+      <div style="display:flex;gap:14px;justify-content:center;align-items:flex-start;">
+        <div style="flex:1;min-width:0;overflow-x:auto;">
+          ${plages.length ? `
+          <table class="emploi-grille">
+            <thead><tr><th></th>${enTetes}</tr></thead>
+            <tbody>${lignes}</tbody>
+          </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
+        </div>
+        <div class="barre-icones-edt">
+          <button title="Cahier de texte" id="edt-icone-cahier">📖</button>
+          <button title="Messagerie" id="edt-icone-messagerie">✉️</button>
+          <button title="Mes notes" id="edt-icone-notes">📊</button>
+          <button title="Vie scolaire" id="edt-icone-vie-scolaire">👁️</button>
+          <button title="Paramètres" id="edt-icone-parametres">⚙️</button>
         </div>
       </div>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-2px 0 14px;">🗓️ = réunion prévue cette semaine-là.</p>
-      ${plages.length ? `
-      <table class="emploi-grille">
-        <thead><tr><th></th>${enTetes}</tr></thead>
-        <tbody>${lignes}</tbody>
-      </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
     </div>`;
 
   document.getElementById('semaine-precedente-btn').addEventListener('click', () => {
@@ -1341,6 +1375,12 @@ async function renderEmploiDuTemps(){
     const n = Number(e.target.value);
     if(n >= 1 && n <= 53){ semaineEmploiAffichee = { annee, semaine: n }; renderEmploiDuTemps(); }
   });
+
+  document.getElementById('edt-icone-cahier').addEventListener('click', () => selectMenu('cahier-texte'));
+  document.getElementById('edt-icone-messagerie').addEventListener('click', () => selectMenu('messagerie'));
+  document.getElementById('edt-icone-notes').addEventListener('click', () => selectMenu(estProf ? 'enseignements' : 'bulletin'));
+  document.getElementById('edt-icone-vie-scolaire').addEventListener('click', () => selectMenu('vie-scolaire'));
+  document.getElementById('edt-icone-parametres').addEventListener('click', () => selectMenu('parametres'));
 
   content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
     bloc.addEventListener('click', () => {
