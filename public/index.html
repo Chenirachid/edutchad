@@ -1785,6 +1785,7 @@ async function renderParentEnfants(){
         <div class="actions">
           <button class="btn-secondary" data-action="bulletin" data-id="${c.id}">Voir le bulletin</button>
           <button class="btn-secondary" data-action="absences" data-id="${c.id}">Voir les absences</button>
+          <button class="btn-secondary" data-action="paiement" data-id="${c.id}">Voir le paiement</button>
         </div>
       </div>
       <div id="child-detail-${c.id}"></div>
@@ -1833,12 +1834,26 @@ async function renderParentEnfants(){
             <div class="stat" style="margin-bottom:16px;"><div class="label">Moyenne générale</div><div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / 20</div></div>
             ${b.matieres.length ? sections : '<div class="empty-state">Aucune note.</div>'}
           </div>`;
-        } else {
+        } else if(btn.dataset.action === 'absences'){
           const absences = await api('/absences');
           const mine = absences.filter(a => String(a.etudiantId) === String(id));
           const rows = mine.map(a => `
             <tr><td>${new Date(a.date).toLocaleDateString('fr-FR')}</td><td><span class="chip" style="background:${stringToColor(a.enseignement.matiere.nom)}">${escapeHtml(a.enseignement.matiere.nom)}</span></td><td>${a.justifiee ? '<span class="badge-justifiee">Justifiée</span>' : '<span class="badge-non-justifiee">Non justifiée</span>'}</td></tr>`).join('');
           target.innerHTML = `<div style="margin-top:14px;">${mine.length ? `<table><thead><tr><th>Date</th><th>Matière</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune absence.</div>'}</div>`;
+        } else {
+          try{
+            const frais = await api('/frais-scolarite/mon-enfant/' + id);
+            if(!frais){
+              target.innerHTML = `<div style="margin-top:14px;" class="empty-state">Aucun frais scolaire enregistré pour l'instant.</div>`;
+            } else {
+              target.innerHTML = `
+                <div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+                  <div class="stat"><div class="label">Montant total</div><div class="big" style="font-size:20px;">${frais.montantTotal.toLocaleString('fr-FR')}</div></div>
+                  <div class="stat"><div class="label">Versé</div><div class="big" style="font-size:20px;">${frais.totalVerse.toLocaleString('fr-FR')}</div></div>
+                  <div class="stat"><div class="label">Statut</div><div class="big" style="font-size:16px;">${frais.soldeRestant <= 0 ? '<span class="badge-justifiee">Payé</span>' : '<span class="badge-non-justifiee">Non payé (reste ' + frais.soldeRestant.toLocaleString('fr-FR') + ')</span>'}</div></div>
+                </div>`;
+            }
+          }catch(err){ target.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`; }
         }
       }catch(err){ target.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`; }
     });
@@ -3300,8 +3315,8 @@ async function renderAdminFrais(){
 
   const ligneFrais = (f) => `
     <tr>
-      <td>${escapeHtml(f.etudiant.numeroEtudiant || '—')}</td>
       <td>${escapeHtml(f.etudiant.prenom)} ${escapeHtml(f.etudiant.nom)}</td>
+      <td>${escapeHtml(f.etudiant.numeroEtudiant || '—')}</td>
       <td>${escapeHtml(f.anneeScolaire)}</td>
       <td>${f.montantTotal.toLocaleString('fr-FR')}</td>
       <td>${f.totalVerse.toLocaleString('fr-FR')}</td>
@@ -3313,7 +3328,7 @@ async function renderAdminFrais(){
   const sectionsParClasse = Object.keys(parClasse).sort().map(nom => `
     <div style="margin-bottom:22px;">
       <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${parClasse[nom].length})</h3>
-      <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Montant total</th><th>Versé</th><th>Solde restant</th><th>Statut</th><th></th></tr></thead><tbody>${parClasse[nom].map(ligneFrais).join('')}</tbody></table>
+      <table><thead><tr><th>Étudiant</th><th>N° étudiant</th><th>Année</th><th>Montant total</th><th>Versé</th><th>Solde restant</th><th>Statut</th><th></th></tr></thead><tbody>${parClasse[nom].map(ligneFrais).join('')}</tbody></table>
     </div>`).join('');
 
   content.innerHTML = `

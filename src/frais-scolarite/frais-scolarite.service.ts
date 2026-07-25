@@ -75,4 +75,22 @@ export class FraisScolariteService {
     });
     return this.findOne(fraisId);
   }
+
+  async findPourParent(etudiantId: number, parentId: number) {
+    const enfant = await this.prisma.user.findFirst({
+      where: { id: etudiantId, parents: { some: { id: parentId } } },
+    });
+    if (!enfant) {
+      throw new NotFoundException("Cet étudiant n'est pas votre enfant");
+    }
+
+    const frais = await this.prisma.fraisScolarite.findUnique({
+      where: { etudiantId },
+      include: { etudiant: { select: etudiantSelect }, versements: { orderBy: { date: 'desc' } } },
+    });
+    if (!frais) {
+      return null;
+    }
+    return avecSolde(frais);
+  }
 }
