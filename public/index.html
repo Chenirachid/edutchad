@@ -1180,12 +1180,16 @@ function selectMenu(menuId){
    ÉTUDIANT
    ============================================================ */
 async function renderEtudiantBulletin(){
-  const [b, toutesLesNotes] = await Promise.all([
+  const [b, toutesLesNotes, parametres] = await Promise.all([
     api('/bulletins/etudiant/' + state.user.id),
     api('/notes'),
+    api('/parametres').catch(() => ({ bareme: 20 })),
   ]);
   const content = document.getElementById('content');
   document.getElementById('page-subtitle').textContent = b.etudiant.prenom + ' ' + b.etudiant.nom;
+
+  const seuilAdmission = (parametres.bareme || 20) / 2;
+  const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
 
   let moyennesClasse = {};
   try{
@@ -1227,17 +1231,27 @@ async function renderEtudiantBulletin(){
   }).join('');
 
   content.innerHTML = `
-    <div class="grid-2">
+    <div class="grid-3">
       <div class="card">
         <div class="stat">
           <div class="label">Moyenne générale</div>
-          <div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} <span style="font-size:16px;color:var(--text-muted);">/ 20</span></div>
+          <div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} <span style="font-size:16px;color:var(--text-muted);">/ ${parametres.bareme || 20}</span></div>
         </div>
       </div>
       <div class="card">
         <div class="stat">
           <div class="label">Matières notées</div>
           <div class="big">${b.matieres.length}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="stat">
+          <div class="label">Statut</div>
+          <div class="big" style="font-size:20px;">
+            ${b.moyenneGenerale === null ? '—' : estAdmis
+              ? `<span class="badge-justifiee">Admis(e)</span>`
+              : `<span class="badge-non-justifiee">Ajourné(e)</span>`}
+          </div>
         </div>
       </div>
     </div>
@@ -1917,11 +1931,14 @@ async function renderParentEnfants(){
       try{
         if(btn.dataset.action === 'bulletin'){
           const enfant = enfants.find(c => String(c.id) === String(id));
-          const [b, toutesLesNotes, moyennesClasseRep] = await Promise.all([
+          const [b, toutesLesNotes, moyennesClasseRep, parametres] = await Promise.all([
             api('/bulletins/etudiant/' + id),
             api('/notes'),
             enfant && enfant.classeId ? api('/bulletins/classe/' + enfant.classeId + '/moyennes').catch(() => null) : Promise.resolve(null),
+            api('/parametres').catch(() => ({ bareme: 20 })),
           ]);
+          const seuilAdmission = (parametres.bareme || 20) / 2;
+          const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
           const moyennesClasse = {};
           if(moyennesClasseRep){
             moyennesClasseRep.moyennesParMatiere.forEach(m => { moyennesClasse[m.matiereId] = m.moyenneClasse; });
@@ -1958,7 +1975,10 @@ async function renderParentEnfants(){
           }).join('');
 
           target.innerHTML = `<div style="margin-top:14px;">
-            <div class="stat" style="margin-bottom:16px;"><div class="label">Moyenne générale</div><div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / 20</div></div>
+            <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;">
+              <div class="stat"><div class="label">Moyenne générale</div><div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme || 20}</div></div>
+              <div class="stat"><div class="label">Statut</div><div class="big" style="font-size:18px;">${b.moyenneGenerale === null ? '—' : estAdmis ? '<span class="badge-justifiee">Admis(e)</span>' : '<span class="badge-non-justifiee">Ajourné(e)</span>'}</div></div>
+            </div>
             ${b.matieres.length ? sections : '<div class="empty-state">Aucune note.</div>'}
           </div>`;
         } else if(btn.dataset.action === 'absences'){
