@@ -2628,10 +2628,12 @@ async function renderAdminEnseignements(){
     if(!parClasse[nom]) parClasse[nom] = [];
     parClasse[nom].push(e);
   });
-  const sectionsParClasse = Object.keys(parClasse).sort().map(nom => `
-    <div style="margin-bottom:22px;">
-      <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${parClasse[nom].length})</h3>
-      <table><thead><tr><th>ID</th><th>Matière</th><th>Professeur</th></tr></thead><tbody>${parClasse[nom].map(e => `<tr><td>${e.id}</td><td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td><td>${escapeHtml(e.professeur.prenom)} ${escapeHtml(e.professeur.nom)}</td></tr>`).join('')}</tbody></table>
+
+  const dossiers = classes.map(c => `
+    <div class="dossier-classe" data-dossier-classe="${c.id}">
+      <div class="dossier-icone" style="color:${stringToColor(c.nom)};">${ICONE_DOSSIER}</div>
+      <div class="dossier-nom">${escapeHtml(c.nom)}</div>
+      <div class="dossier-matiere">${(parClasse[c.nom] || []).length} enseignement${(parClasse[c.nom] || []).length > 1 ? 's' : ''}</div>
     </div>`).join('');
 
   content.innerHTML = `
@@ -2645,9 +2647,24 @@ async function renderAdminEnseignements(){
       </form>
     </div>
     <div class="card">
-      <h2>Enseignements existants par classe</h2>
-      ${enseignements.length ? sectionsParClasse : '<div class="empty-state">Aucun enseignement.</div>'}
-    </div>`;
+      <h2>Enseignements par classe</h2>
+      ${classes.length ? `<div class="dossiers-grille">${dossiers}</div>` : '<div class="empty-state">Aucune classe.</div>'}
+    </div>
+    <div id="enseignements-dossier-zone"></div>`;
+
+  content.querySelectorAll('[data-dossier-classe]').forEach(carte => {
+    carte.addEventListener('click', () => {
+      const classeId = Number(carte.dataset.dossierClasse);
+      const classe = classes.find(c => c.id === classeId);
+      const liste = (parClasse[classe.nom] || []);
+      const zone = document.getElementById('enseignements-dossier-zone');
+      zone.innerHTML = `
+        <div class="card">
+          <h2>${escapeHtml(classe.nom)} (${liste.length})</h2>
+          ${liste.length ? `<table><thead><tr><th>ID</th><th>Matière</th><th>Professeur</th></tr></thead><tbody>${liste.map(e => `<tr><td>${e.id}</td><td><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></td><td>${escapeHtml(e.professeur.prenom)} ${escapeHtml(e.professeur.nom)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty-state">Aucun enseignement pour cette classe.</div>'}
+        </div>`;
+    });
+  });
 
   document.getElementById('ens-form').addEventListener('submit', async (e) => {
     e.preventDefault();
