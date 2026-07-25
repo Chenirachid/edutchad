@@ -251,6 +251,8 @@ model ParametrePlateforme {
   nomEtablissement String   @default("EduCheni")
   anneeScolaire    String   @default("2025-2026")
   bareme           Int      @default(20)
+  heureDebutPause  String   @default("12:00")
+  heureFinPause    String   @default("13:00")
   updatedAt        DateTime @updatedAt
 
   etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
