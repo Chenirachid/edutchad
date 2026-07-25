@@ -2615,7 +2615,11 @@ let messagerieSelectedContact = null;
 async function renderMessagerie(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const [contacts, recus] = await Promise.all([api('/messages/contacts'), api('/messages/recus')]);
+  const [contacts, recus, classes] = await Promise.all([
+    api('/messages/contacts'), api('/messages/recus'),
+    ['ADMIN','CHEF_ETABLISSEMENT','VIE_SCOLAIRE','PROFESSEUR'].includes(state.user.role) ? api('/classes') : Promise.resolve([]),
+  ]);
+  const classesAvecEleves = classes.filter(c => c.etudiants && c.etudiants.length).sort((a, b) => a.nom.localeCompare(b.nom));
 
   const unreadByContact = {};
   recus.forEach(m => {
@@ -2633,6 +2637,28 @@ async function renderMessagerie(){
     <div class="card" style="padding:0;overflow:hidden;">
       <div class="msg-layout">
         <div class="msg-contacts">
+          ${classesAvecEleves.length ? `
+          <form id="msg-classe-form" style="padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;">Message à toute une classe</label>
+            <select id="msg-classe-select" style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;">
+              <option value="">— Choisir une classe —</option>
+              ${classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)} (${c.etudiants.length})</option>`).join('')}
+            </select>
+            <input type="text" id="msg-classe-contenu" placeholder="Message pour toute la classe…" style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;" />
+            <button class="btn-secondary" type="submit" style="font-size:12.5px;">Envoyer à la classe</button>
+          </form>
+          ${state.user.role === 'PROFESSEUR' ? `
+          <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;">Trouver un élève par classe</label>
+            <select id="msg-eleve-classe-select" style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;">
+              <option value="">— Choisir une classe —</option>
+              ${classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}
+            </select>
+            <select id="msg-eleve-select" style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;">
+              <option value="">— Choisir une classe d'abord —</option>
+            </select>
+          </div>` : ''}
+          ` : ''}
           <form id="msg-nouveau-email-form" style="padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;">Écrire à un email</label>
             <input type="email" id="msg-nouveau-email" placeholder="prenom.nom@..." required style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;" />
@@ -2651,6 +2677,46 @@ async function renderMessagerie(){
         </div>
       </div>
     </div>`;
+
+  const formClasse = document.getElementById('msg-classe-form');
+  if(formClasse){
+    formClasse.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const classeId = Number(document.getElementById('msg-classe-select').value);
+      const contenu = document.getElementById('msg-classe-contenu').value.trim();
+      if(!classeId){ toast('Choisis une classe.', 'error'); return; }
+      if(!contenu){ toast('Écris un message.', 'error'); return; }
+      const classe = classesAvecEleves.find(c => c.id === classeId);
+      let success = 0, echecs = 0;
+      for(const et of classe.etudiants){
+        try{
+          await api('/messages', { method:'POST', body: JSON.stringify({ destinataireId: et.id, contenu })});
+          success++;
+        }catch(err){ echecs++; }
+      }
+      toast(`Message envoyé à ${success} élève(s)${echecs ? `, ${echecs} échec(s)` : ''}.`, echecs ? 'error' : undefined);
+      formClasse.reset();
+    });
+  }
+
+  const selectEleveClasse = document.getElementById('msg-eleve-classe-select');
+  if(selectEleveClasse){
+    selectEleveClasse.addEventListener('change', () => {
+      const classe = classesAvecEleves.find(c => String(c.id) === selectEleveClasse.value);
+      const selectEleve = document.getElementById('msg-eleve-select');
+      if(!classe){
+        selectEleve.innerHTML = '<option value="">— Choisir une classe d\'abord —</option>';
+        return;
+      }
+      const eleves = classe.etudiants.slice().sort((a, b) => a.nom.localeCompare(b.nom));
+      selectEleve.innerHTML = '<option value="">— Choisir un élève —</option>' + eleves.map(et => `<option value="${et.id}" data-nom="${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('');
+    });
+    document.getElementById('msg-eleve-select').addEventListener('change', (e) => {
+      const option = e.target.selectedOptions[0];
+      if(!option.value) return;
+      openConversation(Number(option.value), option.dataset.nom);
+    });
+  }
 
   document.getElementById('msg-nouveau-email-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -3218,9 +3284,21 @@ function printCertificat(etudiant, classe, parametres){
 async function renderAdminFrais(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const frais = await api('/frais-scolarite');
+  const [frais, classes] = await Promise.all([api('/frais-scolarite'), api('/classes')]);
 
-  const rows = frais.map(f => `
+  const nomClasse = (classeId) => {
+    const c = classes.find(cl => cl.id === classeId);
+    return c ? c.nom : 'Sans classe assignée';
+  };
+
+  const parClasse = {};
+  frais.forEach(f => {
+    const nom = nomClasse(f.etudiant.classeId);
+    if(!parClasse[nom]) parClasse[nom] = [];
+    parClasse[nom].push(f);
+  });
+
+  const ligneFrais = (f) => `
     <tr>
       <td>${escapeHtml(f.etudiant.numeroEtudiant || '—')}</td>
       <td>${escapeHtml(f.etudiant.prenom)} ${escapeHtml(f.etudiant.nom)}</td>
@@ -3228,8 +3306,15 @@ async function renderAdminFrais(){
       <td>${f.montantTotal.toLocaleString('fr-FR')}</td>
       <td>${f.totalVerse.toLocaleString('fr-FR')}</td>
       <td><span class="moy-pill ${f.soldeRestant <= 0 ? 'moy-good' : f.soldeRestant < f.montantTotal ? 'moy-mid' : 'moy-low'}">${f.soldeRestant.toLocaleString('fr-FR')}</span></td>
+      <td>${f.soldeRestant <= 0 ? '<span class="badge-justifiee">Payé</span>' : '<span class="badge-non-justifiee">Non payé</span>'}</td>
       <td><button class="btn-secondary" data-ajouter-versement="${f.id}">Ajouter un versement</button></td>
-    </tr>`).join('');
+    </tr>`;
+
+  const sectionsParClasse = Object.keys(parClasse).sort().map(nom => `
+    <div style="margin-bottom:22px;">
+      <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${parClasse[nom].length})</h3>
+      <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Montant total</th><th>Versé</th><th>Solde restant</th><th>Statut</th><th></th></tr></thead><tbody>${parClasse[nom].map(ligneFrais).join('')}</tbody></table>
+    </div>`).join('');
 
   content.innerHTML = `
     <div class="card">
@@ -3242,9 +3327,21 @@ async function renderAdminFrais(){
       </form>
     </div>
     <div class="card">
-      <h2>Suivi des paiements (${frais.length})</h2>
-      ${frais.length ? `<table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Montant total</th><th>Versé</th><th>Solde restant</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun frais enregistré.</div>'}
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+        <h2 style="margin:0;">Suivi des paiements par classe (${frais.length})</h2>
+        <button class="btn-secondary" id="frais-imprimer-btn">🖨️ Imprimer</button>
+      </div>
+      ${frais.length ? sectionsParClasse : '<div class="empty-state">Aucun frais enregistré.</div>'}
     </div>`;
+
+  document.getElementById('frais-imprimer-btn').addEventListener('click', () => {
+    document.getElementById('print-root').innerHTML = `
+      <div class="certificat-sheet">
+        <div class="certificat-entete"><h1>Suivi des frais de scolarité</h1><div class="etab">Par classe</div></div>
+        ${sectionsParClasse}
+      </div>`;
+    window.print();
+  });
 
   document.getElementById('frais-form').addEventListener('submit', async (e) => {
     e.preventDefault();
