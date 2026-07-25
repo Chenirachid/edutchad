@@ -54,9 +54,13 @@ export class NotesService {
   }
 
   findAll(currentUser: JwtPayload) {
+    const visiblePourEleve = {
+      OR: [{ epreuveId: null }, { epreuve: { datePublication: { lte: new Date() } } }],
+    };
+
     if (currentUser.role === Role.ETUDIANT) {
       return this.prisma.note.findMany({
-        where: { etudiantId: currentUser.sub },
+        where: { etudiantId: currentUser.sub, ...visiblePourEleve },
         include: { enseignement: { include: { matiere: true, classe: true } } },
       });
     }
@@ -73,7 +77,7 @@ export class NotesService {
 
     if (currentUser.role === Role.PARENT) {
       return this.prisma.note.findMany({
-        where: { etudiant: { parents: { some: { id: currentUser.sub } } } },
+        where: { etudiant: { parents: { some: { id: currentUser.sub } } }, ...visiblePourEleve },
         include: {
           enseignement: { include: { matiere: true, classe: true } },
           etudiant: { select: etudiantSelect },

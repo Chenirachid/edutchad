@@ -17,6 +17,10 @@ export class CreateEpreuveDto {
   @IsNumber()
   coefficient?: number;
 
+  @IsOptional()
+  @IsDateString()
+  datePublication?: string;
+
   @IsInt()
   enseignementId: number;
 }

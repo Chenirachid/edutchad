@@ -1512,7 +1512,10 @@ async function renderProfEnseignements(){
         const notesClasse = notesTous.filter(n => n.enseignementId === Number(enseignementId));
         const noteCellule = (etudiantId, epreuveId) => notesClasse.find(n => n.etudiantId === etudiantId && n.epreuveId === epreuveId);
 
-        const entetesEpreuves = epreuvesClasse.map(ep => `<th>${escapeHtml(ep.titre)}<br><span style="font-weight:400;font-size:10.5px;color:var(--text-muted);">coef. ${ep.coefficient}</span></th>`).join('');
+        const entetesEpreuves = epreuvesClasse.map(ep => {
+          const estPubliee = new Date(ep.datePublication) <= new Date();
+          return `<th>${escapeHtml(ep.titre)}<br><span style="font-weight:400;font-size:10.5px;color:var(--text-muted);">coef. ${ep.coefficient}</span><br><span style="font-weight:600;font-size:9.5px;cursor:pointer;color:${estPubliee ? 'var(--success)' : 'var(--warning)'};" data-changer-publication="${ep.id}" data-actuelle="${new Date(ep.datePublication).toISOString().slice(0,16)}" title="Cliquer pour changer la date de publication">${estPubliee ? '✅ Publiée' : '🔒 Programmée'}</span></th>`;
+        }).join('');
 
         const rowsGrille = etudiants.map(et => {
           const cellules = epreuvesClasse.map(ep => {
@@ -1558,6 +1561,7 @@ async function renderProfEnseignements(){
               </div>
               <div class="f"><label>Date</label><input type="date" name="date" required value="${new Date().toISOString().slice(0,10)}" /></div>
               <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
+              <div class="f"><label>Afficher aux élèves à partir de</label><input type="datetime-local" name="datePublication" value="${new Date().toISOString().slice(0,16)}" /></div>
               <button class="btn-submit" type="submit">Ajouter la colonne</button>
             </form>
             ${etudiants.length && epreuvesClasse.length ? `
@@ -1577,6 +1581,18 @@ async function renderProfEnseignements(){
           selectMenu('cahier-texte');
         });
 
+        zone.querySelectorAll('[data-changer-publication]').forEach(span => {
+          span.addEventListener('click', async () => {
+            const nouvelle = prompt("Date et heure d'affichage aux élèves (AAAA-MM-JJTHH:MM) :", span.dataset.actuelle);
+            if(!nouvelle) return;
+            try{
+              await api('/epreuves/' + span.dataset.changerPublication + '/publication', { method:'PATCH', body: JSON.stringify({ datePublication: new Date(nouvelle).toISOString() })});
+              toast('Date de publication mise à jour.');
+              carte.click();
+            }catch(err){ toast(err.message, 'error'); }
+          });
+        });
+
         document.getElementById('dossier-epreuve-form').addEventListener('submit', async (e) => {
           e.preventDefault();
           const fd = new FormData(e.target);
@@ -1585,6 +1601,7 @@ async function renderProfEnseignements(){
               enseignementId: Number(enseignementId), titre: fd.get('titre'),
               type: fd.get('type'), date: new Date(fd.get('date')).toISOString(),
               coefficient: Number(fd.get('coefficient')) || 1,
+              datePublication: fd.get('datePublication') ? new Date(fd.get('datePublication')).toISOString() : undefined,
             })});
             toast('Évaluation ajoutée.');
             carte.click();
@@ -4639,6 +4656,7 @@ async function renderProfEpreuves(){
         </div>
         <div class="f"><label>Date</label><input type="date" name="date" required /></div>
         <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
+        <div class="f"><label>Afficher aux élèves à partir de</label><input type="datetime-local" name="datePublication" value="${new Date().toISOString().slice(0,16)}" /></div>
         <button class="btn-submit" type="submit">Créer</button>
       </form>
     </div>
@@ -4656,6 +4674,7 @@ async function renderProfEpreuves(){
         enseignementId: Number(fd.get('enseignementId')), titre: fd.get('titre'),
         type: fd.get('type'), date: new Date(fd.get('date')).toISOString(),
         coefficient: Number(fd.get('coefficient')) || 1,
+        datePublication: fd.get('datePublication') ? new Date(fd.get('datePublication')).toISOString() : undefined,
       })});
       toast('Épreuve créée.');
       renderProfEpreuves();

@@ -42,8 +42,22 @@ export class EpreuvesService {
         type: dto.type,
         date: new Date(dto.date),
         coefficient: dto.coefficient,
+        datePublication: dto.datePublication ? new Date(dto.datePublication) : undefined,
         enseignementId: dto.enseignementId,
       },
+      include,
+    });
+  }
+
+  async updatePublication(epreuveId: number, datePublication: string, currentUser: JwtPayload) {
+    const epreuve = await this.prisma.epreuve.findUnique({ where: { id: epreuveId } });
+    if (!epreuve) {
+      throw new NotFoundException(`Épreuve ${epreuveId} introuvable`);
+    }
+    await this.assertProprietaire(epreuve.enseignementId, currentUser);
+    return this.prisma.epreuve.update({
+      where: { id: epreuveId },
+      data: { datePublication: new Date(datePublication) },
       include,
     });
   }

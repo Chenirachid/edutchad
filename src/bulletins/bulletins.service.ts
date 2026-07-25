@@ -44,7 +44,10 @@ export class BulletinsService {
       await this.assertParentDe(etudiantId, currentUser.sub);
     }
 
-    return this.computeBulletin(etudiant);
+    return this.computeBulletin(
+      etudiant,
+      currentUser.role === Role.ETUDIANT || currentUser.role === Role.PARENT,
+    );
   }
 
   async getBulletinClasse(classeId: number, currentUser: JwtPayload) {
@@ -106,7 +109,7 @@ export class BulletinsService {
     }
 
     const bulletins = await Promise.all(
-      classe.etudiants.map((etudiant) => this.computeBulletin(etudiant)),
+      classe.etudiants.map((etudiant) => this.computeBulletin(etudiant, true)),
     );
 
     const parMatiere = new Map<number, { nom: string; valeurs: number[] }>();
@@ -157,15 +160,23 @@ export class BulletinsService {
     }
   }
 
-  private async computeBulletin(etudiant: {
-    id: number;
-    nom: string;
-    prenom: string;
-    numeroEtudiant?: string | null;
-    etablissementId?: number | null;
-  }) {
+  private async computeBulletin(
+    etudiant: {
+      id: number;
+      nom: string;
+      prenom: string;
+      numeroEtudiant?: string | null;
+      etablissementId?: number | null;
+    },
+    respecterPublication = false,
+  ) {
     const notes = await this.prisma.note.findMany({
-      where: { etudiantId: etudiant.id },
+      where: {
+        etudiantId: etudiant.id,
+        ...(respecterPublication
+          ? { OR: [{ epreuveId: null }, { epreuve: { datePublication: { lte: new Date() } } }] }
+          : {}),
+      },
       include: { enseignement: { include: { matiere: true } } },
     });
 

@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -55,6 +56,16 @@ export class EpreuvesController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.epreuvesService.saisirNotes(id, dto, user);
+  }
+
+  @Patch(':id/publication')
+  @Roles(Role.PROFESSEUR, Role.ADMIN)
+  updatePublication(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('datePublication') datePublication: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.epreuvesService.updatePublication(id, datePublication, user);
   }
 
   @Delete(':id')
