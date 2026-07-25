@@ -1281,6 +1281,7 @@ function prochaineDatePour(jour, heureDebut){
 }
 
 let semaineEmploiAffichee = null;
+let creneauxAdminClasseId = null;
 
 function numeroSemaineISO(date){
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -1328,17 +1329,26 @@ async function renderEmploiDuTemps(){
       return { ...r, jour: joursNoms[d.getDay()], heure: d.toTimeString().slice(0,5) };
     });
 
-  // Une ligne par plage horaire distincte (début-fin des cours + heure des réunions), triée chronologiquement
-  const plagesSet = new Set(creneaux.map(c => c.heureDebut + '|' + c.heureFin));
-  reunionsSemaine.forEach(r => plagesSet.add(r.heure + '|' + r.heure));
-  const plages = Array.from(plagesSet).sort().map(p => p.split('|'));
+  // Grille horaire FIXE de 8h à 00h (une ligne par heure), même s'il n'y a aucun cours
+  // à cette heure-là — un cours est affiché dans toutes les lignes qu'il chevauche.
+  const plages = [];
+  for(let h = 8; h < 24; h++){
+    const debut = String(h).padStart(2, '0') + ':00';
+    const fin = (h === 23 ? '00' : String(h + 1).padStart(2, '0')) + ':00';
+    plages.push([debut, fin]);
+  }
+  const chevauche = (debutLigne, finLigne, debutCours, finCours) => {
+    const finLigneCorrigee = finLigne === '00:00' ? '24:00' : finLigne;
+    const finCoursCorrigee = finCours === '00:00' ? '24:00' : finCours;
+    return debutCours < finLigneCorrigee && finCoursCorrigee > debutLigne;
+  };
 
   const enTetes = JOURS_ORDRE.map(j => `<th>${j.charAt(0) + j.slice(1).toLowerCase()}</th>`).join('');
 
   const lignes = plages.map(([debut, fin]) => {
     const cellules = JOURS_ORDRE.map(jour => {
-      const cours = creneaux.filter(c => c.jour === jour && c.heureDebut === debut && c.heureFin === fin);
-      const reunionsCellule = reunionsSemaine.filter(r => r.jour === jour && r.heure === debut);
+      const cours = creneaux.filter(c => c.jour === jour && chevauche(debut, fin, c.heureDebut, c.heureFin));
+      const reunionsCellule = reunionsSemaine.filter(r => r.jour === jour && chevauche(debut, fin, r.heure, r.heure));
       const occupee = cours.length || reunionsCellule.length;
       const contenuCours = cours.map(c => `
         <div class="creneau-case">
@@ -2608,13 +2618,52 @@ async function renderAdminEnseignements(){
 }
 
 async function renderAdminCreneaux(){
-  const [creneaux, enseignements] = await Promise.all([api('/creneaux'), api('/enseignements')]);
+  const [creneaux, enseignements, classes] = await Promise.all([api('/creneaux'), api('/enseignements'), api('/classes')]);
   document.getElementById('page-subtitle').textContent = creneaux.length + ' créneaux';
   const content = document.getElementById('content');
+
+  if(!creneauxAdminClasseId && classes.length) creneauxAdminClasseId = classes[0].id;
+
+  const plages = [];
+  for(let h = 8; h < 24; h++){
+    plages.push([String(h).padStart(2,'0') + ':00', (h === 23 ? '00' : String(h+1).padStart(2,'0')) + ':00']);
+  }
+  const chevauche = (debutLigne, finLigne, debutCours, finCours) => {
+    const fL = finLigne === '00:00' ? '24:00' : finLigne;
+    const fC = finCours === '00:00' ? '24:00' : finCours;
+    return debutCours < fL && fC > debutLigne;
+  };
+
+  const creneauxClasse = creneaux.filter(c => c.enseignement.classe.id === creneauxAdminClasseId);
+  const enTetes = JOURS_ORDRE.map(j => `<th>${j.charAt(0) + j.slice(1).toLowerCase()}</th>`).join('');
+  const lignesGrille = plages.map(([debut, fin]) => {
+    const cellules = JOURS_ORDRE.map(jour => {
+      const cours = creneauxClasse.filter(c => c.jour === jour && chevauche(debut, fin, c.heureDebut, c.heureFin));
+      const contenu = cours.map(c => `
+        <div class="creneau-case">
+          <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}</div>
+          ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <span style="font-size:10px;color:var(--teal-700);font-weight:600;cursor:pointer;" data-programmer-reunion="${c.id}">📅</span>
+            <span style="font-size:10px;color:var(--danger);font-weight:600;cursor:pointer;" data-delete-creneau-grille="${c.id}">✕ Supprimer</span>
+          </div>
+        </div>`).join('');
+      return `<td class="${cours.length ? 'case-cours' : 'case-libre'}">${contenu}</td>`;
+    }).join('');
+    return `<tr><td class="heure-col">${debut}</td>${cellules}</tr>`;
+  }).join('');
 
   const rows = creneaux.map(c => `<tr><td>${c.jour}</td><td>${c.heureDebut} – ${c.heureFin}</td><td><span class="chip" style="background:${stringToColor(c.enseignement.matiere.nom)}">${escapeHtml(c.enseignement.matiere.nom)}</span></td><td>${escapeHtml(c.enseignement.classe.nom)}</td><td>${escapeHtml(c.salle || '—')}</td><td><button class="btn-secondary" data-programmer-reunion="${c.id}">📅 Réunion</button> <button class="btn-secondary" data-delete-creneau="${c.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button></td></tr>`).join('');
 
   content.innerHTML = `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <h2 style="margin:0;">Emploi du temps par classe</h2>
+        <div class="f" style="margin:0;"><label>Classe</label><select id="creneaux-admin-classe">${classes.map(c => `<option value="${c.id}" ${c.id === creneauxAdminClasseId ? 'selected' : ''}>${escapeHtml(c.nom)}</option>`).join('') || '<option value="">Aucune classe</option>'}</select></div>
+      </div>
+      ${classes.length ? `<table class="emploi-grille"><thead><tr><th></th>${enTetes}</tr></thead><tbody>${lignesGrille}</tbody></table>` : '<div class="empty-state">Aucune classe pour l\'instant.</div>'}
+    </div>
     <div class="card">
       <h2>Ajouter un créneau</h2>
       <form class="inline-form" id="creneau-form">
@@ -2627,39 +2676,57 @@ async function renderAdminCreneaux(){
       </form>
     </div>
     <div class="card">
-      <h2>Créneaux existants</h2>
+      <h2>Tous les créneaux (${creneaux.length})</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Le bouton « 📅 Réunion » programme une réunion directement sur ce créneau, avec le professeur concerné automatiquement invité.</p>
       ${creneaux.length ? `<table><thead><tr><th>Jour</th><th>Horaire</th><th>Matière</th><th>Classe</th><th>Salle</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun créneau.</div>'}
     </div>
     <div id="reunion-creneau-zone"></div>`;
 
-  content.querySelectorAll('[data-programmer-reunion]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const c = creneaux.find(cr => String(cr.id) === btn.dataset.programmerReunion);
-      const zone = document.getElementById('reunion-creneau-zone');
-      zone.innerHTML = `
-        <div class="card">
-          <h2>Programmer une réunion — ${escapeHtml(c.jour)} ${c.heureDebut}, ${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}</h2>
-          <form class="inline-form" id="reunion-creneau-form">
-            <div class="f" style="min-width:260px;flex:2;"><label>Sujet</label><input type="text" name="sujet" required placeholder="Ex : Point sur la classe de Terminale S" /></div>
-            <div class="f"><label>Lieu</label><input type="text" name="lieu" value="${escapeHtml(c.salle || '')}" placeholder="Salle" /></div>
-            <button class="btn-submit" type="submit">Programmer</button>
-          </form>
-        </div>`;
+  document.getElementById('creneaux-admin-classe').addEventListener('change', (e) => {
+    creneauxAdminClasseId = Number(e.target.value);
+    renderAdminCreneaux();
+  });
 
-      document.getElementById('reunion-creneau-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fd = new FormData(e.target);
-        const date = prochaineDatePour(c.jour, c.heureDebut);
-        try{
-          await api('/reunions', { method:'POST', body: JSON.stringify({
-            sujet: fd.get('sujet'), lieu: fd.get('lieu') || undefined,
-            date: date.toISOString(), inviteIds: [c.enseignement.professeur.id],
-          })});
-          toast('Réunion programmée et professeur invité.');
-          zone.innerHTML = '';
-        }catch(err){ toast(err.message, 'error'); }
-      });
+  function programmerReunionPour(creneauId){
+    const c = creneaux.find(cr => String(cr.id) === String(creneauId));
+    const zone = document.getElementById('reunion-creneau-zone');
+    zone.innerHTML = `
+      <div class="card">
+        <h2>Programmer une réunion — ${escapeHtml(c.jour)} ${c.heureDebut}, ${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}</h2>
+        <form class="inline-form" id="reunion-creneau-form">
+          <div class="f" style="min-width:260px;flex:2;"><label>Sujet</label><input type="text" name="sujet" required placeholder="Ex : Point sur la classe de Terminale S" /></div>
+          <div class="f"><label>Lieu</label><input type="text" name="lieu" value="${escapeHtml(c.salle || '')}" placeholder="Salle" /></div>
+          <button class="btn-submit" type="submit">Programmer</button>
+        </form>
+      </div>`;
+
+    document.getElementById('reunion-creneau-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const date = prochaineDatePour(c.jour, c.heureDebut);
+      try{
+        await api('/reunions', { method:'POST', body: JSON.stringify({
+          sujet: fd.get('sujet'), lieu: fd.get('lieu') || undefined,
+          date: date.toISOString(), inviteIds: [c.enseignement.professeur.id],
+        })});
+        toast('Réunion programmée et professeur invité.');
+        zone.innerHTML = '';
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  }
+
+  content.querySelectorAll('[data-programmer-reunion]').forEach(btn => {
+    btn.addEventListener('click', () => programmerReunionPour(btn.dataset.programmerReunion));
+  });
+
+  content.querySelectorAll('[data-delete-creneau-grille]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm('Supprimer ce créneau ?')) return;
+      try{
+        await api('/creneaux/' + btn.dataset.deleteCreneauGrille, { method:'DELETE' });
+        toast('Créneau supprimé.');
+        renderAdminCreneaux();
+      }catch(err){ toast(err.message, 'error'); }
     });
   });
 
