@@ -329,6 +329,12 @@
     display:flex;align-items:center;justify-content:center;
   }
   .barre-icones-edt button:hover{background:var(--teal-100);}
+  @media (max-width:700px){
+    .barre-icones-edt[style*="position:absolute"]{
+      position:static !important;flex-direction:row;justify-content:center;
+      margin-top:12px;
+    }
+  }
   .creneau-case.reunion-case{
     border-left-color:var(--warning);background:#FBF0DD;margin-top:4px;
   }
@@ -828,6 +834,31 @@ function stringToPastel(str){
   return `hsl(${hue}, 65%, 94%)`;
 }
 
+function genererBarreIconesEDT(mode){
+  const style = mode === 'absolute' ? 'position:absolute;top:0;right:0;' : mode === 'horizontal' ? 'flex-direction:row;justify-content:center;margin-bottom:16px;' : '';
+  return `<div class="barre-icones-edt" style="${style}">
+    <button title="Cahier de texte" id="edt-icone-cahier">📖</button>
+    <button title="Messagerie" id="edt-icone-messagerie">✉️</button>
+    <button title="Notes / Bulletin" id="edt-icone-notes">📊</button>
+    <button title="Vie scolaire" id="edt-icone-vie-scolaire">👁️</button>
+    <button title="Paramètres" id="edt-icone-parametres">⚙️</button>
+  </div>`;
+}
+
+function attacherBarreIconesEDT(){
+  const liens = {
+    'edt-icone-cahier': 'cahier-texte',
+    'edt-icone-messagerie': 'messagerie',
+    'edt-icone-notes': state.user.role === 'PROFESSEUR' ? 'enseignements' : 'bulletin',
+    'edt-icone-vie-scolaire': 'vie-scolaire',
+    'edt-icone-parametres': 'parametres',
+  };
+  Object.entries(liens).forEach(([id, menuId]) => {
+    const bouton = document.getElementById(id);
+    if(bouton) bouton.addEventListener('click', () => selectMenu(menuId));
+  });
+}
+
 function libelleEnLigne(derniereActivite){
   if(!derniereActivite) return '<span style="font-size:11px;color:var(--text-muted);">— jamais connecté</span>';
   const minutes = (Date.now() - new Date(derniereActivite).getTime()) / 60000;
@@ -1177,6 +1208,7 @@ async function renderEtudiantBulletin(){
     </div>`).join('');
 
   content.innerHTML = `
+    ${genererBarreIconesEDT('horizontal')}
     <div class="grid-2">
       <div class="card">
         <div class="stat">
@@ -1195,6 +1227,7 @@ async function renderEtudiantBulletin(){
       <h2>Détail par matière</h2>
       ${b.matieres.length ? cartes : `<div class="empty-state">Aucune note pour l'instant.</div>`}
     </div>`;
+  attacherBarreIconesEDT();
 }
 
 async function renderEtudiantAbsences(){
@@ -1341,21 +1374,15 @@ async function renderEmploiDuTemps(){
         <button class="rond-nav" id="semaine-actuelle-btn" title="Aujourd'hui" style="background:var(--teal-700);color:#fff;">⌂</button>
       </div>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine-là.</p>
-      <div style="display:flex;gap:14px;justify-content:center;align-items:flex-start;">
-        <div style="flex:1;min-width:0;overflow-x:auto;">
+      <div style="position:relative;padding-right:52px;">
+        <div style="overflow-x:auto;">
           ${plages.length ? `
           <table class="emploi-grille">
             <thead><tr><th></th>${enTetes}</tr></thead>
             <tbody>${lignes}</tbody>
           </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
         </div>
-        <div class="barre-icones-edt">
-          <button title="Cahier de texte" id="edt-icone-cahier">📖</button>
-          <button title="Messagerie" id="edt-icone-messagerie">✉️</button>
-          <button title="Mes notes" id="edt-icone-notes">📊</button>
-          <button title="Vie scolaire" id="edt-icone-vie-scolaire">👁️</button>
-          <button title="Paramètres" id="edt-icone-parametres">⚙️</button>
-        </div>
+        ${genererBarreIconesEDT('absolute')}
       </div>
     </div>`;
 
@@ -1376,11 +1403,7 @@ async function renderEmploiDuTemps(){
     if(n >= 1 && n <= 53){ semaineEmploiAffichee = { annee, semaine: n }; renderEmploiDuTemps(); }
   });
 
-  document.getElementById('edt-icone-cahier').addEventListener('click', () => selectMenu('cahier-texte'));
-  document.getElementById('edt-icone-messagerie').addEventListener('click', () => selectMenu('messagerie'));
-  document.getElementById('edt-icone-notes').addEventListener('click', () => selectMenu(estProf ? 'enseignements' : 'bulletin'));
-  document.getElementById('edt-icone-vie-scolaire').addEventListener('click', () => selectMenu('vie-scolaire'));
-  document.getElementById('edt-icone-parametres').addEventListener('click', () => selectMenu('parametres'));
+  attacherBarreIconesEDT();
 
   content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
     bloc.addEventListener('click', () => {
@@ -1650,6 +1673,7 @@ async function renderProfAppel(){
   appelPrefillEnseignementId = null;
 
   content.innerHTML = `
+    ${genererBarreIconesEDT('horizontal')}
     <div class="card">
       <h2>Choisir la classe et la date</h2>
       ${venaitDeLEmploi ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis ton emploi du temps.</p>` : ''}
@@ -1666,6 +1690,8 @@ async function renderProfAppel(){
       </form>
     </div>
     <div id="appel-liste"></div>`;
+
+  attacherBarreIconesEDT();
 
   document.getElementById('appel-select-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -4758,6 +4784,7 @@ async function renderVieScolaire(){
     </div>`).join('');
 
   content.innerHTML = `
+    ${genererBarreIconesEDT('horizontal')}
     <div class="grid-3">
       <div class="card"><h2 style="margin-bottom:4px;">${nbAbsences}</h2><p style="font-size:12.5px;color:var(--text-muted);">Absences (${nbNonJustifiees} non justifiées)</p></div>
       <div class="card"><h2 style="margin-bottom:4px;">${nbRetards}</h2><p style="font-size:12.5px;color:var(--text-muted);">Retards</p></div>
@@ -4813,6 +4840,8 @@ async function renderVieScolaire(){
       <h2>Observations par classe</h2>
       ${observations.length ? sectionObservations : '<div class="empty-state">Aucune observation enregistrée.</div>'}
     </div>`;
+
+  attacherBarreIconesEDT();
 
   content.querySelectorAll('[data-toggle-justif]').forEach(btn => {
     btn.addEventListener('click', async () => {
