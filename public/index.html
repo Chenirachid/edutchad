@@ -3349,11 +3349,34 @@ async function renderAdminFrais(){
       ${frais.length ? sectionsParClasse : '<div class="empty-state">Aucun frais enregistré.</div>'}
     </div>`;
 
-  document.getElementById('frais-imprimer-btn').addEventListener('click', () => {
+  const ligneFraisImpression = (f) => `
+    <tr>
+      <td>${escapeHtml(f.etudiant.prenom)} ${escapeHtml(f.etudiant.nom)}</td>
+      <td>${escapeHtml(f.etudiant.numeroEtudiant || '—')}</td>
+      <td>${escapeHtml(f.anneeScolaire)}</td>
+      <td>${f.montantTotal.toLocaleString('fr-FR')}</td>
+      <td>${f.totalVerse.toLocaleString('fr-FR')}</td>
+      <td>${f.soldeRestant.toLocaleString('fr-FR')}</td>
+      <td>${f.soldeRestant <= 0 ? 'Payé' : 'Non payé'}</td>
+    </tr>`;
+
+  const sectionsImpression = () => Object.keys(parClasse).sort().map(nom => `
+    <div style="margin-bottom:22px;">
+      <h3 style="font-size:13.5px;color:#333;margin:0 0 8px;">${escapeHtml(nom)} (${parClasse[nom].length})</h3>
+      <table><thead><tr><th>Étudiant</th><th>N° étudiant</th><th>Année</th><th>Montant total</th><th>Versé</th><th>Solde restant</th><th>Statut</th></tr></thead><tbody>${parClasse[nom].map(ligneFraisImpression).join('')}</tbody></table>
+    </div>`).join('');
+
+  document.getElementById('frais-imprimer-btn').addEventListener('click', async () => {
+    const parametres = await api('/parametres');
     document.getElementById('print-root').innerHTML = `
       <div class="certificat-sheet">
-        <div class="certificat-entete"><h1>Suivi des frais de scolarité</h1><div class="etab">Par classe</div></div>
-        ${sectionsParClasse}
+        <div class="certificat-entete">
+          <h1>${escapeHtml(parametres.nomEtablissement)}</h1>
+          <div class="etab">Quittance / suivi des paiements de scolarité</div>
+        </div>
+        <p style="font-size:12px;color:#666;margin:-4px 0 16px;">Édité le ${new Date().toLocaleDateString('fr-FR')}</p>
+        ${sectionsImpression()}
+        <div class="bulletin-footer">${escapeHtml(parametres.nomEtablissement)} — Document confidentiel</div>
       </div>`;
     window.print();
   });
