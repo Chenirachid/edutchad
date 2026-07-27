@@ -364,6 +364,12 @@
   .child-card .name{font-weight:600;}
   .child-card .actions{margin-left:auto;display:flex;gap:8px;}
   .btn-secondary{padding:7px 13px;border-radius:7px;border:1.5px solid var(--teal-500);background:#fff;color:var(--teal-700);font-size:12.5px;font-weight:600;}
+  .btn-icone{
+    width:30px;height:30px;padding:0;border-radius:7px;border:1.5px solid var(--teal-500);
+    background:#fff;color:var(--teal-700);font-size:14px;flex-shrink:0;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .btn-icone:hover{background:var(--teal-100);}
   .btn-secondary:hover{background:var(--teal-100);}
 
   /* ---------- IMPRESSION BULLETIN ---------- */
@@ -2144,14 +2150,14 @@ async function renderAdminUsers(filtreRoles){
       </td>
       <td><input type="number" data-user-classe="${u.id}" value="${u.classeId ?? ''}" placeholder="—" style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;" /></td>
       <td>${u.actif === false ? '<span class="badge-non-justifiee">Désactivé</span>' : '<span class="badge-justifiee">Actif</span>'} ${libelleEnLigne(u.derniereActivite)}</td>
-      <td style="min-width:180px;">
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <td style="min-width:140px;">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
           <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
-          <button class="btn-secondary" data-reset-password="${u.id}">Réinitialiser MDP</button>
-          <button class="btn-secondary" data-regenerer-activation="${u.id}">Réimprimer activation</button>
-          ${u.role === 'PROFESSEUR' ? `<button class="btn-secondary" data-dossier-prof="${u.id}" style="display:inline-flex;align-items:center;gap:5px;">${ICONE_DOSSIER} Dossier</button>` : ''}
-          <button class="btn-secondary" data-toggle-actif="${u.id}">${u.actif === false ? 'Réactiver' : 'Désactiver'}</button>
-          <button class="btn-secondary" data-delete-user="${u.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button>
+          <button class="btn-icone" data-reset-password="${u.id}" title="Réinitialiser le mot de passe">🔑</button>
+          <button class="btn-icone" data-regenerer-activation="${u.id}" title="Réimprimer le document d'activation">🖨️</button>
+          ${u.role === 'PROFESSEUR' ? `<button class="btn-icone" data-dossier-prof="${u.id}" title="Dossier professeur">📁</button>` : ''}
+          <button class="btn-icone" data-toggle-actif="${u.id}" title="${u.actif === false ? 'Réactiver le compte' : 'Désactiver le compte'}">${u.actif === false ? '🔓' : '🔒'}</button>
+          <button class="btn-icone" data-delete-user="${u.id}" title="Supprimer le compte" style="border-color:var(--danger);color:var(--danger);">🗑️</button>
         </div>
       </td>
     </tr>`).join('');
