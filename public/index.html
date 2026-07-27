@@ -2197,6 +2197,9 @@ async function renderAdminUsers(filtreRoles){
         ${state.user.role === 'CHEF_PROJET' ? `
         <div class="f"><label>Établissement</label><select name="etablissementId" required>${etablissementsListe.map(e => `<option value="${e.id}">${escapeHtml(e.nom)}</option>`).join('') || '<option value="">Aucun établissement — crée-en un d\'abord</option>'}</select></div>
         ` : ''}
+        ${estVueEleves ? `
+        <div class="f"><label>Classe</label><select name="classeId"><option value="">— Aucune pour l'instant —</option>${classes.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}</select></div>
+        ` : ''}
         <button class="btn-submit" type="submit">Créer le compte</button>
       </form>` : `<p style="font-size:12.5px;color:var(--text-muted);">Aucun rôle de cette catégorie n'est disponible à la création depuis ton compte.</p>`}
     </div>
@@ -2222,6 +2225,7 @@ async function renderAdminUsers(filtreRoles){
         const created = await api('/users', { method:'POST', body: JSON.stringify({
           prenom: fd.get('prenom'), nom: fd.get('nom'), role: fd.get('role'),
           etablissementId: fd.get('etablissementId') ? Number(fd.get('etablissementId')) : undefined,
+          classeId: fd.get('classeId') ? Number(fd.get('classeId')) : undefined,
         })});
         toast(`Compte créé — identifiant : ${created.identifiant}`);
         await imprimerDocumentActivation(created);
