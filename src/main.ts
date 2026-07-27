@@ -63,9 +63,9 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('EduCheni API')
+    .setTitle('Cheni Connect API')
     .setDescription(
-      "API de la plateforme universitaire EduCheni (type Pronote) — gestion des classes, matières, notes, absences, emploi du temps et bulletins.",
+      "API de la plateforme universitaire Cheni Connect (type Pronote) — gestion des classes, matières, notes, absences, emploi du temps et bulletins.",
     )
     .setVersion('1.0')
     .addBearerAuth(

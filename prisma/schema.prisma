@@ -19,6 +19,7 @@ model Etablissement {
   actualites   Actualite[]
   sondages     Sondage[]
   groupes      Groupe[]
+  ressourcesBiblio RessourceBibliotheque[]
 }
 
 model User {
@@ -81,6 +82,7 @@ model User {
   votesSondages      VoteSondage[]
   dossierProfesseur  DossierProfesseur?
   ressourcesProf     RessourceProf[]
+  ressourcesBiblio   RessourceBibliotheque[]
 }
 
 enum Role {
@@ -595,4 +597,22 @@ model RessourceProf {
 
   professeur   User @relation(fields: [professeurId], references: [id])
   professeurId Int
+}
+
+model RessourceBibliotheque {
+  id          Int      @id @default(autoincrement())
+  titre       String
+  description String?
+  matiere     String?
+  nom         String
+  type        String
+  data        String   @db.Text
+  reserveProf Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  ajoutePar    User @relation(fields: [ajouteParId], references: [id])
+  ajouteParId  Int
+
+  etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
+  etablissementId Int?
 }

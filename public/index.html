@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>EduCheni — Plateforme scolaire de gestion d'établissement</title>
-<meta name="description" content="EduCheni est une plateforme scolaire tout-en-un : notes, bulletins, absences, emploi du temps, messagerie et gestion administrative pour élèves, professeurs, parents et administrateurs." />
+<title>Cheni Connect — Plateforme scolaire de gestion d'établissement</title>
+<meta name="description" content="Cheni Connect est une plateforme scolaire tout-en-un : notes, bulletins, absences, emploi du temps, messagerie et gestion administrative pour élèves, professeurs, parents et administrateurs." />
 <meta name="google-site-verification" content="vmV19fFunB4mmnt-5miKNmb9q-0olt3OIirqkvZRk3A" />
 <meta name="robots" content="index, follow" />
 <link rel="canonical" href="https://edutchad.onrender.com/" />
-<meta property="og:title" content="EduCheni — Plateforme scolaire de gestion d'établissement" />
+<meta property="og:title" content="Cheni Connect — Plateforme scolaire de gestion d'établissement" />
 <meta property="og:description" content="Notes, bulletins, absences, emploi du temps, messagerie et gestion administrative, réunis au même endroit." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://edutchad.onrender.com/" />
@@ -460,7 +460,7 @@
     <div class="portail-contenu-gauche">
       <div class="login-brand">
         <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <span>EduCheni</span>
+        <span>Cheni Connect</span>
       </div>
       <p class="portail-etablissement hidden" id="marque-etablissement-nom"></p>
       <h1 class="portail-titre">Espace Numérique de Travail</h1>
@@ -558,7 +558,7 @@
   <nav class="topnav">
     <div class="brand">
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5.2C10.3 3.7 6.8 3.2 4 3.7V17c2.8-0.5 6.3 0 8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5.2C13.7 3.7 17.2 3.2 20 3.7V17c-2.8-0.5-6.3 0-8 1.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <span>EduCheni</span>
+      <span>Cheni Connect</span>
     </div>
     <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
@@ -1005,6 +1005,7 @@ const MENUS = {
     { id:'comportement', label:'Mon comportement', render: renderComportement },
     { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte, hidden: true },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
+    { id:'bibliotheque', label:'Bibliothèque', render: renderBibliotheque },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
   PROFESSEUR: [
@@ -1014,6 +1015,7 @@ const MENUS = {
     { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte, hidden: true },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'mes-documents', label:'Mes documents', render: renderProfDocuments },
+    { id:'bibliotheque', label:'Bibliothèque', render: renderBibliotheque },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
@@ -1038,6 +1040,7 @@ const MENUS = {
     { id:'bulletins-pdf', label:'Bulletins PDF', render: renderAdminBulletinsPdf },
     { id:'certificats', label:'Certificats', render: renderAdminCertificats },
     { id:'frais', label:'Frais scolaires', render: renderAdminFrais },
+    { id:'bibliotheque', label:'Bibliothèque', render: renderBibliotheque },
     { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
@@ -4404,6 +4407,99 @@ async function renderDemandesSuppression(){
 /* ============================================================
    MES DOCUMENTS (PROF) — à projeter au tableau
    ============================================================ */
+async function renderBibliotheque(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const ressources = await api('/bibliotheque');
+  const peutGerer = ['PROFESSEUR', 'ADMIN', 'CHEF_ETABLISSEMENT'].includes(state.user.role);
+
+  const communes = ressources.filter(r => !r.reserveProf);
+  const reservees = ressources.filter(r => r.reserveProf);
+
+  const ligne = (r) => `
+    <tr>
+      <td>${escapeHtml(r.titre)}</td>
+      <td>${r.matiere ? `<span class="chip" style="background:${stringToColor(r.matiere)}">${escapeHtml(r.matiere)}</span>` : '—'}</td>
+      <td>${r.description ? escapeHtml(r.description) : '—'}</td>
+      <td>${escapeHtml(r.ajoutePar.prenom)} ${escapeHtml(r.ajoutePar.nom)}</td>
+      <td>
+        <a href="#" data-telecharger-biblio="${r.id}" data-nom="${escapeHtml(r.nom)}" style="color:var(--teal-700);font-weight:600;">📥 ${escapeHtml(r.nom)}</a>
+        ${peutGerer ? `<button class="btn-secondary" data-delete-biblio="${r.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>` : ''}
+      </td>
+    </tr>`;
+
+  content.innerHTML = `
+    ${peutGerer ? `
+    <div class="card">
+      <h2>Ajouter un livre / une ressource</h2>
+      <form class="inline-form" id="biblio-form">
+        <div class="f" style="min-width:200px;"><label>Titre</label><input type="text" name="titre" required placeholder="Ex : Manuel de mathématiques 3e" /></div>
+        <div class="f"><label>Matière (facultatif)</label><input type="text" name="matiere" placeholder="Mathématiques" /></div>
+        <div class="f" style="min-width:220px;flex:1;"><label>Description (facultatif)</label><input type="text" name="description" placeholder="Ex : avec exercices corrigés" /></div>
+        <div class="f"><label>Fichier (max 10 Mo)</label><input type="file" name="fichier" id="biblio-fichier" required /></div>
+        <div class="f">
+          <label>Visibilité</label>
+          <select name="reserveProf">
+            <option value="false">Visible par tous (élèves inclus)</option>
+            <option value="true">Réservé aux professeurs</option>
+          </select>
+        </div>
+        <button class="btn-submit" type="submit">Ajouter</button>
+      </form>
+    </div>` : ''}
+    <div class="card">
+      <h2>Bibliothèque commune (${communes.length})</h2>
+      ${communes.length ? `<table><thead><tr><th>Titre</th><th>Matière</th><th>Description</th><th>Ajouté par</th><th>Fichier</th></tr></thead><tbody>${communes.map(ligne).join('')}</tbody></table>` : '<div class="empty-state">Aucune ressource pour l\'instant.</div>'}
+    </div>
+    ${peutGerer ? `
+    <div class="card">
+      <h2>📕 Réservé aux professeurs (${reservees.length})</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Ces ressources (par exemple avec corrigés) ne sont jamais visibles par les élèves.</p>
+      ${reservees.length ? `<table><thead><tr><th>Titre</th><th>Matière</th><th>Description</th><th>Ajouté par</th><th>Fichier</th></tr></thead><tbody>${reservees.map(ligne).join('')}</tbody></table>` : '<div class="empty-state">Aucune ressource réservée pour l\'instant.</div>'}
+    </div>` : ''}`;
+
+  const formBiblio = document.getElementById('biblio-form');
+  if(formBiblio){
+    formBiblio.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const fichier = document.getElementById('biblio-fichier').files[0];
+      if(fichier.size > 10 * 1024 * 1024){ toast('Le fichier dépasse 10 Mo.', 'error'); return; }
+      try{
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(fichier);
+        });
+        await api('/bibliotheque', { method:'POST', body: JSON.stringify({
+          titre: fd.get('titre'), matiere: fd.get('matiere') || undefined,
+          description: fd.get('description') || undefined,
+          nom: fichier.name, type: fichier.type, data: base64,
+          reserveProf: fd.get('reserveProf') === 'true',
+        })});
+        toast('Ressource ajoutée.');
+        renderBibliotheque();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  }
+
+  content.querySelectorAll('[data-telecharger-biblio]').forEach(lien => {
+    lien.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try{
+        const complet = await api('/bibliotheque/' + lien.dataset.telechargerBiblio + '/telecharger');
+        const a = document.createElement('a');
+        a.href = 'data:' + complet.type + ';base64,' + complet.data;
+        a.download = lien.dataset.nom;
+        a.click();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  bindDeleteButtons(content, 'data-delete-biblio', '/bibliotheque', renderBibliotheque, 'cette ressource');
+}
+
 async function renderProfDocuments(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
