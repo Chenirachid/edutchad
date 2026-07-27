@@ -365,19 +365,15 @@
   .child-card .actions{margin-left:auto;display:flex;gap:8px;}
   .btn-secondary{padding:7px 13px;border-radius:7px;border:1.5px solid var(--teal-500);background:#fff;color:var(--teal-700);font-size:12.5px;font-weight:600;}
   .btn-icone{
-    width:32px;height:32px;padding:0;border-radius:50%;border:none;
-    background:var(--teal-100);color:var(--teal-700);font-size:14px;flex-shrink:0;
+    width:32px;height:32px;padding:0;border-radius:10px;border:none;
+    background:#F2F2F5;color:#48484A;font-size:14px;flex-shrink:0;
     display:inline-flex;align-items:center;justify-content:center;
-    transition:transform .15s ease,box-shadow .15s ease;
-    box-shadow:0 1px 2px rgba(0,0,0,.08);
+    transition:transform .12s ease,background .12s ease,box-shadow .12s ease;
   }
-  .btn-icone:hover{transform:translateY(-3px) scale(1.08);box-shadow:0 6px 14px rgba(0,0,0,.16);}
-  .btn-icone:active{transform:translateY(-1px) scale(1.02);}
-  .btn-icone.icone-cle{background:#FEF3C7;color:#B45309;}
-  .btn-icone.icone-imprimante{background:#DBEAFE;color:#1D4ED8;}
-  .btn-icone.icone-dossier{background:#EDE9FE;color:#6D28D9;}
-  .btn-icone.icone-cadenas{background:#E5E7EB;color:#374151;}
-  .btn-icone.icone-corbeille{background:#FEE2E2;color:#DC2626;}
+  .btn-icone:hover{background:#E5E5EA;box-shadow:0 2px 6px rgba(0,0,0,.10);}
+  .btn-icone:active{transform:scale(.94);}
+  .btn-icone.icone-corbeille{color:#FF3B30;}
+  .btn-icone.icone-corbeille:hover{background:#FFEBEA;}
   .btn-secondary:hover{background:var(--teal-100);}
 
   /* ---------- IMPRESSION BULLETIN ---------- */
