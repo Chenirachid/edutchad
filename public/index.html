@@ -3827,34 +3827,143 @@ async function renderCahierTexte(){
       </div>`;
   }
 
-  const rows = entrees.map(e => `
+  content.innerHTML = `${creationCard}<div id="cahier-arborescence"></div>`;
+
+  if(isProf){
+    document.getElementById('cahier-texte-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const fichier = document.getElementById('cahier-piece-jointe').files[0];
+      if(fichier && fichier.size > 3 * 1024 * 1024){ toast('La pièce jointe dépasse 3 Mo.', 'error'); return; }
+      try{
+        let corps = {
+          enseignementId: Number(fd.get('enseignementId')), date: new Date(fd.get('date')).toISOString(),
+          contenu: fd.get('contenu'), devoirs: fd.get('devoirs') || undefined,
+        };
+        if(fichier){
+          corps.pieceJointeNom = fichier.name;
+          corps.pieceJointeType = fichier.type;
+          corps.pieceJointeData = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(fichier);
+          });
+        }
+        await api('/cahiers-texte', { method:'POST', body: JSON.stringify(corps) });
+        toast('Entrée ajoutée.');
+        renderCahierTexte();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  }
+
+  const arbo = document.getElementById('cahier-arborescence');
+
+  // Arrivée depuis l'emploi du temps (cours précis) : on saute l'arborescence,
+  // on affiche directement les entrées de ce cours-là.
+  if(enseignementIdFiltre !== null){
+    afficherEntreesCahier(arbo, entrees, isProf, {
+      titre: entrees.length ? `${escapeHtml(entrees[0].enseignement.classe.nom)} — ${escapeHtml(entrees[0].enseignement.matiere.nom)}` : 'Cahier de texte',
+      lienRetour: { texte: 'voir tout le cahier de texte', action: () => renderCahierTexte() },
+    });
+    return;
+  }
+
+  afficherDossiersClasses(arbo, entrees, isProf);
+}
+
+function afficherDossiersClasses(arbo, entrees, isProf){
+  const parClasse = {};
+  entrees.forEach(e => {
+    const nom = e.enseignement.classe.nom;
+    if(!parClasse[nom]) parClasse[nom] = [];
+    parClasse[nom].push(e);
+  });
+  const nomsClasses = Object.keys(parClasse).sort();
+
+  arbo.innerHTML = `
+    <div class="card">
+      <h2>Cahier de texte — par classe</h2>
+      ${nomsClasses.length ? `<div class="dossiers-grille">${nomsClasses.map(nom => `
+        <div class="dossier-classe" data-dossier-classe-cahier="${escapeHtml(nom)}">
+          <div class="dossier-icone" style="color:${stringToColor(nom)};">${ICONE_DOSSIER}</div>
+          <div class="dossier-nom">${escapeHtml(nom)}</div>
+          <div class="dossier-matiere">${parClasse[nom].length} entrée${parClasse[nom].length > 1 ? 's' : ''}</div>
+        </div>`).join('')}</div>` : '<div class="empty-state">Aucune entrée pour l\'instant.</div>'}
+    </div>`;
+
+  arbo.querySelectorAll('[data-dossier-classe-cahier]').forEach(carte => {
+    carte.addEventListener('click', () => {
+      const nomClasse = carte.dataset.dossierClasseCahier;
+      afficherDossiersMatieres(arbo, parClasse[nomClasse], isProf, nomClasse, entrees);
+    });
+  });
+}
+
+function afficherDossiersMatieres(arbo, entreesDeLaClasse, isProf, nomClasse, entreesTotales){
+  const parMatiere = {};
+  entreesDeLaClasse.forEach(e => {
+    const nom = e.enseignement.matiere.nom;
+    if(!parMatiere[nom]) parMatiere[nom] = [];
+    parMatiere[nom].push(e);
+  });
+  const nomsMatieres = Object.keys(parMatiere).sort();
+
+  arbo.innerHTML = `
+    <div class="card">
+      <p style="margin:0 0 14px;"><a href="#" id="cahier-retour-classes" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">← Toutes les classes</a></p>
+      <h2>${escapeHtml(nomClasse)} — par matière</h2>
+      <div class="dossiers-grille">${nomsMatieres.map(nom => `
+        <div class="dossier-classe" data-dossier-matiere-cahier="${escapeHtml(nom)}">
+          <div class="dossier-icone" style="color:${stringToColor(nom)};">${ICONE_DOSSIER}</div>
+          <div class="dossier-nom">${escapeHtml(nom)}</div>
+          <div class="dossier-matiere">${parMatiere[nom].length} entrée${parMatiere[nom].length > 1 ? 's' : ''}</div>
+        </div>`).join('')}</div>
+    </div>`;
+
+  document.getElementById('cahier-retour-classes').addEventListener('click', (e) => {
+    e.preventDefault();
+    afficherDossiersClasses(arbo, entreesTotales, isProf);
+  });
+
+  arbo.querySelectorAll('[data-dossier-matiere-cahier]').forEach(carte => {
+    carte.addEventListener('click', () => {
+      const nomMatiere = carte.dataset.dossierMatiereCahier;
+      afficherEntreesCahier(arbo, parMatiere[nomMatiere], isProf, {
+        titre: `${escapeHtml(nomClasse)} — ${escapeHtml(nomMatiere)}`,
+        lienRetour: { texte: `← ${escapeHtml(nomClasse)}`, action: () => afficherDossiersMatieres(arbo, entreesDeLaClasse, isProf, nomClasse, entreesTotales) },
+      });
+    });
+  });
+}
+
+function afficherEntreesCahier(arbo, entrees, isProf, options){
+  const triees = entrees.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const rows = triees.map(e => `
     <tr>
       <td>${new Date(e.date).toLocaleDateString('fr-FR')}</td>
-      <td>${escapeHtml(e.enseignement.classe.nom)}</td>
-      <td><span class="chip" style="background:${stringToColor(e.enseignement.matiere.nom)}">${escapeHtml(e.enseignement.matiere.nom)}</span></td>
       <td>${escapeHtml(e.contenu)}</td>
       <td>${e.devoirs ? escapeHtml(e.devoirs) : '—'}</td>
       <td>${e.pieceJointeNom ? `<a href="#" data-telecharger-piece="${e.id}" style="color:var(--teal-700);font-weight:600;">📎 ${escapeHtml(e.pieceJointeNom)}</a>` : '—'}</td>
       ${isProf ? `<td><button class="btn-secondary" data-delete-cahier="${e.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td>` : ''}
     </tr>`).join('');
 
-  content.innerHTML = `
-    ${creationCard}
+  arbo.innerHTML = `
     <div class="card">
-      <h2>${entrees.length} entrée${entrees.length > 1 ? 's' : ''}</h2>
-      ${enseignementIdFiltre !== null ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Filtré depuis ton emploi du temps — <a href="#" id="cahier-voir-tout">voir toutes les entrées</a>.</p>` : ''}
-      ${entrees.length ? `<table><thead><tr><th>Date</th><th>Classe</th><th>Matière</th><th>Contenu</th><th>Devoirs</th><th>Pièce jointe</th>${isProf ? '<th></th>' : ''}</tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune entrée pour l\'instant.</div>'}
+      ${options.lienRetour ? `<p style="margin:0 0 14px;"><a href="#" id="cahier-retour-niveau" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">${options.lienRetour.texte}</a></p>` : ''}
+      <h2>${options.titre} — par date (${triees.length})</h2>
+      ${triees.length ? `<table><thead><tr><th>Date</th><th>Contenu</th><th>Devoirs</th><th>Pièce jointe</th>${isProf ? '<th></th>' : ''}</tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune entrée pour l\'instant.</div>'}
     </div>`;
 
-  const lienVoirTout = document.getElementById('cahier-voir-tout');
-  if(lienVoirTout){
-    lienVoirTout.addEventListener('click', (e) => { e.preventDefault(); renderCahierTexte(); });
+  const lienRetourEl = document.getElementById('cahier-retour-niveau');
+  if(lienRetourEl){
+    lienRetourEl.addEventListener('click', (e) => { e.preventDefault(); options.lienRetour.action(); });
   }
 
-  content.querySelectorAll('[data-telecharger-piece]').forEach(link => {
+  arbo.querySelectorAll('[data-telecharger-piece]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      const entree = entrees.find(en => String(en.id) === link.dataset.telechargerPiece);
+      const entree = triees.find(en => String(en.id) === link.dataset.telechargerPiece);
       if(!entree || !entree.pieceJointeData) return;
       const a = document.createElement('a');
       a.href = `data:${entree.pieceJointeType || 'application/octet-stream'};base64,${entree.pieceJointeData}`;
@@ -3863,44 +3972,7 @@ async function renderCahierTexte(){
     });
   });
 
-  if(isProf){
-    document.getElementById('cahier-texte-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const fichier = document.getElementById('cahier-piece-jointe').files[0];
-
-      let pieceJointeNom, pieceJointeType, pieceJointeData;
-      if(fichier){
-        if(fichier.size > 3 * 1024 * 1024){
-          toast('Fichier trop volumineux (max 3 Mo).', 'error');
-          return;
-        }
-        const base64Complet = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(fichier);
-        });
-        pieceJointeNom = fichier.name;
-        pieceJointeType = fichier.type;
-        pieceJointeData = base64Complet.split(',')[1];
-      }
-
-      try{
-        await api('/cahiers-texte', { method:'POST', body: JSON.stringify({
-          enseignementId: Number(fd.get('enseignementId')),
-          date: new Date(fd.get('date')).toISOString(),
-          contenu: fd.get('contenu'),
-          devoirs: fd.get('devoirs') || undefined,
-          pieceJointeNom, pieceJointeType, pieceJointeData,
-        })});
-        toast('Entrée ajoutée au cahier de texte.');
-        renderCahierTexte();
-      }catch(err){ toast(err.message, 'error'); }
-    });
-
-    bindDeleteButtons(content, 'data-delete-cahier', '/cahiers-texte', renderCahierTexte, 'cette entrée');
-  }
+  bindDeleteButtons(arbo, 'data-delete-cahier', '/cahiers-texte', renderCahierTexte, 'cette entrée');
 }
 
 /* ============================================================
