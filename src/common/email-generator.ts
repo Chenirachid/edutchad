@@ -41,10 +41,10 @@ export function buildBaseEmail(prenom: string, nom: string, role: Role): string 
 
 /**
  * Formate un numéro étudiant lisible à partir de l'id technique interne :
- * ETU-00007
+ * 00007
  */
 export function formatNumeroEtudiant(id: number): string {
-  return `ETU-${String(id).padStart(5, '0')}`;
+  return String(id).padStart(5, '0');
 }
 
 /**

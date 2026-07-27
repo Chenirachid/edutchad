@@ -2133,6 +2133,8 @@ async function renderAdminUsers(filtreRoles){
   document.getElementById('page-subtitle').textContent = users.length + ' comptes';
   const content = document.getElementById('content');
   const titrePage = filtreRoles && filtreRoles.includes('ETUDIANT') ? 'Élèves' : filtreRoles ? 'Personnel' : 'Tous les utilisateurs';
+  const estVueEleves = titrePage === 'Élèves';
+  const classes = estVueEleves ? await api('/classes') : [];
 
   const estChefProjet = state.user.role === 'CHEF_PROJET';
   const nomEtablissementDe = (u) => {
@@ -2140,7 +2142,7 @@ async function renderAdminUsers(filtreRoles){
     return e ? e.nom : '—';
   };
 
-  const rows = users.map(u => `
+  const ligneUtilisateur = (u) => `
     <tr style="${u.actif === false ? 'opacity:.55;' : ''}">
       <td>${u.id}</td>
       <td>${escapeHtml(u.prenom)} ${escapeHtml(u.nom)}</td>
@@ -2164,7 +2166,10 @@ async function renderAdminUsers(filtreRoles){
           <button class="btn-icone icone-corbeille" data-delete-user="${u.id}" title="Supprimer le compte">🗑️</button>
         </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+
+  const rows = users.map(ligneUtilisateur).join('');
+  const enTeteColonnes = `<th>ID</th><th>Nom</th><th>Identifiant</th>${estChefProjet ? '<th>Établissement</th>' : ''}<th>N° étudiant</th><th>Rôle</th><th>Classe</th><th>Statut</th><th></th>`;
 
   const rolesDisponiblesTous = state.user.role === 'CHEF_PROJET'
     ? [['CHEF_ETABLISSEMENT','CHEF_ETABLISSEMENT']]
@@ -2197,9 +2202,16 @@ async function renderAdminUsers(filtreRoles){
     </div>
     <div class="card">
       <h2>${titrePage} (${users.length})</h2>
-      <table><thead><tr><th>ID</th><th>Nom</th><th>Identifiant</th>${estChefProjet ? '<th>Établissement</th>' : ''}<th>N° étudiant</th><th>Rôle</th><th>Classe</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <div id="liste-utilisateurs-zone"></div>
     </div>
     <div id="dossier-prof-zone"></div>`;
+
+  const zoneListe = document.getElementById('liste-utilisateurs-zone');
+  if(estVueEleves){
+    afficherDossiersClassesEleves(zoneListe, users, classes, enTeteColonnes, ligneUtilisateur, filtreRoles);
+  } else {
+    zoneListe.innerHTML = `<table><thead><tr>${enTeteColonnes}</tr></thead><tbody>${rows}</tbody></table>`;
+  }
 
   const formCreateUser = document.getElementById('create-user-form');
   if(formCreateUser){
@@ -2218,11 +2230,15 @@ async function renderAdminUsers(filtreRoles){
     });
   }
 
-  content.querySelectorAll('[data-save-user]').forEach(btn => {
+  attacherActionsUtilisateurs(content, users, filtreRoles);
+}
+
+function attacherActionsUtilisateurs(container, users, filtreRoles){
+  container.querySelectorAll('[data-save-user]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.saveUser;
-      const role = content.querySelector(`[data-user-role="${id}"]`).value;
-      const classeRaw = content.querySelector(`[data-user-classe="${id}"]`).value;
+      const role = container.querySelector(`[data-user-role="${id}"]`).value;
+      const classeRaw = container.querySelector(`[data-user-classe="${id}"]`).value;
       try{
         await api('/users/' + id, { method:'PATCH', body: JSON.stringify({
           role,
@@ -2233,7 +2249,7 @@ async function renderAdminUsers(filtreRoles){
     });
   });
 
-  content.querySelectorAll('[data-reset-password]').forEach(btn => {
+  container.querySelectorAll('[data-reset-password]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.resetPassword;
       const suggestion = generateRandomPassword();
@@ -2246,7 +2262,7 @@ async function renderAdminUsers(filtreRoles){
     });
   });
 
-  content.querySelectorAll('[data-regenerer-activation]').forEach(btn => {
+  container.querySelectorAll('[data-regenerer-activation]').forEach(btn => {
     btn.addEventListener('click', async () => {
       if(!confirm("Régénérer un nouveau code d'activation pour ce compte ? L'ancien code ne fonctionnera plus.")) return;
       try{
@@ -2257,7 +2273,7 @@ async function renderAdminUsers(filtreRoles){
     });
   });
 
-  content.querySelectorAll('[data-dossier-prof]').forEach(btn => {
+  container.querySelectorAll('[data-dossier-prof]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const profId = btn.dataset.dossierProf;
       const u = users.find(x => String(x.id) === profId);
@@ -2265,7 +2281,7 @@ async function renderAdminUsers(filtreRoles){
     });
   });
 
-  content.querySelectorAll('[data-toggle-actif]').forEach(btn => {
+  container.querySelectorAll('[data-toggle-actif]').forEach(btn => {
     btn.addEventListener('click', async () => {
       try{
         await api('/users/' + btn.dataset.toggleActif + '/actif', { method:'PATCH' });
@@ -2275,7 +2291,7 @@ async function renderAdminUsers(filtreRoles){
     });
   });
 
-  content.querySelectorAll('[data-delete-user]').forEach(btn => {
+  container.querySelectorAll('[data-delete-user]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.deleteUser;
       if(!confirm('Supprimer définitivement cet utilisateur (id ' + id + ') ?')) return;
@@ -2300,6 +2316,54 @@ async function renderAdminUsers(filtreRoles){
           toast(err.message, 'error');
         }
       }
+    });
+  });
+}
+
+function afficherDossiersClassesEleves(zone, eleves, classes, enTeteColonnes, ligneUtilisateur, filtreRoles){
+  const parClasse = {};
+  const sansClasse = [];
+  eleves.forEach(e => {
+    const classe = classes.find(c => c.id === e.classeId);
+    if(!classe){ sansClasse.push(e); return; }
+    if(!parClasse[classe.nom]) parClasse[classe.nom] = [];
+    parClasse[classe.nom].push(e);
+  });
+  const nomsClasses = Object.keys(parClasse).sort();
+
+  const dossiers = nomsClasses.map(nom => `
+    <div class="dossier-classe" data-dossier-classe-eleves="${escapeHtml(nom)}">
+      <div class="dossier-icone" style="color:${stringToColor(nom)};">${ICONE_DOSSIER}</div>
+      <div class="dossier-nom">${escapeHtml(nom)}</div>
+      <div class="dossier-matiere">${parClasse[nom].length} élève${parClasse[nom].length > 1 ? 's' : ''}</div>
+    </div>`).join('');
+  const dossierSansClasse = sansClasse.length ? `
+    <div class="dossier-classe" data-dossier-classe-eleves="__sans_classe__">
+      <div class="dossier-icone" style="color:var(--text-muted);">${ICONE_DOSSIER}</div>
+      <div class="dossier-nom">Sans classe assignée</div>
+      <div class="dossier-matiere">${sansClasse.length} élève${sansClasse.length > 1 ? 's' : ''}</div>
+    </div>` : '';
+
+  zone.innerHTML = eleves.length
+    ? `<div class="dossiers-grille">${dossiers}${dossierSansClasse}</div>`
+    : '<div class="empty-state">Aucun élève pour l\'instant.</div>';
+
+  zone.querySelectorAll('[data-dossier-classe-eleves]').forEach(carte => {
+    carte.addEventListener('click', () => {
+      const cle = carte.dataset.dossierClasseEleves;
+      const listeEleves = cle === '__sans_classe__' ? sansClasse : parClasse[cle];
+      const nomAffiche = cle === '__sans_classe__' ? 'Sans classe assignée' : cle;
+      zone.innerHTML = `
+        <p style="margin:0 0 14px;"><a href="#" id="eleves-retour-classes" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">← Toutes les classes</a></p>
+        <h3 style="font-size:14.5px;color:var(--teal-700);margin:0 0 10px;">${escapeHtml(nomAffiche)} (${listeEleves.length})</h3>
+        <table><thead><tr>${enTeteColonnes}</tr></thead><tbody>${listeEleves.map(ligneUtilisateur).join('')}</tbody></table>`;
+
+      document.getElementById('eleves-retour-classes').addEventListener('click', (e) => {
+        e.preventDefault();
+        afficherDossiersClassesEleves(zone, eleves, classes, enTeteColonnes, ligneUtilisateur, filtreRoles);
+      });
+
+      attacherActionsUtilisateurs(zone, listeEleves, filtreRoles);
     });
   });
 }
