@@ -637,6 +637,7 @@
 // et une fois déployé en ligne.
 const API_BASE = window.location.origin;
 let etablissementDetecteNom = null;
+let espaceChoisiActuel = null;
 document.getElementById('api-base-display').textContent = API_BASE;
 
 let state = { token: null, user: null };
@@ -936,6 +937,21 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   errorBox.style.display = 'none';
   try{
     const data = await api('/auth/login', { method:'POST', body: JSON.stringify({ identifiant, password }) });
+
+    const rolesAutorisesParEspace = {
+      etudiant: ['ETUDIANT'],
+      professeur: ['PROFESSEUR'],
+      parent: ['PARENT'],
+      administration: ['ADMIN', 'CHEF_ETABLISSEMENT', 'VIE_SCOLAIRE'],
+      'chef-projet': ['CHEF_PROJET'],
+    };
+    const rolesAutorises = rolesAutorisesParEspace[espaceChoisiActuel];
+    if(rolesAutorises && !rolesAutorises.includes(data.user.role)){
+      errorBox.textContent = "Ce compte ne correspond pas à cet espace. Reviens en arrière et choisis le bon espace pour te connecter.";
+      errorBox.style.display = 'block';
+      return;
+    }
+
     saveSession(data.access_token, data.user);
     enterApp();
   }catch(err){
@@ -999,6 +1015,7 @@ document.getElementById('forgot-password-link').addEventListener('click', (e) =>
 
 document.querySelectorAll('.espace-carte').forEach(carte => {
   carte.addEventListener('click', () => {
+    espaceChoisiActuel = carte.dataset.espace;
     document.getElementById('espace-selection-card').classList.add('hidden');
     document.getElementById('espace-administration-card').classList.add('hidden');
     document.getElementById('login-card-connexion').classList.remove('hidden');
@@ -2599,7 +2616,12 @@ async function renderAdminMatieres(){
   const etablissementsListe = state.user.role === 'CHEF_PROJET' ? await api('/etablissements') : [];
   document.getElementById('page-subtitle').textContent = matieres.length + ' matières';
   const content = document.getElementById('content');
-  const rows = matieres.map(m => `<tr><td>${m.id}</td><td><span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span></td><td>${m.coefficient}</td><td><button class="btn-secondary" data-voir-classes-matiere="${m.id}">Voir les classes/profs</button> <button class="btn-secondary" data-delete-matiere="${m.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td></tr>`).join('');
+  const dossiersMatieres = matieres.map(m => `
+    <div class="dossier-classe" data-dossier-matiere="${m.id}">
+      <div class="dossier-icone" style="color:${stringToColor(m.nom)};">${ICONE_DOSSIER}</div>
+      <div class="dossier-nom">${escapeHtml(m.nom)}</div>
+      <div class="dossier-matiere">Coefficient ${m.coefficient}</div>
+    </div>`).join('');
 
   content.innerHTML = `
     <div class="card">
@@ -2613,7 +2635,7 @@ async function renderAdminMatieres(){
     </div>
     <div class="card">
       <h2>Matières existantes</h2>
-      ${matieres.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Coefficient</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune matière.</div>'}
+      ${matieres.length ? `<div class="dossiers-grille">${dossiersMatieres}</div>` : '<div class="empty-state">Aucune matière.</div>'}
     </div>
     <div id="roster-matiere-zone"></div>
     <div class="card">
@@ -2623,16 +2645,16 @@ async function renderAdminMatieres(){
           <label>Matière</label>
           <select name="matiereId" id="inscription-matiere-select">${matieres.map(m=>`<option value="${m.id}">${escapeHtml(m.nom)}</option>`).join('') || '<option value="">Aucune matière</option>'}</select>
         </div>
-        <div class="f"><label>Numéro étudiant</label><input type="text" name="numeroEtudiant" required placeholder="ETU-00007" /></div>
+        <div class="f"><label>Numéro étudiant</label><input type="text" name="numeroEtudiant" required placeholder="00007" /></div>
         <button class="btn-submit" type="submit">Inscrire</button>
         <button class="btn-secondary" type="button" id="voir-inscrits-btn">Voir les inscrits</button>
       </form>
       <div id="inscrits-liste" style="margin-top:14px;"></div>
     </div>`;
 
-  content.querySelectorAll('[data-voir-classes-matiere]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const matiere = matieres.find(m => String(m.id) === btn.dataset.voirClassesMatiere);
+  content.querySelectorAll('[data-dossier-matiere]').forEach(carte => {
+    carte.addEventListener('click', () => {
+      const matiere = matieres.find(m => String(m.id) === carte.dataset.dossierMatiere);
       const zone = document.getElementById('roster-matiere-zone');
       const liees = enseignements.filter(e => e.matiere.id === matiere.id);
       const rowsLiees = liees.map(e => `
@@ -2644,7 +2666,9 @@ async function renderAdminMatieres(){
         <div class="card">
           <h2>${escapeHtml(matiere.nom)} — ${liees.length} classe${liees.length > 1 ? 's' : ''}</h2>
           ${liees.length ? `<table><thead><tr><th>Classe</th><th>Professeur</th></tr></thead><tbody>${rowsLiees}</tbody></table>` : '<div class="empty-state">Aucune classe n\'enseigne encore cette matière.</div>'}
+          <button class="btn-secondary" data-delete-matiere="${matiere.id}" style="border-color:var(--danger);color:var(--danger);margin-top:14px;">Supprimer cette matière</button>
         </div>`;
+      bindSupprimerMatiere(zone);
     });
   });
 
@@ -2699,7 +2723,10 @@ async function renderAdminMatieres(){
     }catch(err){ toast(err.message, 'error'); }
   });
 
-  content.querySelectorAll('[data-delete-matiere]').forEach(btn => {
+}
+
+function bindSupprimerMatiere(container){
+  container.querySelectorAll('[data-delete-matiere]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.deleteMatiere;
       if(!confirm('Supprimer définitivement cette matière ?')) return;
