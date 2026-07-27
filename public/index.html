@@ -215,7 +215,7 @@
   .content{flex:1;padding:26px 28px 60px;overflow-y:auto;overflow-x:hidden;max-width:100%;}
 
   /* ---------- SHARED UI ---------- */
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px;max-width:100%;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px;max-width:100%;overflow-x:auto;}
   .table-shrink-row{display:flex;justify-content:flex-end;margin-bottom:6px;}
   .table-shrink-btn{
     width:30px;height:30px;border-radius:8px;flex-shrink:0;
@@ -635,7 +635,7 @@ const I18N = {
     nav_emploi: 'Emploi du temps', nav_groupes: 'Groupes', nav_reunions: 'Réunions', nav_messagerie: 'Messagerie', nav_rendez_vous: 'Rendez-vous', nav_mes_documents: 'Mes documents',
     nav_enseignements: 'Mes classes', nav_appel: "Faire l'appel", nav_saisir_note: 'Saisir une note', nav_epreuves: 'Épreuves',
     nav_declarer_absence: 'Déclarer une absence', nav_observations: 'Observations', nav_punitions: 'Punitions',
-    nav_cahier_texte: 'Cahier de texte', nav_parametres: 'Paramètres', nav_enfants: 'Mes enfants',
+    nav_cahier_texte: 'Cahier de texte', nav_parametres: 'Paramètres', nav_enfants: 'Mes enfants', nav_bibliotheque: 'Bibliothèque',
     nav_utilisateurs: 'Utilisateurs', nav_eleves: 'Élèves', nav_personnel: 'Personnel', nav_inscriptions: 'Inscriptions', nav_classes: 'Classes', nav_etablissements: 'Établissements', nav_statistiques: 'Statistiques',
     nav_matieres: 'Matières', nav_enseignements_admin: 'Enseignements', nav_creneaux_admin: 'Emploi du temps',
     nav_liaisons: 'Liaisons parents', nav_vie_scolaire: 'Vie scolaire', nav_bulletins_pdf: 'Bulletins PDF', nav_certificats: 'Certificats',
@@ -667,7 +667,7 @@ const I18N = {
     nav_emploi: 'Timetable', nav_groupes: 'Groups', nav_reunions: 'Meetings', nav_messagerie: 'Messages', nav_rendez_vous: 'Appointments', nav_mes_documents: 'My documents',
     nav_enseignements: 'My classes', nav_appel: 'Take attendance', nav_saisir_note: 'Enter a grade', nav_epreuves: 'Tests',
     nav_declarer_absence: 'Report an absence', nav_observations: 'Remarks', nav_punitions: 'Sanctions',
-    nav_cahier_texte: 'Class logbook', nav_parametres: 'Settings', nav_enfants: 'My children',
+    nav_cahier_texte: 'Class logbook', nav_parametres: 'Settings', nav_enfants: 'My children', nav_bibliotheque: 'Library',
     nav_utilisateurs: 'Users', nav_eleves: 'Students', nav_personnel: 'Staff', nav_inscriptions: 'Enrolments', nav_classes: 'Classes', nav_etablissements: 'Schools', nav_statistiques: 'Statistics',
     nav_matieres: 'Subjects', nav_enseignements_admin: 'Teaching assignments', nav_creneaux_admin: 'Timetable',
     nav_liaisons: 'Parent links', nav_vie_scolaire: 'Student life', nav_bulletins_pdf: 'Report cards (PDF)', nav_certificats: 'Certificates',
@@ -699,7 +699,7 @@ const I18N = {
     nav_emploi: 'الجدول الزمني', nav_groupes: 'المجموعات', nav_reunions: 'الاجتماعات', nav_messagerie: 'الرسائل', nav_rendez_vous: 'المواعيد', nav_mes_documents: 'مستنداتي',
     nav_enseignements: 'أقسامي', nav_appel: 'أخذ الحضور', nav_saisir_note: 'إدخال نقطة', nav_epreuves: 'الاختبارات',
     nav_declarer_absence: 'تسجيل غياب', nav_observations: 'ملاحظات', nav_punitions: 'عقوبات',
-    nav_cahier_texte: 'دفتر النصوص', nav_parametres: 'الإعدادات', nav_enfants: 'أبنائي',
+    nav_cahier_texte: 'دفتر النصوص', nav_parametres: 'الإعدادات', nav_enfants: 'أبنائي', nav_bibliotheque: 'المكتبة',
     nav_utilisateurs: 'المستخدمون', nav_eleves: 'الطلاب', nav_personnel: 'الموظفون', nav_inscriptions: 'التسجيلات', nav_classes: 'الأقسام', nav_etablissements: 'المؤسسات', nav_statistiques: 'الإحصائيات',
     nav_matieres: 'المواد', nav_enseignements_admin: 'التكليفات التعليمية', nav_creneaux_admin: 'الجدول الزمني',
     nav_liaisons: 'روابط أولياء الأمور', nav_vie_scolaire: 'الحياة المدرسية', nav_bulletins_pdf: 'كشوف النقاط PDF', nav_certificats: 'الشهادات',
@@ -1085,6 +1085,7 @@ function svgIcon(inner){
 }
 
 const NAV_ICONS = {
+  bibliotheque: svgIcon('<path d="M4 19.5V5.5a2 2 0 0 1 2-2h3v18H6a2 2 0 0 1-2-2z"/><path d="M13 3.5h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3z"/><path d="M9 3.5h4v18H9z"/>'),
   actualites: svgIcon('<path d="M12 3a4 4 0 0 0-4 4v3c0 1-.5 2-1.5 3h11c-1-1-1.5-2-1.5-3V7a4 4 0 0 0-4-4z"/><path d="M9.5 18a2.5 2.5 0 0 0 5 0"/>'),
   sondages: svgIcon('<path d="M4 20V10M10 20V4M16 20v-7M4 20h16"/>'),
   bulletin: svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
