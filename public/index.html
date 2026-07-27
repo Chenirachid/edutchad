@@ -3480,13 +3480,16 @@ function buildBulletinSheetHTML(bulletin){
       ${bulletin.appreciation ? `<div style="font-size:13px;font-style:italic;color:#444;margin:10px 0 20px;padding:12px 14px;background:var(--teal-100);border-radius:8px;">« ${escapeHtml(bulletin.appreciation)} »</div>` : ''}
       <div class="certificat-signature" style="margin-top:40px;">
         <div class="certificat-date">Fait le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}</div>
+        ${parametres.cachetData ? `
+        <img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet" style="max-width:100px;max-height:100px;" />
+        ` : `
         <div class="certificat-cachet" style="width:100px;height:100px;">
           <div class="certificat-cachet-inner" style="width:80px;height:80px;">
             <div class="etab-nom">${escapeHtml(parametres.nomEtablissement)}</div>
             <div class="etoile" style="font-size:13px;">★</div>
             <div class="valide" style="font-size:7px;">CACHET OFFICIEL</div>
           </div>
-        </div>
+        </div>`}
       </div>
       <div class="bulletin-footer">${escapeHtml(parametres.nomEtablissement)} — Document généré automatiquement</div>
     </div>`;
@@ -3564,13 +3567,16 @@ function printCertificat(etudiant, classe, parametres){
       </div>
       <div class="certificat-signature">
         <div class="certificat-date">Fait le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}</div>
+        ${parametres.cachetData ? `
+        <img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet" style="max-width:130px;max-height:130px;" />
+        ` : `
         <div class="certificat-cachet">
           <div class="certificat-cachet-inner">
             <div class="etab-nom">${escapeHtml(parametres.nomEtablissement)}</div>
             <div class="etoile">★</div>
             <div class="valide">CACHET OFFICIEL</div>
           </div>
-        </div>
+        </div>`}
       </div>
       <div class="certificat-mention">Document généré automatiquement par ${escapeHtml(parametres.nomEtablissement)}</div>
     </div>`;
@@ -5213,6 +5219,15 @@ async function renderParametres(){
           <div class="f"><label>Fin de la pause</label><input type="time" name="heureFinPause" value="${params.heureFinPause || '13:00'}" required /></div>
           <button class="btn-submit" type="submit">Enregistrer</button>
         </form>
+        <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);">
+          <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 6px;">Cachet de l'établissement</p>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 12px;">Ce cachet apparaîtra automatiquement sur le certificat de scolarité, les bulletins et les autres attestations imprimées — propre à cet établissement.</p>
+          ${params.cachetData ? `<img src="data:${params.cachetType};base64,${params.cachetData}" alt="Cachet" style="max-width:140px;max-height:140px;display:block;margin-bottom:12px;border:1px solid var(--border);border-radius:8px;padding:6px;" />` : ''}
+          <form class="inline-form" id="cachet-form">
+            <div class="f"><label>${params.cachetData ? 'Remplacer le cachet' : 'Ajouter un cachet'} (image, max 2 Mo)</label><input type="file" name="cachet" id="cachet-fichier" accept="image/*" /></div>
+            <button class="btn-submit" type="submit">Enregistrer le cachet</button>
+          </form>
+        </div>
       </div>`;
   }
 
@@ -5258,6 +5273,26 @@ async function renderParametres(){
           heureFinPause: fd.get('heureFinPause'),
         })});
         toast('Paramètres de la plateforme mis à jour.');
+      }catch(err){ toast(err.message, 'error'); }
+    });
+
+    document.getElementById('cachet-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fichier = document.getElementById('cachet-fichier').files[0];
+      if(!fichier){ toast('Choisis une image.', 'error'); return; }
+      if(fichier.size > 2 * 1024 * 1024){ toast("L'image dépasse 2 Mo.", 'error'); return; }
+      try{
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(fichier);
+        });
+        await api('/parametres', { method:'PATCH', body: JSON.stringify({
+          cachetData: base64, cachetType: fichier.type,
+        })});
+        toast('Cachet enregistré.');
+        renderParametres();
       }catch(err){ toast(err.message, 'error'); }
     });
   }
