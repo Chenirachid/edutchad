@@ -32,4 +32,16 @@ export class UpdateParametresDto {
   @IsOptional()
   @IsString()
   cachetType?: string;
+
+  @IsOptional()
+  @IsString()
+  adresse?: string;
+
+  @IsOptional()
+  @IsString()
+  telephone?: string;
+
+  @IsOptional()
+  @IsString()
+  siteWeb?: string;
 }

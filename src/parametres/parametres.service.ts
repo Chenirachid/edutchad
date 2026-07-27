@@ -9,11 +9,13 @@ export class ParametresService {
   async get(etablissementId: number | null) {
     const existing = await this.prisma.parametrePlateforme.findFirst({
       where: { etablissementId },
+      include: { etablissement: { select: { code: true } } },
     });
     if (existing) return existing;
 
     return this.prisma.parametrePlateforme.create({
       data: { etablissementId },
+      include: { etablissement: { select: { code: true } } },
     });
   }
 
@@ -22,6 +24,7 @@ export class ParametresService {
     return this.prisma.parametrePlateforme.update({
       where: { id: existing.id },
       data: dto,
+      include: { etablissement: { select: { code: true } } },
     });
   }
 }

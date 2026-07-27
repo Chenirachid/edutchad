@@ -258,6 +258,9 @@ model ParametrePlateforme {
   heureFinPause    String   @default("13:00")
   cachetData       String?  @db.Text
   cachetType       String?
+  adresse          String?
+  telephone        String?
+  siteWeb          String?
   updatedAt        DateTime @updatedAt
 
   etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])

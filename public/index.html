@@ -3554,6 +3554,7 @@ function printCertificat(etudiant, classe, parametres){
       <div class="certificat-entete">
         <h1>${escapeHtml(parametres.nomEtablissement)}</h1>
         <div class="etab">Année scolaire ${escapeHtml(parametres.anneeScolaire)}</div>
+        ${parametres.adresse || parametres.telephone ? `<div class="etab" style="font-size:11px;">${[parametres.adresse, parametres.telephone].filter(Boolean).map(escapeHtml).join(' — ')}</div>` : ''}
       </div>
       <div class="certificat-titre">Certificat de scolarité</div>
       <div class="certificat-corps">
@@ -5217,8 +5218,20 @@ async function renderParametres(){
           <div class="f"><label>Barème de notation (sur)</label><input type="number" name="bareme" min="10" max="100" value="${params.bareme}" required /></div>
           <div class="f"><label>Début de la pause</label><input type="time" name="heureDebutPause" value="${params.heureDebutPause || '12:00'}" required /></div>
           <div class="f"><label>Fin de la pause</label><input type="time" name="heureFinPause" value="${params.heureFinPause || '13:00'}" required /></div>
+          <div class="f"><label>Adresse de l'établissement</label><input type="text" name="adresse" value="${escapeHtml(params.adresse || '')}" placeholder="Quartier, ville" /></div>
+          <div class="f"><label>Numéro d'accueil</label><input type="text" name="telephone" value="${escapeHtml(params.telephone || '')}" placeholder="+235 ..." /></div>
+          <div class="f"><label>Site internet de l'établissement</label><input type="text" name="siteWeb" value="${escapeHtml(params.siteWeb || '')}" placeholder="https://..." /></div>
           <button class="btn-submit" type="submit">Enregistrer</button>
         </form>
+        ${params.etablissement && params.etablissement.code ? `
+        <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);">
+          <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 6px;">Lien de connexion à mettre sur votre site</p>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 10px;">Ajoutez un bouton « Se connecter » sur la page d'accueil de votre propre site internet, qui pointe vers ce lien — il amène directement à l'espace de connexion de votre établissement sur ${escapeHtml(params.nomEtablissement)}.</p>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <code id="lien-connexion-etab" style="background:var(--bg);padding:8px 12px;border-radius:6px;font-size:12.5px;">${API_BASE}/e/${escapeHtml(params.etablissement.code)}</code>
+            <button class="btn-secondary" id="copier-lien-etab-btn" type="button">📋 Copier le lien</button>
+          </div>
+        </div>` : ''}
         <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);">
           <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 6px;">Cachet de l'établissement</p>
           <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 12px;">Ce cachet apparaîtra automatiquement sur le certificat de scolarité, les bulletins et les autres attestations imprimées — propre à cet établissement.</p>
@@ -5271,10 +5284,21 @@ async function renderParametres(){
           bareme: Number(fd.get('bareme')),
           heureDebutPause: fd.get('heureDebutPause'),
           heureFinPause: fd.get('heureFinPause'),
+          adresse: fd.get('adresse') || undefined,
+          telephone: fd.get('telephone') || undefined,
+          siteWeb: fd.get('siteWeb') || undefined,
         })});
         toast('Paramètres de la plateforme mis à jour.');
       }catch(err){ toast(err.message, 'error'); }
     });
+
+    const copierLienBtn = document.getElementById('copier-lien-etab-btn');
+    if(copierLienBtn){
+      copierLienBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById('lien-connexion-etab').textContent);
+        toast('Lien copié !');
+      });
+    }
 
     document.getElementById('cachet-form').addEventListener('submit', async (e) => {
       e.preventDefault();
