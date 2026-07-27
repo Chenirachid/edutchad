@@ -24,15 +24,23 @@ import { Roles } from '../auth/decorators/roles.decorator';
 export class EtablissementsController {
   constructor(private readonly etablissementsService: EtablissementsService) {}
 
-  // Route publique (aucune authentification) : juste le nom, pour personnaliser
-  // l'écran de connexion via un lien du type /e/<code>.
+  // Route publique (aucune authentification) : nom + coordonnées, pour afficher
+  // une petite page d'accueil dédiée via un lien du type /e/<code>.
   @Get('public/:code')
   async findPublicByCode(@Param('code') code: string) {
     const etablissement = await this.etablissementsService.findByCode(code);
     if (!etablissement) {
       throw new NotFoundException('Établissement introuvable');
     }
-    return { nom: etablissement.nom, code: etablissement.code };
+    return {
+      nom: etablissement.nom,
+      code: etablissement.code,
+      adresse: etablissement.parametres?.adresse ?? null,
+      telephone: etablissement.parametres?.telephone ?? null,
+      siteWeb: etablissement.parametres?.siteWeb ?? null,
+      cachetData: etablissement.parametres?.cachetData ?? null,
+      cachetType: etablissement.parametres?.cachetType ?? null,
+    };
   }
 
   @Post()

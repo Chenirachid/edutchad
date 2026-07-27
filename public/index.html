@@ -468,6 +468,12 @@
     </div>
   </div>
   <div class="portail-panneau-droit">
+    <div class="login-card hidden" id="vitrine-etablissement-card">
+      <p style="text-align:center;font-size:20px;font-weight:700;color:var(--teal-900);margin:0 0 6px;" id="vitrine-nom"></p>
+      <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 4px;" id="vitrine-adresse"></p>
+      <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 20px;" id="vitrine-telephone"></p>
+      <button class="btn-primary" id="vitrine-se-connecter-btn" style="width:100%;">Se connecter →</button>
+    </div>
     <div class="login-card" id="espace-selection-card">
       <p class="login-sub">Choisis ton espace pour te connecter.</p>
       <div class="espaces-grille">
@@ -5376,6 +5382,16 @@ if(restoreSession()){
           const marque = document.getElementById('marque-etablissement-nom');
           marque.textContent = data.nom;
           marque.classList.remove('hidden');
+
+          document.getElementById('vitrine-nom').textContent = data.nom;
+          if(data.adresse){ document.getElementById('vitrine-adresse').textContent = '📍 ' + data.adresse; }
+          if(data.telephone){ document.getElementById('vitrine-telephone').textContent = '📞 ' + data.telephone; }
+          document.getElementById('espace-selection-card').classList.add('hidden');
+          document.getElementById('vitrine-etablissement-card').classList.remove('hidden');
+          document.getElementById('vitrine-se-connecter-btn').addEventListener('click', () => {
+            document.getElementById('vitrine-etablissement-card').classList.add('hidden');
+            document.getElementById('espace-selection-card').classList.remove('hidden');
+          });
         }
       })
       .catch(() => {});
