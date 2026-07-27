@@ -580,10 +580,17 @@ model DocumentProfesseur {
   nom       String
   type      String
   data      String                  @db.Text
+  statut    StatutValidationDocument @default(EN_ATTENTE)
   createdAt DateTime                @default(now())
 
   dossier   DossierProfesseur @relation(fields: [dossierId], references: [id])
   dossierId Int
+}
+
+enum StatutValidationDocument {
+  EN_ATTENTE
+  VALIDE
+  REFUSE
 }
 
 enum CategorieDocumentProf {
