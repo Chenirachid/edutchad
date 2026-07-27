@@ -62,6 +62,11 @@ async function bootstrap() {
     res.sendFile(join(process.cwd(), 'public', 'index.html'));
   });
 
+  // Page de présentation publique de la plateforme (séparée de la connexion).
+  app.getHttpAdapter().getInstance().get('/presentation', (req, res) => {
+    res.sendFile(join(process.cwd(), 'public', 'presentation.html'));
+  });
+
   const config = new DocumentBuilder()
     .setTitle('EduCheni API')
     .setDescription(
