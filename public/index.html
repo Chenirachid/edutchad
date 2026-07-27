@@ -365,11 +365,19 @@
   .child-card .actions{margin-left:auto;display:flex;gap:8px;}
   .btn-secondary{padding:7px 13px;border-radius:7px;border:1.5px solid var(--teal-500);background:#fff;color:var(--teal-700);font-size:12.5px;font-weight:600;}
   .btn-icone{
-    width:30px;height:30px;padding:0;border-radius:7px;border:1.5px solid var(--teal-500);
-    background:#fff;color:var(--teal-700);font-size:14px;flex-shrink:0;
+    width:32px;height:32px;padding:0;border-radius:50%;border:none;
+    background:var(--teal-100);color:var(--teal-700);font-size:14px;flex-shrink:0;
     display:inline-flex;align-items:center;justify-content:center;
+    transition:transform .15s ease,box-shadow .15s ease;
+    box-shadow:0 1px 2px rgba(0,0,0,.08);
   }
-  .btn-icone:hover{background:var(--teal-100);}
+  .btn-icone:hover{transform:translateY(-3px) scale(1.08);box-shadow:0 6px 14px rgba(0,0,0,.16);}
+  .btn-icone:active{transform:translateY(-1px) scale(1.02);}
+  .btn-icone.icone-cle{background:#FEF3C7;color:#B45309;}
+  .btn-icone.icone-imprimante{background:#DBEAFE;color:#1D4ED8;}
+  .btn-icone.icone-dossier{background:#EDE9FE;color:#6D28D9;}
+  .btn-icone.icone-cadenas{background:#E5E7EB;color:#374151;}
+  .btn-icone.icone-corbeille{background:#FEE2E2;color:#DC2626;}
   .btn-secondary:hover{background:var(--teal-100);}
 
   /* ---------- IMPRESSION BULLETIN ---------- */
@@ -2153,11 +2161,11 @@ async function renderAdminUsers(filtreRoles){
       <td style="min-width:140px;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
           <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
-          <button class="btn-icone" data-reset-password="${u.id}" title="Réinitialiser le mot de passe">🔑</button>
-          <button class="btn-icone" data-regenerer-activation="${u.id}" title="Réimprimer le document d'activation">🖨️</button>
-          ${u.role === 'PROFESSEUR' ? `<button class="btn-icone" data-dossier-prof="${u.id}" title="Dossier professeur">📁</button>` : ''}
-          <button class="btn-icone" data-toggle-actif="${u.id}" title="${u.actif === false ? 'Réactiver le compte' : 'Désactiver le compte'}">${u.actif === false ? '🔓' : '🔒'}</button>
-          <button class="btn-icone" data-delete-user="${u.id}" title="Supprimer le compte" style="border-color:var(--danger);color:var(--danger);">🗑️</button>
+          <button class="btn-icone icone-cle" data-reset-password="${u.id}" title="Réinitialiser le mot de passe">🔑</button>
+          <button class="btn-icone icone-imprimante" data-regenerer-activation="${u.id}" title="Réimprimer le document d'activation">🖨️</button>
+          ${u.role === 'PROFESSEUR' ? `<button class="btn-icone icone-dossier" data-dossier-prof="${u.id}" title="Dossier professeur">📁</button>` : ''}
+          <button class="btn-icone icone-cadenas" data-toggle-actif="${u.id}" title="${u.actif === false ? 'Réactiver le compte' : 'Désactiver le compte'}">${u.actif === false ? '🔓' : '🔒'}</button>
+          <button class="btn-icone icone-corbeille" data-delete-user="${u.id}" title="Supprimer le compte">🗑️</button>
         </div>
       </td>
     </tr>`).join('');
