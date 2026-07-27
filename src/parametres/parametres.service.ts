@@ -27,4 +27,13 @@ export class ParametresService {
       include: { etablissement: { select: { code: true } } },
     });
   }
+
+  async supprimerCachet(etablissementId: number | null) {
+    const existing = await this.get(etablissementId);
+    return this.prisma.parametrePlateforme.update({
+      where: { id: existing.id },
+      data: { cachetData: null, cachetType: null },
+      include: { etablissement: { select: { code: true } } },
+    });
+  }
 }

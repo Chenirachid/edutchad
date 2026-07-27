@@ -5245,6 +5245,7 @@ async function renderParametres(){
           <form class="inline-form" id="cachet-form">
             <div class="f"><label>${params.cachetData ? 'Remplacer le cachet' : 'Ajouter un cachet'} (image, max 2 Mo)</label><input type="file" name="cachet" id="cachet-fichier" accept="image/*" /></div>
             <button class="btn-submit" type="submit">Enregistrer le cachet</button>
+            ${params.cachetData ? `<button class="btn-secondary" type="button" id="cachet-supprimer-btn" style="border-color:var(--danger);color:var(--danger);">Supprimer le cachet</button>` : ''}
           </form>
         </div>
       </div>`;
@@ -5325,6 +5326,18 @@ async function renderParametres(){
         renderParametres();
       }catch(err){ toast(err.message, 'error'); }
     });
+
+    const btnSupprimerCachet = document.getElementById('cachet-supprimer-btn');
+    if(btnSupprimerCachet){
+      btnSupprimerCachet.addEventListener('click', async () => {
+        if(!confirm('Supprimer le cachet de cet établissement ?')) return;
+        try{
+          await api('/parametres/cachet', { method:'DELETE' });
+          toast('Cachet supprimé.');
+          renderParametres();
+        }catch(err){ toast(err.message, 'error'); }
+      });
+    }
   }
 }
 

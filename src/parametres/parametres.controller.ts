@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { ParametresService } from './parametres.service';
@@ -25,5 +25,11 @@ export class ParametresController {
   @Roles(Role.ADMIN)
   update(@Body() dto: UpdateParametresDto, @CurrentUser() user: JwtPayload) {
     return this.parametresService.update(dto, user.etablissementId);
+  }
+
+  @Delete('cachet')
+  @Roles(Role.ADMIN)
+  supprimerCachet(@CurrentUser() user: JwtPayload) {
+    return this.parametresService.supprimerCachet(user.etablissementId);
   }
 }
