@@ -2258,7 +2258,7 @@ async function renderAdminUsers(filtreRoles){
   if(estVueEleves){
     afficherDossiersClassesEleves(zoneListe, users, classes, enTeteColonnes, ligneUtilisateur, filtreRoles);
   } else {
-    zoneListe.innerHTML = `<table><thead><tr>${enTeteColonnes}</tr></thead><tbody>${rows}</tbody></table>`;
+    afficherDossiersRoles(zoneListe, users, enTeteColonnes, ligneUtilisateur, filtreRoles);
   }
 
   const formCreateUser = document.getElementById('create-user-form');
@@ -2413,6 +2413,49 @@ function afficherDossiersClassesEleves(zone, eleves, classes, enTeteColonnes, li
       });
 
       attacherActionsUtilisateurs(zone, listeEleves, filtreRoles);
+    });
+  });
+}
+
+const LABEL_ROLE_DOSSIER = {
+  PROFESSEUR: 'Professeurs', ADMIN: 'Administrateurs', PARENT: 'Parents',
+  VIE_SCOLAIRE: 'Vie scolaire', CHEF_ETABLISSEMENT: "Chefs d'établissement", CHEF_PROJET: 'Chefs de projet',
+};
+
+function afficherDossiersRoles(zone, users, enTeteColonnes, ligneUtilisateur, filtreRoles){
+  const parRole = {};
+  users.forEach(u => {
+    if(!parRole[u.role]) parRole[u.role] = [];
+    parRole[u.role].push(u);
+  });
+  const rolesPresents = Object.keys(parRole).sort((a, b) => (LABEL_ROLE_DOSSIER[a] || a).localeCompare(LABEL_ROLE_DOSSIER[b] || b));
+
+  const dossiers = rolesPresents.map(role => `
+    <div class="dossier-classe" data-dossier-role="${role}">
+      <div class="dossier-icone" style="color:${stringToColor(role)};">${ICONE_DOSSIER}</div>
+      <div class="dossier-nom">${LABEL_ROLE_DOSSIER[role] || role}</div>
+      <div class="dossier-matiere">${parRole[role].length} compte${parRole[role].length > 1 ? 's' : ''}</div>
+    </div>`).join('');
+
+  zone.innerHTML = users.length
+    ? `<div class="dossiers-grille">${dossiers}</div>`
+    : '<div class="empty-state">Aucun compte pour l\'instant.</div>';
+
+  zone.querySelectorAll('[data-dossier-role]').forEach(carte => {
+    carte.addEventListener('click', () => {
+      const role = carte.dataset.dossierRole;
+      const listeRole = parRole[role];
+      zone.innerHTML = `
+        <p style="margin:0 0 14px;"><a href="#" id="roles-retour" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">← Tous les rôles</a></p>
+        <h3 style="font-size:14.5px;color:var(--teal-700);margin:0 0 10px;">${LABEL_ROLE_DOSSIER[role] || role} (${listeRole.length})</h3>
+        <table><thead><tr>${enTeteColonnes}</tr></thead><tbody>${listeRole.map(ligneUtilisateur).join('')}</tbody></table>`;
+
+      document.getElementById('roles-retour').addEventListener('click', (e) => {
+        e.preventDefault();
+        afficherDossiersRoles(zone, users, enTeteColonnes, ligneUtilisateur, filtreRoles);
+      });
+
+      attacherActionsUtilisateurs(zone, listeRole, filtreRoles);
     });
   });
 }
