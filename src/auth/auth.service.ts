@@ -14,6 +14,8 @@ import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtPayload } from './types/jwt-payload.type';
 import { buildBaseEmail, buildBaseIdentifiant, genererCodeActivation } from '../common/email-generator';
+import { EmailService } from '../email/email.service';
+import { randomBytes } from 'crypto';
 
 const SALT_ROUNDS = 10;
 const MAX_TENTATIVES = 5;
@@ -24,6 +26,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   private async generateUniqueEmail(prenom: string, nom: string, role: Role) {
@@ -195,6 +198,67 @@ export class AuthService {
   async getMe(jwtUser: JwtPayload) {
     const user = await this.prisma.user.findUnique({ where: { id: jwtUser.sub } });
     return { ...jwtUser, emailPersonnel: user?.emailPersonnel ?? null };
+  }
+
+  async demanderReinitialisation(emailPersonnel: string, urlBase: string) {
+    // Réponse volontairement identique que l'email existe ou non, pour ne pas
+    // révéler quelles adresses sont enregistrées dans la plateforme.
+    const messageGenerique = {
+      message:
+        "Si cette adresse est associée à un compte, un email de réinitialisation vient d'être envoyé.",
+    };
+
+    if (!emailPersonnel) return messageGenerique;
+
+    const user = await this.prisma.user.findFirst({ where: { emailPersonnel } });
+    if (!user) return messageGenerique;
+
+    const token = randomBytes(32).toString('hex');
+    const expire = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { resetToken: token, resetTokenExpire: expire },
+    });
+
+    const lien = `${urlBase}/?reset=${token}`;
+    try {
+      await this.emailService.envoyerReinitialisationMotDePasse(emailPersonnel, user.prenom, lien);
+    } catch {
+      // On ne révèle pas l'échec technique à l'appelant, pour ne pas fournir d'indice
+      // sur l'existence du compte — l'erreur est déjà journalisée côté serveur.
+    }
+
+    return messageGenerique;
+  }
+
+  async reinitialiserAvecToken(token: string, nouveauMotDePasse: string) {
+    if (!token) {
+      throw new BadRequestException('Lien de réinitialisation invalide');
+    }
+    const user = await this.prisma.user.findUnique({ where: { resetToken: token } });
+    if (!user || !user.resetTokenExpire || user.resetTokenExpire < new Date()) {
+      throw new BadRequestException(
+        'Ce lien de réinitialisation est invalide ou a expiré. Refais une demande.',
+      );
+    }
+    if (
+      !nouveauMotDePasse ||
+      nouveauMotDePasse.length < 8 ||
+      !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(nouveauMotDePasse)
+    ) {
+      throw new BadRequestException(
+        'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(nouveauMotDePasse, SALT_ROUNDS);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, resetToken: null, resetTokenExpire: null },
+    });
+
+    return { message: 'Mot de passe réinitialisé avec succès' };
   }
 
   async activerCompte(dto: { identifiant: string; codeActivation: string; nouveauMotDePasse: string }) {

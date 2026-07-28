@@ -1,6 +1,7 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -33,6 +34,24 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   activer(@Body() dto: ActiverCompteDto) {
     return this.authService.activerCompte(dto);
+  }
+
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  @Post('mot-de-passe-oublie')
+  @HttpCode(HttpStatus.OK)
+  motDePasseOublie(@Body('emailPersonnel') emailPersonnel: string, @Req() req: Request) {
+    const urlBase = `${req.protocol}://${req.get('host')}`;
+    return this.authService.demanderReinitialisation(emailPersonnel, urlBase);
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('reinitialiser-mot-de-passe')
+  @HttpCode(HttpStatus.OK)
+  reinitialiserMotDePasse(
+    @Body('token') token: string,
+    @Body('nouveauMotDePasse') nouveauMotDePasse: string,
+  ) {
+    return this.authService.reinitialiserAvecToken(token, nouveauMotDePasse);
   }
 
   @ApiBearerAuth('access-token')

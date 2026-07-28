@@ -38,6 +38,8 @@ model User {
   verrouJusqua        DateTime?
   actif               Boolean   @default(true)
   derniereActivite    DateTime?
+  resetToken          String?   @unique
+  resetTokenExpire    DateTime?
 
   etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
   etablissementId Int?
