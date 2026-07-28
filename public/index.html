@@ -628,7 +628,7 @@
       <button class="btn-primary" id="vitrine-se-connecter-btn" style="width:100%;">Se connecter →</button>
     </div>
     <div class="login-card" id="espace-selection-card">
-      <p class="login-sub">Choisis ton espace pour te connecter.</p>
+      <p class="login-sub">Choisissez votre espace pour vous connecter.</p>
       <div class="espaces-grille">
         <button class="espace-carte" data-espace="etudiant" data-label="Espace Élève">
           <span class="espace-icone"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
@@ -679,7 +679,7 @@
         </div>
       </div>
       <p style="text-align:center;font-size:12.5px;font-weight:700;color:var(--teal-700);margin:0 0 6px;" id="espace-choisi-titre">Espace Élève</p>
-      <p class="login-sub" id="login-sous-titre-el">Connecte-toi à ton espace.</p>
+      <p class="login-sub" id="login-sous-titre-el">Connectez-vous à votre espace.</p>
       <div class="login-error" id="login-error"></div>
       <form id="login-form">
         <div class="field">
@@ -717,7 +717,7 @@
             <input type="text" id="activation-code" required style="text-transform:uppercase;" />
           </div>
           <div class="field">
-            <label>Choisis ton mot de passe</label>
+            <label>Choisissez votre mot de passe</label>
             <input type="password" id="activation-password" required minlength="8" placeholder="Min. 8 car., Maj+min+chiffre" />
           </div>
           <button class="btn-primary" type="submit">Activer et se connecter</button>
@@ -729,11 +729,11 @@
 
       <div id="mot-de-passe-oublie-panel" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
         <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 10px;">Mot de passe oublié</p>
-        <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 12px;">Renseigne ton adresse email personnelle (celle enregistrée dans Paramètres → Mon compte) — si elle correspond à un compte, tu recevras un lien pour choisir un nouveau mot de passe.</p>
+        <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 12px;">Renseignez votre adresse email personnelle (celle enregistrée dans Paramètres → Mon compte) — si elle correspond à un compte, vous recevrez un lien pour choisir un nouveau mot de passe.</p>
         <form id="mot-de-passe-oublie-form">
           <div class="field">
             <label>Adresse email personnelle</label>
-            <input type="email" id="mot-de-passe-oublie-email" required placeholder="toi@exemple.com" />
+            <input type="email" id="mot-de-passe-oublie-email" required placeholder="vous@exemple.com" />
           </div>
           <button class="btn-primary" type="submit">Envoyer le lien</button>
         </form>
@@ -743,7 +743,7 @@
       </div>
 
       <div id="reinitialiser-mdp-panel" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-        <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 10px;">Choisis ton nouveau mot de passe</p>
+        <p style="font-size:13px;font-weight:600;color:var(--teal-900);margin:0 0 10px;">Choisissez votre nouveau mot de passe</p>
         <form id="reinitialiser-mdp-form">
           <div class="field">
             <label>Nouveau mot de passe</label>
@@ -825,7 +825,7 @@ const I18N = {
     landing_cta: 'Se connecter',
     landing_f1: 'Notes & bulletins', landing_f2: 'Emploi du temps', landing_f3: 'Absences & retards',
     landing_f4: 'Messagerie & groupes', landing_f5: 'Certificats & frais', landing_f6: 'Cahier de texte',
-    login_sous_titre: 'Connecte-toi à ton espace.',
+    login_sous_titre: 'Connectez-vous à votre espace.',
     login_email: "Nom d'utilisateur", login_password: 'Mot de passe', login_submit: 'Se connecter',
     login_mdp_oublie: 'Mot de passe oublié ?', login_retour_accueil: "← Retour à l'accueil",
     login_connecte_a: 'Connecté à',
@@ -1120,7 +1120,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     };
     const rolesAutorises = rolesAutorisesParEspace[espaceChoisiActuel];
     if(rolesAutorises && !rolesAutorises.includes(data.user.role)){
-      errorBox.textContent = "Ce compte ne correspond pas à cet espace. Reviens en arrière et choisis le bon espace pour te connecter.";
+      errorBox.textContent = "Ce compte ne correspond pas à cet espace. Revenez en arrière et choisissez le bon espace pour vous connecter.";
       errorBox.style.display = 'block';
       return;
     }
@@ -1211,7 +1211,7 @@ document.getElementById('reinitialiser-mdp-form').addEventListener('submit', asy
   const nouveauMotDePasse = document.getElementById('reinitialiser-mdp-nouveau').value;
   try{
     await api('/auth/reinitialiser-mot-de-passe', { method:'POST', body: JSON.stringify({ token: tokenReinitialisationActuel, nouveauMotDePasse }) });
-    toast('Mot de passe réinitialisé — connecte-toi avec ton nouveau mot de passe.');
+    toast('Mot de passe réinitialisé — connectez-vous avec votre nouveau mot de passe.');
     document.getElementById('reinitialiser-mdp-panel').classList.add('hidden');
     document.getElementById('login-form').classList.remove('hidden');
     document.querySelectorAll('#login-card-connexion > p').forEach(p => p.classList.remove('hidden'));
@@ -1831,7 +1831,7 @@ async function renderProfEnseignements(){
           </div>
           <div class="card">
             <h2>Notes — toutes les évaluations</h2>
-            <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Une colonne par évaluation (avec son coefficient), une ligne par élève. Modifie une case puis clique « Enregistrer ». La moyenne de la classe pour chaque évaluation apparaît tout en bas.</p>
+            <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Une colonne par évaluation (avec son coefficient), une ligne par élève. Modifiez une case puis cliquez « Enregistrer ». La moyenne de la classe pour chaque évaluation apparaît tout en bas.</p>
             <form class="inline-form" id="dossier-epreuve-form" style="margin-bottom:18px;">
               <div class="f" style="min-width:180px;"><label>Nouvelle évaluation — titre</label><input type="text" name="titre" required placeholder="Ex : Contrôle 4" /></div>
               <div class="f">
@@ -2012,7 +2012,7 @@ async function renderProfAppel(){
   content.innerHTML = `
     <div class="card">
       <h2>Choisir la classe et la date</h2>
-      ${venaitDeLEmploi ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis ton emploi du temps.</p>` : ''}
+      ${venaitDeLEmploi ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis votre emploi du temps.</p>` : ''}
       <form class="inline-form" id="appel-select-form">
         <div class="f" style="min-width:220px;">
           <label>Classe / matière</label>
@@ -2066,7 +2066,7 @@ async function loadAppelListe(){
     zone.innerHTML = `
       <div class="card">
         <h2>Appel — ${etudiants.length} étudiant${etudiants.length > 1 ? 's' : ''}</h2>
-        <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Coche <strong>Absent</strong> ou <strong>Retard</strong> pour chaque étudiant concerné (Présent par défaut). Pour une observation ou un avertissement, écris directement dans la case correspondante.</p>
+        <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Cochez <strong>Absent</strong> ou <strong>Retard</strong> pour chaque étudiant concerné (Présent par défaut). Pour une observation ou un avertissement, écris directement dans la case correspondante.</p>
         <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Présent</th><th>Absent</th><th>Retard</th><th>Retard (min)</th><th>Observation</th></tr></thead><tbody>${rows}</tbody></table>
         <button class="btn-submit" id="appel-submit-btn" style="margin-top:16px;">Valider l'appel</button>
       </div>`;
@@ -2334,9 +2334,9 @@ async function imprimerDocumentActivation(user){
         </div>
         <div class="certificat-titre" style="font-size:16px;">Bienvenue, ${escapeHtml(user.prenom)} ${escapeHtml(user.nom)}</div>
         <div class="certificat-corps" style="font-size:14px;">
-          Un compte <strong>${escapeHtml(user.role)}</strong> a été créé pour toi sur <strong>${escapeHtml(parametres.nomEtablissement)}</strong>.
-          Pour l'activer et choisir ton propre mot de passe, connecte-toi sur le site et clique sur
-          « Activer mon compte », puis renseigne les informations ci-dessous (ou scanne le QR code).
+          Un compte <strong>${escapeHtml(user.role)}</strong> a été créé pour vous sur <strong>${escapeHtml(parametres.nomEtablissement)}</strong>.
+          Pour l'activer et choisir votre propre mot de passe, connectez-vous sur le site et cliquez sur
+          « Activer mon compte », puis renseignez les informations ci-dessous (ou scannez le QR code).
         </div>
         <div style="display:flex;justify-content:space-around;align-items:center;margin:24px 0;padding:20px;border:2px dashed var(--teal-700);border-radius:10px;">
           <div>
@@ -2445,7 +2445,7 @@ async function renderAdminUsers(filtreRoles){
   content.innerHTML = `
     <div class="card">
       <h2>Créer ${titrePage === 'Élèves' ? 'un élève' : titrePage === 'Personnel' ? 'un compte personnel' : 'un utilisateur'}</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Un nom d'utilisateur est généré automatiquement (prénom.nom selon le rôle). La personne créera elle-même son mot de passe grâce au document d'activation imprimable fourni après la création.${state.user.role === 'CHEF_PROJET' ? " En tant que chef de projet, tu ne peux créer que des comptes chef d'établissement." : state.user.role === 'CHEF_ETABLISSEMENT' ? " En tant que chef d'établissement, tu ne peux créer que des comptes admin — c'est ensuite à eux de créer les comptes profs, élèves, parents et vie scolaire." : ''}</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Un nom d'utilisateur est généré automatiquement (prénom.nom selon le rôle). La personne créera elle-même son mot de passe grâce au document d'activation imprimable fourni après la création.${state.user.role === 'CHEF_PROJET' ? " En tant que chef de projet, vous ne pouvez créer que des comptes chef d'établissement." : state.user.role === 'CHEF_ETABLISSEMENT' ? " En tant que chef d'établissement, vous ne pouvez créer que des comptes admin — c'est ensuite à eux de créer les comptes profs, élèves, parents et vie scolaire." : ''}</p>
       ${rolesDisponibles.length ? `
       <form class="inline-form" id="create-user-form">
         <div class="f"><label>Prénom</label><input type="text" name="prenom" required /></div>
@@ -2463,7 +2463,7 @@ async function renderAdminUsers(filtreRoles){
         <div class="f"><label>Classe</label><select name="classeId"><option value="">— Aucune pour l'instant —</option>${classes.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}</select></div>
         ` : ''}
         <button class="btn-submit" type="submit">Créer le compte</button>
-      </form>` : `<p style="font-size:12.5px;color:var(--text-muted);">Aucun rôle de cette catégorie n'est disponible à la création depuis ton compte.</p>`}
+      </form>` : `<p style="font-size:12.5px;color:var(--text-muted);">Aucun rôle de cette catégorie n'est disponible à la création depuis votre compte.</p>`}
     </div>
     <div class="card">
       <h2>${titrePage} (${users.length})</h2>
@@ -2571,7 +2571,7 @@ function attacherActionsUtilisateurs(container, users, filtreRoles){
         renderAdminUsers(filtreRoles);
       }catch(err){
         if(String(err.message).includes('historique associé')){
-          if(confirm("Ce compte a de l'historique lié (notes, absences, messages...). Veux-tu vraiment tout supprimer définitivement, y compris cet historique ? Cette action est irréversible.")){
+          if(confirm("Ce compte a de l'historique lié (notes, absences, messages...). Voulez-vous vraiment tout supprimer définitivement, y compris cet historique ? Cette action est irréversible.")){
             try{
               await api('/users/' + id + '/force', { method:'DELETE' });
               toast('Utilisateur et tout son historique supprimés.');
@@ -2764,7 +2764,7 @@ async function afficherDossierProfesseur(profId, u){
     </div>
     <div class="card">
       <h2>Diplômes &amp; attestations (${documents.length})</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">C'est le professeur qui ajoute ses propres documents depuis son compte (« Mes documents ») — à toi de les valider ou de les refuser ici.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">C'est le professeur qui ajoute ses propres documents depuis son compte (« Mes documents ») — à vous de les valider ou de les refuser ici.</p>
       ${documents.length ? `<table><thead><tr><th>Type</th><th>Fichier</th><th>Ajouté le</th><th>Statut</th><th></th></tr></thead><tbody>${rowsDocuments}</tbody></table>` : '<div class="empty-state">Aucun document ajouté par le professeur pour l\'instant.</div>'}
     </div>`;
 
@@ -2996,7 +2996,7 @@ function bindSupprimerMatiere(container){
         renderAdminMatieres();
       }catch(err){
         if(String(err.message).includes('enseignements/notes')){
-          if(confirm("Des enseignements/notes sont encore rattachés à cette matière. Veux-tu vraiment tout supprimer définitivement, y compris cet historique ? Cette action est irréversible.")){
+          if(confirm("Des enseignements/notes sont encore rattachés à cette matière. Voulez-vous vraiment tout supprimer définitivement, y compris cet historique ? Cette action est irréversible.")){
             try{
               await api('/matieres/' + id + '/force', { method:'DELETE' });
               toast('Matière et tout son historique supprimés.');
@@ -3127,7 +3127,7 @@ async function renderAdminCreneaux(){
         <h2 style="margin:0;">Emploi du temps par classe</h2>
         <div class="f" style="margin:0;"><label>Classe</label><select id="creneaux-admin-classe">${classes.map(c => `<option value="${c.id}" ${c.id === creneauxAdminClasseId ? 'selected' : ''}>${escapeHtml(c.nom)}</option>`).join('') || '<option value="">Aucune classe</option>'}</select></div>
       </div>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Clique sur une case vide (« + ») pour ajouter un cours à cette heure-là. Sur un cours existant : ✏️ pour modifier, 📅 pour programmer une réunion, ✕ pour supprimer. La pause (${escapeHtml(parametres.heureDebutPause)}–${escapeHtml(parametres.heureFinPause)}, réglable dans Paramètres) est signalée par la ligne verte.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Cliquez sur une case vide (« + ») pour ajouter un cours à cette heure-là. Sur un cours existant : ✏️ pour modifier, 📅 pour programmer une réunion, ✕ pour supprimer. La pause (${escapeHtml(parametres.heureDebutPause)}–${escapeHtml(parametres.heureFinPause)}, réglable dans Paramètres) est signalée par la ligne verte.</p>
       ${classes.length ? `<table class="emploi-grille"><thead><tr><th></th>${enTetes}</tr></thead><tbody>${lignesGrille}</tbody></table>` : '<div class="empty-state">Aucune classe pour l\'instant.</div>'}
     </div>
     <div id="creneau-form-zone"></div>
@@ -3278,7 +3278,7 @@ async function renderAdminLiaisons(){
     const result = document.getElementById('liaison-result');
     // Pas de route admin dédiée : on récupère via /users puis on retente la connexion n'est pas possible ici,
     // donc on affiche une info simple basée sur ce que l'admin peut voir.
-    result.innerHTML = `<div class="empty-state">Utilise la route <code>/parents/mes-enfants</code> connecté en tant que ce parent, ou l'onglet Swagger, pour voir la liste détaillée.</div>`;
+    result.innerHTML = `<div class="empty-state">Utilisez la route <code>/parents/mes-enfants</code> connecté en tant que ce parent, ou l'onglet Swagger, pour voir la liste détaillée.</div>`;
   });
 }
 
@@ -3343,7 +3343,7 @@ async function renderMessagerie(){
           ${contacts.length ? contactItems : '<div class="empty-state">Aucun autre utilisateur.</div>'}
         </div>
         <div class="msg-thread-panel">
-          <div class="msg-thread-header" id="msg-thread-header">Sélectionne une personne pour démarrer une conversation</div>
+          <div class="msg-thread-header" id="msg-thread-header">Sélectionnez une personne pour démarrer une conversation</div>
           <div class="msg-thread" id="msg-thread"></div>
           <form class="msg-compose" id="msg-compose-form">
             <input type="text" name="contenu" placeholder="Écrire un message…" autocomplete="off" disabled />
@@ -3359,7 +3359,7 @@ async function renderMessagerie(){
       e.preventDefault();
       const classeId = Number(document.getElementById('msg-classe-select').value);
       const contenu = document.getElementById('msg-classe-contenu').value.trim();
-      if(!classeId){ toast('Choisis une classe.', 'error'); return; }
+      if(!classeId){ toast('Choisissez une classe.', 'error'); return; }
       if(!contenu){ toast('Écris un message.', 'error'); return; }
       const classe = classesAvecEleves.find(c => c.id === classeId);
       let success = 0, echecs = 0;
@@ -3498,7 +3498,7 @@ async function renderGroupes(){
           ${groupes.length ? groupeItems : '<div class="empty-state">Aucun groupe disponible.</div>'}
         </div>
         <div class="msg-thread-panel">
-          <div class="msg-thread-header" id="groupe-thread-header">Sélectionne un groupe pour voir la discussion</div>
+          <div class="msg-thread-header" id="groupe-thread-header">Sélectionnez un groupe pour voir la discussion</div>
           <div class="msg-thread" id="groupe-thread"></div>
           <form class="msg-compose" id="groupe-compose-form">
             <input type="text" name="contenu" placeholder="Écrire un message au groupe…" autocomplete="off" disabled />
@@ -3899,7 +3899,7 @@ async function renderAdminCertificats(){
         </div>
         <button class="btn-submit" type="submit">Aperçu / Imprimer</button>
       </form>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:14px 0 0;">Dans la boîte de dialogue d'impression, choisis « Enregistrer au format PDF » pour obtenir un fichier PDF.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:14px 0 0;">Dans la boîte de dialogue d'impression, choisissez « Enregistrer au format PDF » pour obtenir un fichier PDF.</p>
     </div>`;
 
   document.getElementById('certificat-classe').addEventListener('change', (e) => {
@@ -4149,7 +4149,7 @@ async function renderReunions(){
       const fd = new FormData(form);
       const inviteIds = Array.from(document.getElementById('reunion-invites').selectedOptions).map(o => Number(o.value));
       if(!fd.get('sujet') || !fd.get('date')){ toast('Sujet et date requis.', 'error'); return; }
-      if(!inviteIds.length){ toast('Sélectionne au moins un invité.', 'error'); return; }
+      if(!inviteIds.length){ toast('Sélectionnez au moins un invité.', 'error'); return; }
       try{
         await api('/reunions', { method:'POST', body: JSON.stringify({
           sujet: fd.get('sujet'), lieu: fd.get('lieu') || undefined,
@@ -4195,7 +4195,7 @@ async function renderCahierTexte(){
     creationCard = `
       <div class="card">
         <h2>Nouvelle entrée</h2>
-        ${enseignementIdFiltre !== null ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis ton emploi du temps.</p>` : ''}
+        ${enseignementIdFiltre !== null ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis votre emploi du temps.</p>` : ''}
         <form class="inline-form" id="cahier-texte-form">
           <div class="f" style="min-width:220px;">
             <label>Classe / matière</label>
@@ -4637,12 +4637,12 @@ async function renderEtablissements(){
     </div>
     <div class="card">
       <h2>Établissements (${etablissements.length})</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Modifie le nom directement dans la case puis clique « Enregistrer ». ⚠️ Supprimer un établissement supprime aussi définitivement tous ses comptes, classes et matières.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Modifie le nom directement dans la case puis cliquez « Enregistrer ». ⚠️ Supprimer un établissement supprime aussi définitivement tous ses comptes, classes et matières.</p>
       ${etablissements.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Code</th><th>Utilisateurs</th><th>Classes</th><th>Créé le</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun établissement pour l\'instant.</div>'}
     </div>
     <div class="card">
       <h2>Prochaine étape après création</h2>
-      <p style="font-size:13px;color:var(--text-muted);">Va dans « Utilisateurs » → « Créer un utilisateur » pour créer son <strong>chef d'établissement</strong>, en choisissant cet établissement dans la liste. C'est lui qui pourra ensuite créer les comptes admin de son établissement.</p>
+      <p style="font-size:13px;color:var(--text-muted);">Allez dans « Utilisateurs » → « Créer un utilisateur » pour créer son <strong>chef d'établissement</strong>, en choisissant cet établissement dans la liste. C'est lui qui pourra ensuite créer les comptes admin de son établissement.</p>
     </div>`;
 
   document.getElementById('etablissement-form').addEventListener('submit', async (e) => {
@@ -4836,7 +4836,7 @@ async function renderDemandesSuppression(){
   content.innerHTML = `
     <div class="card">
       <h2>Demandes de suppression (${demandes.length})</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Toute suppression de compte (admin, prof, élève, parent, vie scolaire) par un admin passe par ta validation. La suppression d'un chef d'établissement supprime tout son établissement.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Toute suppression de compte (admin, prof, élève, parent, vie scolaire) par un admin passe par votre validation. La suppression d'un chef d'établissement supprime tout son établissement.</p>
       ${demandes.length ? `<table><thead><tr><th>Date</th><th>Compte visé</th><th>Demandé par</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune demande pour l\'instant.</div>'}
     </div>`;
 
@@ -4987,7 +4987,7 @@ async function renderProfDocuments(){
   content.innerHTML = `
     <div class="card">
       <h2>Mon dossier professionnel</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Tes diplômes et attestations, à valider par l'administration. Renseigne d'abord tes informations de base.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Tes diplômes et attestations, à valider par l'administration. Renseignez d'abord vos informations de base.</p>
       <form class="inline-form" id="dossier-qualif-form">
         <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required value="${dossierExistant ? dossierExistant.dateNaissance.slice(0,10) : ''}" /></div>
         <div class="f" style="min-width:280px;flex:2;"><label>Justification (parcours d'études)</label><input type="text" name="justification" required value="${dossierExistant ? escapeHtml(dossierExistant.justification) : ''}" placeholder="Ex : Licence de Mathématiques, 5 ans d'expérience..." /></div>
@@ -5006,11 +5006,11 @@ async function renderProfDocuments(){
         </div>
         <div class="f"><label>Fichier (max 3 Mo)</label><input type="file" name="document" id="ajout-doc-qualif-fichier" required /></div>
         <button class="btn-submit" type="submit">Ajouter le document</button>
-      </form>` : `<p style="font-size:12.5px;color:var(--text-muted);margin-top:12px;">Enregistre d'abord tes informations de base ci-dessus pour pouvoir ajouter des documents.</p>`}
+      </form>` : `<p style="font-size:12.5px;color:var(--text-muted);margin-top:12px;">Enregistrez d'abord vos informations de base ci-dessus pour pouvoir ajouter des documents.</p>`}
     </div>
     <div class="card">
       <h2>Ajouter un document de projection</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Stocke ici tous les documents que tu veux (cours, exercices, images...) pour les projeter facilement au tableau pendant ton cours.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Stockez ici tous les documents que vous voulez (cours, exercices, images...) pour les projeter facilement au tableau pendant votre cours.</p>
       <form class="inline-form" id="ressource-prof-form">
         <div class="f" style="min-width:220px;flex:1;"><label>Titre</label><input type="text" name="titre" required placeholder="Ex : Chapitre 4 - schéma" /></div>
         <div class="f"><label>Fichier (max 5 Mo)</label><input type="file" name="fichier" id="ressource-prof-fichier" required /></div>
@@ -5208,7 +5208,7 @@ async function renderParentRendezVous(){
   content.innerHTML = `
     <div class="card">
       <h2>Créneaux disponibles</h2>
-      ${!enfants.length ? '<div class="empty-state">Aucun enfant lié à ton compte.</div>' : (disponibles.length ? `<table><thead><tr><th>Date</th><th>Administration</th><th>Durée</th><th>Pour quel enfant</th><th></th></tr></thead><tbody>${rowsDispo}</tbody></table>` : '<div class="empty-state">Aucun créneau disponible pour le moment.</div>')}
+      ${!enfants.length ? '<div class="empty-state">Aucun enfant lié à votre compte.</div>' : (disponibles.length ? `<table><thead><tr><th>Date</th><th>Administration</th><th>Durée</th><th>Pour quel enfant</th><th></th></tr></thead><tbody>${rowsDispo}</tbody></table>` : '<div class="empty-state">Aucun créneau disponible pour le moment.</div>')}
     </div>
     <div class="card">
       <h2>Mes rendez-vous réservés (${reservations.length})</h2>
@@ -5265,7 +5265,7 @@ async function renderProfEpreuves(){
   content.innerHTML = `
     <div class="card">
       <h2>Créer une épreuve</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Une fois créée, tu pourras noter tous les élèves de la classe d'un coup.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Une fois créée, vous pourrez noter tous les élèves de la classe d'un coup.</p>
       <form class="inline-form" id="epreuve-form">
         <div class="f" style="min-width:220px;">
           <label>Classe / matière</label>
@@ -5493,7 +5493,7 @@ async function renderSondages(){
     btn.addEventListener('click', async () => {
       const sondageId = btn.dataset.voterSondage;
       const choix = content.querySelector(`input[name="vote-${sondageId}"]:checked`);
-      if(!choix){ toast('Choisis une option.', 'error'); return; }
+      if(!choix){ toast('Choisissez une option.', 'error'); return; }
       try{
         await api('/sondages/' + sondageId + '/voter', { method:'POST', body: JSON.stringify({ optionId: Number(choix.value) })});
         toast('Vote enregistré.');
@@ -5777,9 +5777,9 @@ async function renderParametres(){
         <div style="font-size:14.5px;font-weight:600;">${escapeHtml(state.user.prenom)} ${escapeHtml(state.user.nom)} — ${escapeHtml(state.user.email)} (${state.user.role})</div>
       </div>
       <h2 style="margin-top:22px;">Adresse email personnelle</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Renseigne ta vraie adresse email — elle servira uniquement à récupérer ton mot de passe si tu l'oublies.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Renseignez votre vraie adresse email — elle servira uniquement à récupérer votre mot de passe si vous l'oubliez.</p>
       <form class="inline-form" id="email-personnel-form">
-        <div class="f" style="min-width:280px;"><label>Adresse email</label><input type="email" name="emailPersonnel" value="${escapeHtml(moi.emailPersonnel || '')}" placeholder="toi@exemple.com" required /></div>
+        <div class="f" style="min-width:280px;"><label>Adresse email</label><input type="email" name="emailPersonnel" value="${escapeHtml(moi.emailPersonnel || '')}" placeholder="vous@exemple.com" required /></div>
         <button class="btn-submit" type="submit">Enregistrer</button>
       </form>
       <h2 style="margin-top:22px;">Changer mon mot de passe</h2>
@@ -5845,7 +5845,7 @@ async function renderParametres(){
     document.getElementById('cachet-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fichier = document.getElementById('cachet-fichier').files[0];
-      if(!fichier){ toast('Choisis une image.', 'error'); return; }
+      if(!fichier){ toast('Choisissez une image.', 'error'); return; }
       if(fichier.size > 2 * 1024 * 1024){ toast("L'image dépasse 2 Mo.", 'error'); return; }
       try{
         const base64 = await new Promise((resolve, reject) => {
