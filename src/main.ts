@@ -47,6 +47,8 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://edutchad.onrender.com',
+      'https://educheni.com',
+      'https://www.educheni.com',
       'http://localhost:3001',
     ],
     credentials: true,
