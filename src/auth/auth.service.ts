@@ -181,6 +181,22 @@ export class AuthService {
     return { message: 'Mot de passe mis à jour avec succès' };
   }
 
+  async updateEmailPersonnel(userId: number, emailPersonnel: string) {
+    if (!emailPersonnel || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailPersonnel)) {
+      throw new BadRequestException('Adresse email invalide');
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { emailPersonnel },
+    });
+    return { message: 'Adresse email personnelle enregistrée' };
+  }
+
+  async getMe(jwtUser: JwtPayload) {
+    const user = await this.prisma.user.findUnique({ where: { id: jwtUser.sub } });
+    return { ...jwtUser, emailPersonnel: user?.emailPersonnel ?? null };
+  }
+
   async activerCompte(dto: { identifiant: string; codeActivation: string; nouveauMotDePasse: string }) {
     const user = await this.prisma.user.findUnique({
       where: { identifiant: dto.identifiant },

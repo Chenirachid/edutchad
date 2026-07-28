@@ -39,7 +39,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   me(@CurrentUser() user: JwtPayload) {
-    return user;
+    return this.authService.getMe(user);
   }
 
   @ApiBearerAuth('access-token')
@@ -47,5 +47,15 @@ export class AuthController {
   @Patch('password')
   changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: JwtPayload) {
     return this.authService.changePassword(user.sub, dto);
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @Patch('email-personnel')
+  updateEmailPersonnel(
+    @Body('emailPersonnel') emailPersonnel: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.authService.updateEmailPersonnel(user.sub, emailPersonnel);
   }
 }

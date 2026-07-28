@@ -27,6 +27,7 @@ model User {
   nom                 String
   prenom              String
   email               String    @unique
+  emailPersonnel      String?
   identifiant         String?   @unique
   codeActivation      String?
   password            String

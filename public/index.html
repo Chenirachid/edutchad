@@ -5708,6 +5708,8 @@ async function renderParametres(){
       </div>`;
   }
 
+  const moi = await api('/auth/me');
+
   content.innerHTML = `
     <div class="card">
       <h2>Mon compte</h2>
@@ -5715,6 +5717,12 @@ async function renderParametres(){
         <div class="label">Connecté en tant que</div>
         <div style="font-size:14.5px;font-weight:600;">${escapeHtml(state.user.prenom)} ${escapeHtml(state.user.nom)} — ${escapeHtml(state.user.email)} (${state.user.role})</div>
       </div>
+      <h2 style="margin-top:22px;">Adresse email personnelle</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Renseigne ta vraie adresse email — elle servira uniquement à récupérer ton mot de passe si tu l'oublies.</p>
+      <form class="inline-form" id="email-personnel-form">
+        <div class="f" style="min-width:280px;"><label>Adresse email</label><input type="email" name="emailPersonnel" value="${escapeHtml(moi.emailPersonnel || '')}" placeholder="toi@exemple.com" required /></div>
+        <button class="btn-submit" type="submit">Enregistrer</button>
+      </form>
       <h2 style="margin-top:22px;">Changer mon mot de passe</h2>
       <form class="inline-form" id="password-form">
         <div class="f"><label>Mot de passe actuel</label><input type="password" name="ancienMotDePasse" required /></div>
@@ -5723,6 +5731,17 @@ async function renderParametres(){
       </form>
     </div>
     ${plateformeCard}`;
+
+  document.getElementById('email-personnel-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/auth/email-personnel', { method:'PATCH', body: JSON.stringify({
+        emailPersonnel: fd.get('emailPersonnel'),
+      })});
+      toast('Adresse email enregistrée.');
+    }catch(err){ toast(err.message, 'error'); }
+  });
 
   document.getElementById('password-form').addEventListener('submit', async (e) => {
     e.preventDefault();
