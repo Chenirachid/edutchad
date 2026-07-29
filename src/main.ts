@@ -54,6 +54,15 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Redirection permanente (301) de l'ancienne adresse Render vers le nouveau domaine —
+  // pour que Google finisse par ne référencer que educheni.com, et pas les deux séparément.
+  app.getHttpAdapter().getInstance().use((req: any, res: any, next: any) => {
+    if (req.hostname === 'edutchad.onrender.com') {
+      return res.redirect(301, `https://educheni.com${req.originalUrl}`);
+    }
+    next();
+  });
+
   // Sert le frontend (public/index.html, public/educheni-logo.svg) à la racine du site
   // dotfiles: 'allow' est nécessaire pour que /.well-known/security.txt soit servi
   app.useStaticAssets(join(process.cwd(), 'public'), { dotfiles: 'allow' });
