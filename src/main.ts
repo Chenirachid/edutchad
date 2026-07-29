@@ -56,8 +56,11 @@ async function bootstrap() {
 
   // Redirection permanente (301) de l'ancienne adresse Render vers le nouveau domaine —
   // pour que Google finisse par ne référencer que educheni.com, et pas les deux séparément.
+  // Limitée aux requêtes GET : une redirection sur une requête POST/PATCH/DELETE (comme la
+  // connexion) transforme la méthode en GET et fait perdre le corps de la requête, ce qui
+  // casserait l'API pour quiconque est encore sur l'ancienne adresse.
   app.getHttpAdapter().getInstance().use((req: any, res: any, next: any) => {
-    if (req.hostname === 'edutchad.onrender.com') {
+    if (req.hostname === 'edutchad.onrender.com' && req.method === 'GET') {
       return res.redirect(301, `https://educheni.com${req.originalUrl}`);
     }
     next();
