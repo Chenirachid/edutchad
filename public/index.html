@@ -174,7 +174,7 @@
   #app-screen{display:flex;flex-direction:column;min-height:100vh;}
   .topnav{
     display:flex;align-items:center;gap:20px;
-    height:64px;flex-shrink:0;background:var(--teal-900);
+    height:64px;flex-shrink:0;background:#161616;
     color:#EAF6F6;padding:0 22px;
   }
   .brand{display:flex;align-items:center;gap:10px;flex-shrink:0;}
@@ -186,13 +186,13 @@
   }
   .nav-item{
     display:flex;align-items:center;gap:8px;flex-shrink:0;
-    padding:8px 14px;border-radius:9px;
-    font-size:13px;font-weight:500;color:#CFE9E8;white-space:nowrap;
-    background:transparent;border:none;
-    transition:background .12s;
+    padding:8px 14px;border-radius:0;border-bottom:3px solid transparent;
+    font-size:13px;font-weight:600;color:#fff;white-space:nowrap;
+    background:transparent;border-top:none;border-left:none;border-right:none;
+    transition:background .12s,border-color .12s;
   }
-  .nav-item:hover{background:rgba(255,255,255,.06);}
-  .nav-item.active{background:var(--teal-500);color:#04302F;font-weight:600;}
+  .nav-item:hover{background:rgba(255,255,255,.08);}
+  .nav-item.active{background:rgba(255,255,255,.06);color:#fff;font-weight:700;border-bottom-color:var(--teal-500);}
   .nav-icon{display:flex;flex-shrink:0;}
   .nav-icon svg{display:block;}
   .topnav-user{display:flex;align-items:center;gap:10px;flex-shrink:0;}
