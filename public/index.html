@@ -186,7 +186,7 @@
   .bandeau-etablissement svg{flex-shrink:0;}
   .bandeau-espace{
     height:38px;flex-shrink:0;background:#575757;color:#fff;
-    display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+    display:flex;align-items:center;justify-content:center;gap:14px;padding:0 22px;
     font-size:13px;font-weight:600;line-height:1;
   }
   .bandeau-espace-actions{display:flex;align-items:center;gap:8px;}
@@ -839,9 +839,6 @@
       </div>
       <span class="role-badge" id="role-badge"></span>
       <span class="user-avatar" id="user-avatar"></span>
-      <span class="user-line" id="user-name"></span>
-      <span class="user-email" id="user-email"></span>
-      <button class="btn-logout" id="logout-btn">Déconnexion</button>
     </div>
   </nav>
   <div class="main">
@@ -1006,7 +1003,6 @@ function setLangue(lang){
         item.render();
       }
     }
-    document.getElementById('logout-btn').textContent = t('logout');
   }
 }
 
@@ -1322,11 +1318,9 @@ async function actualiserBadgesRaccourcis(){
 document.getElementById('raccourci-messagerie').addEventListener('click', () => selectMenu('messagerie'));
 document.getElementById('raccourci-rendezvous').addEventListener('click', () => selectMenu('rendez-vous'));
 document.getElementById('bandeau-qrcode-btn').addEventListener('click', () => selectMenu('parametres'));
-document.getElementById('bandeau-deconnexion-btn').addEventListener('click', () => {
-  document.getElementById('logout-btn').click();
-});
+document.getElementById('bandeau-deconnexion-btn').addEventListener('click', deconnecterUtilisateur);
 
-document.getElementById('logout-btn').addEventListener('click', () => {
+function deconnecterUtilisateur(){
   clearSession();
   document.getElementById('app-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.add('hidden');
@@ -1334,7 +1328,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
   document.getElementById('login-card-connexion').classList.add('hidden');
   document.getElementById('espace-selection-card').classList.remove('hidden');
   document.getElementById('login-form').reset();
-});
+}
 
 ['btn-mon-compte', 'btn-mon-compte-hero', 'btn-mon-compte-cta'].forEach(id => {
   const btn = document.getElementById(id);
@@ -1487,9 +1481,6 @@ function enterApp(){
   const u = state.user;
   document.getElementById('role-badge').textContent = u.role;
   document.getElementById('user-avatar').textContent = (u.prenom[0] + u.nom[0]).toUpperCase();
-  document.getElementById('user-name').textContent = u.prenom + ' ' + u.nom;
-  document.getElementById('user-email').textContent = u.email;
-  document.getElementById('logout-btn').textContent = t('logout');
 
   const rolesAvecRendezVous = ['ADMIN', 'CHEF_ETABLISSEMENT', 'PARENT'];
   document.getElementById('raccourci-rendezvous').classList.toggle('hidden', !rolesAvecRendezVous.includes(u.role));
