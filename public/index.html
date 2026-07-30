@@ -366,6 +366,16 @@
     padding:14px 16px;margin-bottom:12px;
   }
   .emploi-grille td.case-cours{background:#FDF8D6;}
+  .table-appel{border-collapse:collapse;}
+  .table-appel th, .table-appel td{border:1px solid var(--border);}
+  .appel-nom-cell{text-align:left;padding:7px 10px;font-size:13px;white-space:nowrap;}
+  .appel-toggle-cell{
+    width:44px;height:34px;text-align:center;cursor:pointer;background:#fafafa;
+    font-size:15px;font-weight:700;color:var(--teal-700);user-select:none;
+  }
+  .appel-toggle-cell:hover{background:var(--teal-100);}
+  .appel-toggle-cell.coche{background:var(--teal-100);}
+  .appel-retard-min-cell{padding:4px;text-align:center;background:#fafafa;}
   .emploi-grille td.case-libre{background:#EBEBEB;}
   .emploi-grille tr.ligne-pause-midi td{border-top:2px solid #3FBF6F;}
   .creneau-case{
@@ -2212,65 +2222,89 @@ async function loadAppelListe(){
 
     const rows = etudiants.map(et => `
       <tr>
-        <td><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code></td>
-        <td>${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
-        <td style="text-align:center;" data-statut-group="${et.id}" data-valeur="PRESENT"><input type="checkbox" class="statut-case-input" data-val="PRESENT" checked /></td>
-        <td style="text-align:center;"><input type="checkbox" class="statut-case-input" data-val="ABSENCE" /></td>
-        <td style="text-align:center;"><input type="checkbox" class="statut-case-input" data-val="RETARD" /></td>
+        <td class="appel-nom-cell"><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code> ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
+        <td class="appel-toggle-cell" data-toggle="ABSENCE" data-etudiant="${et.id}"></td>
+        <td class="appel-toggle-cell" data-toggle="RETARD" data-etudiant="${et.id}"></td>
+        <td class="appel-retard-min-cell"><input type="number" data-duree-id="${et.id}" placeholder="min" min="1" style="width:60px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;" disabled /></td>
+        <td class="appel-toggle-cell" data-toggle="INFIRMERIE" data-etudiant="${et.id}"></td>
+        <td class="appel-toggle-cell" data-toggle="PUNITION" data-etudiant="${et.id}"></td>
+        <td class="appel-toggle-cell" data-toggle="EXCLUSION" data-etudiant="${et.id}"></td>
         <td>
-          <input type="number" data-duree-id="${et.id}" placeholder="min" min="1" style="width:70px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;" disabled />
-        </td>
-        <td>
-          <input type="text" data-observation-id="${et.id}" placeholder="Écrire une observation…" style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:6px;font-size:13px;" />
+          <input type="text" data-observation-id="${et.id}" placeholder="Observation…" style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;" />
         </td>
       </tr>`).join('');
 
     zone.innerHTML = `
       <div class="card">
         <h2>Appel — ${etudiants.length} étudiant${etudiants.length > 1 ? 's' : ''}</h2>
-        <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Cochez <strong>Absent</strong> ou <strong>Retard</strong> pour chaque étudiant concerné (Présent par défaut). Pour une observation ou un avertissement, écris directement dans la case correspondante.</p>
-        <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Présent</th><th>Absent</th><th>Retard</th><th>Retard (min)</th><th>Observation</th></tr></thead><tbody>${rows}</tbody></table>
+        <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Cliquez sur une case pour cocher <strong>Absence</strong>, <strong>Retard</strong>, <strong>Infirmerie</strong>, <strong>Punition</strong> ou <strong>Exclusion</strong> — un étudiant peut cumuler plusieurs cases (présent par défaut si rien n'est coché).</p>
+        <div style="overflow-x:auto;">
+          <table class="table-appel">
+            <thead>
+              <tr>
+                <th style="vertical-align:bottom;">Étudiant</th>
+                <th>Absence</th>
+                <th colspan="2">Retard</th>
+                <th>Infirmerie</th>
+                <th>Punition</th>
+                <th>Exclusion</th>
+                <th style="vertical-align:bottom;">Observation</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
         <button class="btn-submit" id="appel-submit-btn" style="margin-top:16px;">Valider l'appel</button>
       </div>`;
 
-    zone.querySelectorAll('[data-statut-group]').forEach(cellulePresent => {
-      const ligne = cellulePresent.closest('tr');
-      const cases = ligne.querySelectorAll('.statut-case-input');
-      cases.forEach(chk => {
-        chk.addEventListener('change', () => {
-          const etudiantId = cellulePresent.dataset.statutGroup;
-          if(!chk.checked){ chk.checked = true; return; } // au moins une case cochée
-          cases.forEach(c => { if(c !== chk) c.checked = false; });
-          cellulePresent.dataset.valeur = chk.dataset.val;
+    zone.querySelectorAll('.appel-toggle-cell').forEach(cellule => {
+      cellule.addEventListener('click', () => {
+        const coche = cellule.classList.toggle('coche');
+        cellule.innerHTML = coche ? '✓' : '';
+        if(cellule.dataset.toggle === 'RETARD'){
+          const etudiantId = cellule.dataset.etudiant;
           const dureeInput = zone.querySelector(`[data-duree-id="${etudiantId}"]`);
-          dureeInput.disabled = chk.dataset.val !== 'RETARD';
-          if(chk.dataset.val !== 'RETARD'){ dureeInput.value = ''; }
-        });
+          dureeInput.disabled = !coche;
+          if(!coche) dureeInput.value = '';
+        }
       });
     });
 
     document.getElementById('appel-submit-btn').addEventListener('click', async () => {
       const date = document.getElementById('appel-date').value;
-      const concernes = Array.from(zone.querySelectorAll('[data-statut-group]')).filter(g => g.dataset.valeur !== 'PRESENT');
+      const cochees = Array.from(zone.querySelectorAll('.appel-toggle-cell.coche'));
       const observationsSaisies = Array.from(zone.querySelectorAll('[data-observation-id]')).filter(inp => inp.value.trim());
 
-      if(!concernes.length && !observationsSaisies.length){
+      if(!cochees.length && !observationsSaisies.length){
         toast('Appel enregistré : tout le monde était présent.');
         return;
       }
 
       let success = 0, failed = 0;
-      for(const groupe of concernes){
-        const etudiantId = Number(groupe.dataset.statutGroup);
-        const dureeRaw = zone.querySelector(`[data-duree-id="${etudiantId}"]`).value;
+      for(const cellule of cochees){
+        const etudiantId = Number(cellule.dataset.etudiant);
+        const type = cellule.dataset.toggle;
         try{
-          await api('/absences', { method:'POST', body: JSON.stringify({
-            enseignementId: Number(enseignementId),
-            etudiantId,
-            type: groupe.dataset.valeur,
-            date: new Date(date).toISOString(),
-            dureeMinutes: groupe.dataset.valeur === 'RETARD' && dureeRaw ? Number(dureeRaw) : undefined,
-          })});
+          if(type === 'ABSENCE' || type === 'RETARD'){
+            const dureeRaw = zone.querySelector(`[data-duree-id="${etudiantId}"]`)?.value;
+            await api('/absences', { method:'POST', body: JSON.stringify({
+              enseignementId: Number(enseignementId), etudiantId, type,
+              date: new Date(date).toISOString(),
+              dureeMinutes: type === 'RETARD' && dureeRaw ? Number(dureeRaw) : undefined,
+            })});
+          } else if(type === 'PUNITION'){
+            await api('/punitions', { method:'POST', body: JSON.stringify({
+              etudiantId, type: 'AVERTISSEMENT', motif: "Punition saisie depuis l'appel",
+            })});
+          } else if(type === 'EXCLUSION'){
+            await api('/punitions', { method:'POST', body: JSON.stringify({
+              etudiantId, type: 'EXCLUSION_TEMPORAIRE', motif: "Exclusion saisie depuis l'appel",
+            })});
+          } else if(type === 'INFIRMERIE'){
+            await api('/observations', { method:'POST', body: JSON.stringify({
+              etudiantId, type: 'NEUTRE', contenu: "Passage à l'infirmerie",
+            })});
+          }
           success++;
         }catch(err){ failed++; }
       }
@@ -2284,7 +2318,7 @@ async function loadAppelListe(){
       }
 
       if(failed === 0){
-        toast(`Appel enregistré : ${success} absence(s), ${observationsSaisies.length} observation(s).`);
+        toast(`Appel enregistré : ${success} entrée(s), ${observationsSaisies.length} observation(s).`);
       } else {
         toast(`Enregistré avec ${failed} échec(s).`, 'error');
       }
