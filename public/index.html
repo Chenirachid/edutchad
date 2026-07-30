@@ -376,6 +376,7 @@
   .appel-toggle-cell:hover{background:var(--teal-100);}
   .appel-toggle-cell.coche{background:var(--teal-100);}
   .appel-retard-min-cell{padding:4px;text-align:center;background:#fafafa;}
+  .appel-compteur-cell{width:30px;text-align:center;font-size:12.5px;color:var(--teal-700);font-weight:600;background:#fff;}
   .emploi-grille td.case-libre{background:#EBEBEB;}
   .emploi-grille tr.ligne-pause-midi td{border-top:2px solid #3FBF6F;}
   .creneau-case{
@@ -2213,26 +2214,40 @@ async function loadAppelListe(){
   const zone = document.getElementById('appel-liste');
   zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
   try{
-    const etudiants = await api('/enseignements/' + enseignementId + '/etudiants');
+    const [etudiants, toutesLesAbsences, toutesLesPunitions] = await Promise.all([
+      api('/enseignements/' + enseignementId + '/etudiants'),
+      api('/absences').catch(() => []),
+      api('/punitions').catch(() => []),
+    ]);
 
     if(!etudiants.length){
       zone.innerHTML = `<div class="card"><div class="empty-state">Aucun étudiant dans cette classe.</div></div>`;
       return;
     }
 
-    const rows = etudiants.map(et => `
+    const rows = etudiants.map(et => {
+      const nbAbsences = toutesLesAbsences.filter(a => a.etudiant?.id === et.id && a.type === 'ABSENCE').length;
+      const nbRetards = toutesLesAbsences.filter(a => a.etudiant?.id === et.id && a.type === 'RETARD').length;
+      const nbPunitions = toutesLesPunitions.filter(p => p.etudiant?.id === et.id && (p.type === 'AVERTISSEMENT' || p.type === 'RETENUE')).length;
+      const nbExclusions = toutesLesPunitions.filter(p => p.etudiant?.id === et.id && (p.type === 'EXCLUSION_TEMPORAIRE' || p.type === 'EXCLUSION_DEFINITIVE')).length;
+      return `
       <tr>
         <td class="appel-nom-cell"><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code> ${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
         <td class="appel-toggle-cell" data-toggle="ABSENCE" data-etudiant="${et.id}"></td>
+        <td class="appel-compteur-cell">${nbAbsences || ''}</td>
         <td class="appel-toggle-cell" data-toggle="RETARD" data-etudiant="${et.id}"></td>
+        <td class="appel-compteur-cell">${nbRetards || ''}</td>
         <td class="appel-retard-min-cell"><input type="number" data-duree-id="${et.id}" placeholder="min" min="1" style="width:60px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;" disabled /></td>
         <td class="appel-toggle-cell" data-toggle="INFIRMERIE" data-etudiant="${et.id}"></td>
         <td class="appel-toggle-cell" data-toggle="PUNITION" data-etudiant="${et.id}"></td>
+        <td class="appel-compteur-cell">${nbPunitions || ''}</td>
         <td class="appel-toggle-cell" data-toggle="EXCLUSION" data-etudiant="${et.id}"></td>
+        <td class="appel-compteur-cell">${nbExclusions || ''}</td>
         <td>
           <input type="text" data-observation-id="${et.id}" placeholder="Observation…" style="width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;" />
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
 
     zone.innerHTML = `
       <div class="card">
@@ -2243,17 +2258,18 @@ async function loadAppelListe(){
             <thead>
               <tr>
                 <th style="vertical-align:bottom;">Étudiant</th>
-                <th>Absence</th>
-                <th colspan="2">Retard</th>
+                <th colspan="2">Absence</th>
+                <th colspan="3">Retard</th>
                 <th>Infirmerie</th>
-                <th>Punition</th>
-                <th>Exclusion</th>
+                <th colspan="2">Punition</th>
+                <th colspan="2">Exclusion</th>
                 <th style="vertical-align:bottom;">Observation</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
+        <p style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Les petits nombres à côté de chaque case indiquent le total déjà enregistré (absences/retards toutes classes confondues ; punitions que vous avez vous-même saisies).</p>
         <button class="btn-submit" id="appel-submit-btn" style="margin-top:16px;">Valider l'appel</button>
       </div>`;
 
