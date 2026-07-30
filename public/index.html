@@ -1492,7 +1492,7 @@ const GROUPES_MENU = {
 const ICONE_DOSSIER = svgIcon('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>');
 
 function navButtonHtml(item){
-  return `<span class="nav-icon">${NAV_ICONS[item.id] || ''}</span><span>${t('nav_' + item.id.replace(/-/g,'_'))}</span>`;
+  return `<span>${t('nav_' + item.id.replace(/-/g,'_'))}</span>`;
 }
 
 function enterApp(){
@@ -1527,7 +1527,7 @@ function enterApp(){
     const btnAccueil = document.createElement('button');
     btnAccueil.className = 'nav-item nav-item-accueil';
     btnAccueil.title = 'Accueil';
-    btnAccueil.innerHTML = `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>`;
+    btnAccueil.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>`;
     btnAccueil.dataset.menuId = itemAccueil.id;
     btnAccueil.addEventListener('click', () => selectMenu(itemAccueil.id));
     zoneAccueil.appendChild(btnAccueil);
@@ -1546,7 +1546,7 @@ function enterApp(){
       wrap.className = 'nav-item-groupe';
       const btnGroupe = document.createElement('button');
       btnGroupe.className = 'nav-item nav-item-groupe-btn';
-      btnGroupe.innerHTML = `<span class="nav-icon">${groupeInfo.icone}</span><span>${escapeHtml(groupeInfo.label)}</span><span class="nav-groupe-fleche">▾</span>`;
+      btnGroupe.innerHTML = `<span>${escapeHtml(groupeInfo.label)}</span><span class="nav-groupe-fleche">▾</span>`;
       const dropdown = document.createElement('div');
       dropdown.className = 'nav-dropdown hidden';
       enfants.forEach(enfant => {
