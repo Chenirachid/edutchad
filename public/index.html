@@ -195,6 +195,8 @@
   .brand{display:flex;align-items:center;gap:10px;flex-shrink:0;order:3;}
   .brand .logo-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--teal-500),var(--teal-700));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
   .brand span{font-size:17px;font-weight:700;color:#fff;}
+  .nav-accueil-fixe{flex-shrink:0;display:flex;align-items:center;}
+  .nav-item-accueil{padding:8px 12px !important;}
   .topnav-items{
     flex:1;display:flex;align-items:center;gap:4px;
     overflow-x:auto;min-width:0;
@@ -825,6 +827,7 @@
     <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     </button>
+    <div id="nav-accueil-fixe" class="nav-accueil-fixe"></div>
     <div id="nav-list" class="topnav-items"></div>
     <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
     <div class="topnav-user">
@@ -908,7 +911,7 @@ const I18N = {
     nav_matieres: 'Matières', nav_enseignements_admin: 'Enseignements', nav_creneaux_admin: 'Emploi du temps',
     nav_liaisons: 'Liaisons parents', nav_vie_scolaire: 'Vie scolaire', nav_bulletins_pdf: 'Bulletins PDF', nav_certificats: 'Certificats',
     nav_frais: 'Frais scolaires', nav_demandes_suppression: 'Demandes de suppression',
-    title_actualites: 'Actualités', title_sondages: 'Sondages', title_bulletin: 'Mon bulletin', title_absences: 'Mes absences', title_comportement: 'Mon comportement',
+    title_actualites: 'Accueil', title_sondages: 'Sondages', title_bulletin: 'Mon bulletin', title_absences: 'Mes absences', title_comportement: 'Mon comportement',
     title_emploi: 'Emploi du temps', title_enseignements: 'Mes classes', title_appel: "Faire l'appel",
     title_saisir_note: 'Saisir une note', title_declarer_absence: 'Déclarer une absence', title_epreuves: 'Épreuves',
     title_observations: 'Observations', title_punitions: 'Punitions', title_groupes: 'Groupes',
@@ -940,7 +943,7 @@ const I18N = {
     nav_matieres: 'Subjects', nav_enseignements_admin: 'Teaching assignments', nav_creneaux_admin: 'Timetable',
     nav_liaisons: 'Parent links', nav_vie_scolaire: 'Student life', nav_bulletins_pdf: 'Report cards (PDF)', nav_certificats: 'Certificates',
     nav_frais: 'School fees', nav_demandes_suppression: 'Deletion requests',
-    title_actualites: 'News', title_sondages: 'Polls', title_bulletin: 'My report card', title_absences: 'My absences', title_comportement: 'My behaviour',
+    title_actualites: 'Home', title_sondages: 'Polls', title_bulletin: 'My report card', title_absences: 'My absences', title_comportement: 'My behaviour',
     title_emploi: 'Timetable', title_enseignements: 'My classes', title_appel: 'Take attendance',
     title_saisir_note: 'Enter a grade', title_declarer_absence: 'Report an absence', title_epreuves: 'Tests',
     title_observations: 'Remarks', title_punitions: 'Sanctions', title_groupes: 'Groups',
@@ -972,7 +975,7 @@ const I18N = {
     nav_matieres: 'المواد', nav_enseignements_admin: 'التكليفات التعليمية', nav_creneaux_admin: 'الجدول الزمني',
     nav_liaisons: 'روابط أولياء الأمور', nav_vie_scolaire: 'الحياة المدرسية', nav_bulletins_pdf: 'كشوف النقاط PDF', nav_certificats: 'الشهادات',
     nav_frais: 'الرسوم المدرسية', nav_demandes_suppression: 'طلبات الحذف',
-    title_actualites: 'الأخبار', title_sondages: 'استطلاعات', title_bulletin: 'كشف نقاطي', title_absences: 'غياباتي', title_comportement: 'سلوكي',
+    title_actualites: 'الرئيسية', title_sondages: 'استطلاعات', title_bulletin: 'كشف نقاطي', title_absences: 'غياباتي', title_comportement: 'سلوكي',
     title_emploi: 'الجدول الزمني', title_enseignements: 'أقسامي', title_appel: 'أخذ الحضور',
     title_saisir_note: 'إدخال نقطة', title_declarer_absence: 'تسجيل غياب', title_epreuves: 'الاختبارات',
     title_observations: 'ملاحظات', title_punitions: 'عقوبات', title_groupes: 'المجموعات',
@@ -1359,7 +1362,7 @@ function deconnecterUtilisateur(){
    ============================================================ */
 const MENUS = {
   ETUDIANT: [
-    { id:'actualites', label:'Actualités', render: renderActualites },
+    { id:'actualites', label:'Accueil', render: renderActualites },
     { id:'bulletin', label:'Mon bulletin', render: renderEtudiantBulletin },
     { id:'absences', label:'Mes absences', render: renderEtudiantAbsences },
     { id:'comportement', label:'Mon comportement', render: renderComportement },
@@ -1369,7 +1372,7 @@ const MENUS = {
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
   PROFESSEUR: [
-    { id:'actualites', label:'Actualités', render: renderActualites },
+    { id:'actualites', label:'Accueil', render: renderActualites },
     { id:'enseignements', label:'Mes classes', render: renderProfEnseignements, grupo:'info-pedagogique' },
     { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte, grupo:'info-pedagogique' },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps, grupo:'info-pedagogique' },
@@ -1380,13 +1383,13 @@ const MENUS = {
     { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
   PARENT: [
-    { id:'actualites', label:'Actualités', render: renderActualites },
+    { id:'actualites', label:'Accueil', render: renderActualites },
     { id:'enfants', label:'Mes enfants', render: renderParentEnfants },
     { id:'rendez-vous', label:'Rendez-vous administration', render: renderParentRendezVous },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
   ADMIN: [
-    { id:'actualites', label:'Actualités', render: renderActualites },
+    { id:'actualites', label:'Accueil', render: renderActualites },
     { id:'eleves', label:'Élèves', render: renderAdminEleves, grupo:'eleves-personnel' },
     { id:'personnel', label:'Personnel', render: renderAdminPersonnel, grupo:'eleves-personnel' },
     { id:'inscriptions', label:'Inscriptions', render: renderAdminInscriptions, grupo:'eleves-personnel' },
@@ -1418,7 +1421,7 @@ MENUS.CHEF_ETABLISSEMENT = [
   { id:'statistiques', label:'Statistiques', render: renderStatistiques },
 ];
 MENUS.VIE_SCOLAIRE = [
-  { id:'actualites', label:'Actualités', render: renderActualites },
+  { id:'actualites', label:'Accueil', render: renderActualites },
   { id:'vie-scolaire', label:'Vie scolaire', render: renderVieScolaire },
   { id:'messagerie', label:'Messagerie', render: renderMessagerie },
 ];
@@ -1515,7 +1518,20 @@ function enterApp(){
   nav.innerHTML = '';
   document.querySelectorAll('.nav-dropdown').forEach(d => d.remove());
   const items = MENUS[u.role] || [];
-  const itemsVisibles = items.filter(item => !item.hidden);
+  const itemsVisibles = items.filter(item => !item.hidden && item.id !== 'actualites');
+
+  const itemAccueil = items.find(item => item.id === 'actualites');
+  const zoneAccueil = document.getElementById('nav-accueil-fixe');
+  zoneAccueil.innerHTML = '';
+  if(itemAccueil){
+    const btnAccueil = document.createElement('button');
+    btnAccueil.className = 'nav-item nav-item-accueil';
+    btnAccueil.title = 'Accueil';
+    btnAccueil.innerHTML = `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>`;
+    btnAccueil.dataset.menuId = itemAccueil.id;
+    btnAccueil.addEventListener('click', () => selectMenu(itemAccueil.id));
+    zoneAccueil.appendChild(btnAccueil);
+  }
 
   // Regroupe les items consécutifs partageant le même "grupo" sous un seul menu déroulant
   const groupesRendus = new Set();
@@ -1566,7 +1582,8 @@ function enterApp(){
   });
   document.addEventListener('click', () => document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.add('hidden')));
 
-  if(itemsVisibles.length) selectMenu(itemsVisibles[0].id);
+  if(itemAccueil) selectMenu(itemAccueil.id);
+  else if(itemsVisibles.length) selectMenu(itemsVisibles[0].id);
 }
 
 function fermerMenuMobile(){
