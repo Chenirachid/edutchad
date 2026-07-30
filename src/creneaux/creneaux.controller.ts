@@ -38,6 +38,21 @@ export class CreneauxController {
     return this.creneauxService.findAll(user);
   }
 
+  // Consultation en lecture seule de l'emploi du temps d'une classe ou d'un professeur
+  // précis — utile pour qu'un professeur puisse voir l'emploi du temps d'un collègue
+  // ou d'une classe qui n'est pas la sienne, sans pouvoir le modifier.
+  @Get('classe/:classeId')
+  @Roles(Role.PROFESSEUR, Role.ADMIN, Role.CHEF_ETABLISSEMENT, Role.VIE_SCOLAIRE)
+  findParClasse(@Param('classeId', ParseIntPipe) classeId: number) {
+    return this.creneauxService.findParClasse(classeId);
+  }
+
+  @Get('professeur/:professeurId')
+  @Roles(Role.PROFESSEUR, Role.ADMIN, Role.CHEF_ETABLISSEMENT, Role.VIE_SCOLAIRE)
+  findParProfesseur(@Param('professeurId', ParseIntPipe) professeurId: number) {
+    return this.creneauxService.findParProfesseur(professeurId);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.creneauxService.findOne(id);

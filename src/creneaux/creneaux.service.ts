@@ -88,6 +88,20 @@ export class CreneauxService {
     });
   }
 
+  findParClasse(classeId: number) {
+    return this.prisma.creneau.findMany({
+      where: { enseignement: { classeId } },
+      include: includeContext,
+    });
+  }
+
+  findParProfesseur(professeurId: number) {
+    return this.prisma.creneau.findMany({
+      where: { enseignement: { professeurId } },
+      include: includeContext,
+    });
+  }
+
   async findAll(currentUser: JwtPayload) {
     if (currentUser.role === Role.ETUDIANT) {
       const user = await this.prisma.user.findUnique({
