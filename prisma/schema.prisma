@@ -157,6 +157,7 @@ model Enseignement {
   observations  Observation[]
   cahiersTexte  CahierTexte[]
   epreuves      Epreuve[]
+  appelsFaits   AppelFait[]
 }
 
 enum TypeEvaluation {
@@ -202,6 +203,17 @@ model Epreuve {
 enum TypeAbsence {
   ABSENCE
   RETARD
+}
+
+model AppelFait {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
+  enseignementId Int
+
+  @@unique([enseignementId, date])
 }
 
 model Absence {

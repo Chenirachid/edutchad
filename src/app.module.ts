@@ -33,6 +33,7 @@ import { SondagesModule } from './sondages/sondages.module';
 import { DossiersProfesseurModule } from './dossiers-professeur/dossiers-professeur.module';
 import { RessourcesProfModule } from './ressources-prof/ressources-prof.module';
 import { BibliothequeModule } from './bibliotheque/bibliotheque.module';
+import { AppelFaitModule } from './appel-fait/appel-fait.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { BibliothequeModule } from './bibliotheque/bibliotheque.module';
     DossiersProfesseurModule,
     RessourcesProfModule,
     BibliothequeModule,
+    AppelFaitModule,
   ],
   controllers: [],
   providers: [

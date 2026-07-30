@@ -368,14 +368,21 @@
   .emploi-grille td.case-cours{background:#FDF8D6;}
   .table-appel{border-collapse:collapse;}
   .table-appel th, .table-appel td{border:1px solid var(--border);}
-  .appel-nom-cell{text-align:left;padding:7px 10px;font-size:13px;white-space:nowrap;}
+  .table-appel thead th{background:#fff;font-size:12px;padding:6px 8px;}
+  .table-appel tbody tr:nth-child(odd) .appel-nom-cell,
+  .table-appel tbody tr:nth-child(odd) .appel-toggle-cell,
+  .table-appel tbody tr:nth-child(odd) .appel-retard-min-cell,
+  .table-appel tbody tr:nth-child(odd) .appel-compteur-cell{background:#F2F2F2;}
+  .table-appel tbody tr:nth-child(odd) .appel-toggle-cell:hover{background:#E3F3F3;}
+  .table-appel tbody tr:nth-child(odd) .appel-toggle-cell.coche{background:var(--teal-100);}
+  .appel-nom-cell{text-align:left;padding:7px 10px;font-size:13px;white-space:nowrap;background:#fff;}
   .appel-toggle-cell{
-    width:44px;height:34px;text-align:center;cursor:pointer;background:#fafafa;
+    width:44px;height:34px;text-align:center;cursor:pointer;background:#fff;
     font-size:15px;font-weight:700;color:var(--teal-700);user-select:none;
   }
   .appel-toggle-cell:hover{background:var(--teal-100);}
   .appel-toggle-cell.coche{background:var(--teal-100);}
-  .appel-retard-min-cell{padding:4px;text-align:center;background:#fafafa;}
+  .appel-retard-min-cell{padding:4px;text-align:center;background:#fff;}
   .appel-compteur-cell{width:30px;text-align:center;font-size:12.5px;color:var(--teal-700);font-weight:600;background:#fff;}
   .emploi-grille td.case-libre{background:#EBEBEB;}
   .emploi-grille tr.ligne-pause-midi td{border-top:2px solid #3FBF6F;}
@@ -2177,34 +2184,41 @@ async function renderProfAppel(){
     return;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-  const enseignementOptions = mine.map(e => `<option value="${e.id}" ${appelPrefillEnseignementId === e.id ? 'selected' : ''}>${escapeHtml(e.classe.nom)} — ${escapeHtml(e.matiere.nom)}</option>`).join('');
-  const venaitDeLEmploi = appelPrefillEnseignementId !== null;
-  appelPrefillEnseignementId = null;
+  const creneaux = await api('/creneaux').catch(() => []);
+  const idsAMoi = new Set(mine.map(e => e.id));
+  const mesCreneaux = creneaux.filter(c => idsAMoi.has(c.enseignement.id));
+
+  const maintenant = new Date();
+  const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
+  const jourAujourdhui = joursNoms[maintenant.getDay()];
+  const heureActuelle = String(maintenant.getHours()).padStart(2,'0') + ':' + String(maintenant.getMinutes()).padStart(2,'0');
+  const today = maintenant.toISOString().slice(0, 10);
+
+  const creneauEnCours = mesCreneaux.find(c =>
+    c.jour === jourAujourdhui && c.heureDebut <= heureActuelle && heureActuelle < c.heureFin
+  );
+
+  appelPrefillEnseignementId = null; // ce mécanisme n'est plus utilisé : l'appel se limite au cours en cours
+
+  if(!creneauEnCours){
+    content.innerHTML = `
+      <div class="card">
+        <h2>Faire l'appel</h2>
+        <div class="empty-state">Vous n'avez aucun cours en ce moment (${heureActuelle}). L'appel n'est accessible que pendant le créneau réel de votre cours, pour éviter les erreurs de classe ou de date.</div>
+      </div>`;
+    return;
+  }
+
+  const enseignement = mine.find(e => e.id === creneauEnCours.enseignement.id);
 
   content.innerHTML = `
     <div class="card">
-      <h2>Choisir la classe et la date</h2>
-      ${venaitDeLEmploi ? `<p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Classe/matière pré-remplie depuis votre emploi du temps.</p>` : ''}
-      <form class="inline-form" id="appel-select-form">
-        <div class="f" style="min-width:220px;">
-          <label>Classe / matière</label>
-          <select name="enseignementId" id="appel-enseignement" required>${enseignementOptions}</select>
-        </div>
-        <div class="f">
-          <label>Date</label>
-          <input type="date" name="date" id="appel-date" value="${today}" required />
-        </div>
-        <button class="btn-submit" type="submit">Charger la liste</button>
-      </form>
+      <h2>Faire l'appel — ${escapeHtml(enseignement.classe.nom)} — ${escapeHtml(enseignement.matiere.nom)}</h2>
+      <p style="font-size:12.5px;color:var(--teal-700);font-weight:600;margin:-8px 0 14px;">Cours en cours actuellement (${creneauEnCours.heureDebut} – ${creneauEnCours.heureFin}).</p>
+      <input type="hidden" id="appel-enseignement" value="${enseignement.id}" />
+      <input type="hidden" id="appel-date" value="${today}" />
     </div>
     <div id="appel-liste"></div>`;
-
-
-  document.getElementById('appel-select-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    await loadAppelListe();
-  });
 
   await loadAppelListe();
 }
@@ -2290,6 +2304,8 @@ async function loadAppelListe(){
       const date = document.getElementById('appel-date').value;
       const cochees = Array.from(zone.querySelectorAll('.appel-toggle-cell.coche'));
       const observationsSaisies = Array.from(zone.querySelectorAll('[data-observation-id]')).filter(inp => inp.value.trim());
+
+      try{ await api('/appel-fait', { method:'POST', body: JSON.stringify({ enseignementId: Number(enseignementId), date }) }); }catch(err){ /* pas bloquant */ }
 
       if(!cochees.length && !observationsSaisies.length){
         toast('Appel enregistré : tout le monde était présent.');
@@ -5586,6 +5602,11 @@ async function renderActualites(){
   const peutPublier = state.user.role === 'ADMIN' || state.user.role === 'CHEF_PROJET';
   const actualites = await api('/actualites');
 
+  let blocEmploiProf = '';
+  if(state.user.role === 'PROFESSEUR'){
+    blocEmploiProf = await construireBlocAccueilProf();
+  }
+
   const cartes = actualites.map(a => `
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -5606,7 +5627,7 @@ async function renderActualites(){
       </form>
     </div>` : '';
 
-  content.innerHTML = `${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
+  content.innerHTML = `${blocEmploiProf}${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
 
   if(peutPublier){
     document.getElementById('actualite-form').addEventListener('submit', async (e) => {
@@ -5620,6 +5641,61 @@ async function renderActualites(){
     });
 
     bindDeleteButtons(content, 'data-delete-actualite', '/actualites', renderActualites, 'cette actualité');
+  }
+
+  const btnAllerAppel = document.getElementById('accueil-aller-appel-btn');
+  if(btnAllerAppel){
+    btnAllerAppel.addEventListener('click', () => selectMenu('appel'));
+  }
+}
+
+async function construireBlocAccueilProf(){
+  try{
+    const [mine, creneaux, appelsFaits] = await Promise.all([
+      getMesEnseignements(),
+      api('/creneaux').catch(() => []),
+      api('/appel-fait').catch(() => []),
+    ]);
+    const idsAMoi = new Set(mine.map(e => e.id));
+    const mesCreneaux = creneaux.filter(c => idsAMoi.has(c.enseignement.id));
+
+    const maintenant = new Date();
+    const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
+    const jourAujourdhui = joursNoms[maintenant.getDay()];
+    const heureActuelle = String(maintenant.getHours()).padStart(2,'0') + ':' + String(maintenant.getMinutes()).padStart(2,'0');
+    const today = maintenant.toISOString().slice(0, 10);
+
+    const creneauxAujourdhui = mesCreneaux
+      .filter(c => c.jour === jourAujourdhui)
+      .sort((a, b) => a.heureDebut.localeCompare(b.heureDebut));
+
+    if(!creneauxAujourdhui.length){
+      return `<div class="card"><h2>Mon emploi du temps — aujourd'hui</h2><div class="empty-state">Aucun cours prévu aujourd'hui.</div></div>`;
+    }
+
+    const appelsFaitsAujourdhui = new Set(
+      appelsFaits.filter(a => new Date(a.date).toISOString().slice(0,10) === today).map(a => a.enseignementId)
+    );
+
+    const lignes = creneauxAujourdhui.map(c => {
+      const estPasse = c.heureFin <= heureActuelle;
+      const estEnCours = c.heureDebut <= heureActuelle && heureActuelle < c.heureFin;
+      const appelFait = appelsFaitsAujourdhui.has(c.enseignement.id);
+      const manque = estPasse && !appelFait;
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:6px;background:${manque ? '#FEE2E2' : estEnCours ? 'var(--teal-100)' : 'var(--bg)'};">
+          <div>
+            <strong>${c.heureDebut} – ${c.heureFin}</strong> — ${escapeHtml(c.enseignement.classe.nom)} — ${escapeHtml(c.enseignement.matiere.nom)}
+            ${manque ? '<div style="color:var(--danger);font-size:12px;font-weight:600;margin-top:2px;">⚠️ Appel non fait</div>' : ''}
+            ${estEnCours ? '<div style="color:var(--teal-700);font-size:12px;font-weight:600;margin-top:2px;">🟢 En cours actuellement</div>' : ''}
+          </div>
+          ${estEnCours ? `<button class="btn-submit" id="accueil-aller-appel-btn" style="margin:0;">Faire l'appel</button>` : ''}
+        </div>`;
+    }).join('');
+
+    return `<div class="card"><h2>Mon emploi du temps — aujourd'hui</h2>${lignes}</div>`;
+  }catch(err){
+    return '';
   }
 }
 
