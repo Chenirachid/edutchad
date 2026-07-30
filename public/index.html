@@ -214,9 +214,9 @@
   .nav-item-groupe-btn{display:flex;}
   .nav-groupe-fleche{font-size:9px;margin-left:2px;}
   .nav-dropdown{
-    position:absolute;top:100%;left:0;margin-top:4px;background:#2A2A2A;
+    position:fixed;margin-top:4px;background:#2A2A2A;
     border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.3);min-width:200px;
-    padding:6px;z-index:50;display:flex;flex-direction:column;gap:2px;
+    padding:6px;z-index:500;display:flex;flex-direction:column;gap:2px;
   }
   .nav-dropdown-item{
     display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:6px;
@@ -1513,6 +1513,7 @@ function enterApp(){
 
   const nav = document.getElementById('nav-list');
   nav.innerHTML = '';
+  document.querySelectorAll('.nav-dropdown').forEach(d => d.remove());
   const items = MENUS[u.role] || [];
   const itemsVisibles = items.filter(item => !item.hidden);
 
@@ -1535,7 +1536,7 @@ function enterApp(){
       enfants.forEach(enfant => {
         const btnEnfant = document.createElement('button');
         btnEnfant.className = 'nav-dropdown-item';
-        btnEnfant.innerHTML = navButtonHtml(enfant);
+        btnEnfant.textContent = t('nav_' + enfant.id.replace(/-/g,'_'));
         btnEnfant.dataset.menuId = enfant.id;
         btnEnfant.addEventListener('click', () => { dropdown.classList.add('hidden'); selectMenu(enfant.id); });
         dropdown.appendChild(btnEnfant);
@@ -1544,10 +1545,15 @@ function enterApp(){
         e.stopPropagation();
         const etaitOuvert = !dropdown.classList.contains('hidden');
         document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.add('hidden'));
+        if(!etaitOuvert){
+          const rect = btnGroupe.getBoundingClientRect();
+          dropdown.style.top = rect.bottom + 'px';
+          dropdown.style.left = rect.left + 'px';
+        }
         dropdown.classList.toggle('hidden', etaitOuvert);
       });
       wrap.appendChild(btnGroupe);
-      wrap.appendChild(dropdown);
+      document.body.appendChild(dropdown);
       nav.appendChild(wrap);
       return;
     }
