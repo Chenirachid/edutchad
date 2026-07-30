@@ -210,6 +210,21 @@
   .nav-item.active{background:rgba(255,255,255,.06);color:#fff;font-weight:700;border-bottom-color:var(--teal-500);}
   .nav-icon{display:flex;flex-shrink:0;}
   .nav-icon svg{display:block;}
+  .nav-item-groupe{position:relative;flex-shrink:0;}
+  .nav-item-groupe-btn{display:flex;}
+  .nav-groupe-fleche{font-size:9px;margin-left:2px;}
+  .nav-dropdown{
+    position:absolute;top:100%;left:0;margin-top:4px;background:#2A2A2A;
+    border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.3);min-width:200px;
+    padding:6px;z-index:50;display:flex;flex-direction:column;gap:2px;
+  }
+  .nav-dropdown-item{
+    display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:6px;
+    font-size:13px;font-weight:600;color:#fff;background:transparent;border:none;
+    text-align:left;white-space:nowrap;
+  }
+  .nav-dropdown-item:hover{background:rgba(255,255,255,.1);}
+  .nav-dropdown-item.active{background:var(--teal-500);color:#04302F;}
   .topnav-user{display:flex;align-items:center;gap:10px;flex-shrink:0;}
   .hamburger-btn{
     display:none;flex-shrink:0;width:38px;height:38px;border-radius:9px;
@@ -1355,10 +1370,10 @@ const MENUS = {
   ],
   PROFESSEUR: [
     { id:'actualites', label:'Actualités', render: renderActualites },
-    { id:'enseignements', label:'Mes classes', render: renderProfEnseignements },
-    { id:'appel', label:"Faire l'appel", render: renderProfAppel },
-    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte, hidden: true },
-    { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
+    { id:'enseignements', label:'Mes classes', render: renderProfEnseignements, grupo:'info-pedagogique' },
+    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte, grupo:'info-pedagogique' },
+    { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps, grupo:'info-pedagogique' },
+    { id:'appel', label:"Faire l'appel", render: renderProfAppel, grupo:'vie-scolaire' },
     { id:'mes-documents', label:'Mes documents', render: renderProfDocuments },
     { id:'bibliotheque', label:'Bibliothèque', render: renderBibliotheque },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
@@ -1464,6 +1479,11 @@ const NAV_ICONS = {
   'mes-documents': svgIcon('<rect x="4" y="3" width="12" height="16" rx="1"/><path d="M9 8h4M9 11h4M9 14h2"/><path d="M16 7l4 4v9a1 1 0 0 1-1 1h-3"/>'),
 };
 
+const GROUPES_MENU = {
+  'vie-scolaire': { label: 'Vie scolaire', icone: NAV_ICONS['vie-scolaire'] },
+  'info-pedagogique': { label: 'Informations pédagogiques', icone: svgIcon('<path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/><path d="M20 9v5"/>') },
+};
+
 const ICONE_DOSSIER = svgIcon('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>');
 
 function navButtonHtml(item){
@@ -1493,14 +1513,50 @@ function enterApp(){
   nav.innerHTML = '';
   const items = MENUS[u.role] || [];
   const itemsVisibles = items.filter(item => !item.hidden);
-  itemsVisibles.forEach((item, idx) => {
+
+  // Regroupe les items consécutifs partageant le même "grupo" sous un seul menu déroulant
+  const groupesRendus = new Set();
+  itemsVisibles.forEach((item) => {
+    if(item.grupo){
+      if(groupesRendus.has(item.grupo)) return; // déjà rendu avec le premier item du groupe
+      groupesRendus.add(item.grupo);
+      const enfants = itemsVisibles.filter(i => i.grupo === item.grupo);
+      const groupeInfo = GROUPES_MENU[item.grupo] || { label: item.grupo, icone: '' };
+
+      const wrap = document.createElement('div');
+      wrap.className = 'nav-item-groupe';
+      const btnGroupe = document.createElement('button');
+      btnGroupe.className = 'nav-item nav-item-groupe-btn';
+      btnGroupe.innerHTML = `<span class="nav-icon">${groupeInfo.icone}</span><span>${escapeHtml(groupeInfo.label)}</span><span class="nav-groupe-fleche">▾</span>`;
+      const dropdown = document.createElement('div');
+      dropdown.className = 'nav-dropdown hidden';
+      enfants.forEach(enfant => {
+        const btnEnfant = document.createElement('button');
+        btnEnfant.className = 'nav-dropdown-item';
+        btnEnfant.innerHTML = navButtonHtml(enfant);
+        btnEnfant.dataset.menuId = enfant.id;
+        btnEnfant.addEventListener('click', () => { dropdown.classList.add('hidden'); selectMenu(enfant.id); });
+        dropdown.appendChild(btnEnfant);
+      });
+      btnGroupe.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const etaitOuvert = !dropdown.classList.contains('hidden');
+        document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.add('hidden'));
+        dropdown.classList.toggle('hidden', etaitOuvert);
+      });
+      wrap.appendChild(btnGroupe);
+      wrap.appendChild(dropdown);
+      nav.appendChild(wrap);
+      return;
+    }
     const btn = document.createElement('button');
-    btn.className = 'nav-item' + (idx === 0 ? ' active' : '');
+    btn.className = 'nav-item';
     btn.innerHTML = navButtonHtml(item);
     btn.addEventListener('click', () => selectMenu(item.id));
     btn.dataset.menuId = item.id;
     nav.appendChild(btn);
   });
+  document.addEventListener('click', () => document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.add('hidden')));
 
   if(itemsVisibles.length) selectMenu(itemsVisibles[0].id);
 }
@@ -1519,16 +1575,23 @@ document.getElementById('hamburger-btn').addEventListener('click', toggleMenuMob
 document.getElementById('mobile-nav-backdrop').addEventListener('click', fermerMenuMobile);
 
 function selectMenu(menuId){
-  document.querySelectorAll('.nav-item').forEach(b => {
+  document.querySelectorAll('.nav-item, .nav-dropdown-item').forEach(b => {
     b.classList.toggle('active', b.dataset.menuId === menuId);
   });
+  const items = MENUS[state.user.role] || [];
+  const itemActif = items.find(i => i.id === menuId);
+  document.querySelectorAll('.nav-item-groupe-btn').forEach(b => b.classList.remove('active'));
+  if(itemActif && itemActif.grupo){
+    const groupeInfo = GROUPES_MENU[itemActif.grupo];
+    document.querySelectorAll('.nav-item-groupe-btn').forEach(b => {
+      if(groupeInfo && b.textContent.includes(groupeInfo.label)) b.classList.add('active');
+    });
+  }
   fermerMenuMobile();
   document.getElementById('page-title').textContent = t('title_' + menuId.replace(/-/g,'_'));
-  const items = MENUS[state.user.role] || [];
-  const item = items.find(i => i.id === menuId);
   const content = document.getElementById('content');
   content.innerHTML = '<div class="empty-state">Chargement…</div>';
-  if(item) item.render().catch(err => {
+  if(itemActif) itemActif.render().catch(err => {
     content.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`;
   });
 }
