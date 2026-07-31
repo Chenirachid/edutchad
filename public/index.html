@@ -1764,14 +1764,22 @@ async function chargerEtAfficherBulletinEtudiant(etudiantId, trimestre, estMoiMe
   content.innerHTML = `
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:10px;">
-        <div class="f" style="margin:0;max-width:200px;">
-          <label>Période</label>
-          <select id="bulletin-trimestre-select">
-            <option value="0" ${trimestre === 0 ? 'selected' : ''}>Année entière</option>
-            <option value="1" ${trimestre === 1 ? 'selected' : ''}>Trimestre 1</option>
-            <option value="2" ${trimestre === 2 ? 'selected' : ''}>Trimestre 2</option>
-            <option value="3" ${trimestre === 3 ? 'selected' : ''}>Trimestre 3</option>
-          </select>
+        <div style="display:flex;gap:12px;">
+          <div class="f" style="margin:0;max-width:160px;">
+            <label>Année scolaire</label>
+            <select id="bulletin-annee-select">
+              <option value="${escapeHtml(parametres.anneeScolaire || '')}" selected>${escapeHtml(parametres.anneeScolaire || '—')}</option>
+            </select>
+          </div>
+          <div class="f" style="margin:0;max-width:200px;">
+            <label>Période</label>
+            <select id="bulletin-trimestre-select">
+              <option value="0" ${trimestre === 0 ? 'selected' : ''}>Année entière</option>
+              <option value="1" ${trimestre === 1 ? 'selected' : ''}>Trimestre 1</option>
+              <option value="2" ${trimestre === 2 ? 'selected' : ''}>Trimestre 2</option>
+              <option value="3" ${trimestre === 3 ? 'selected' : ''}>Trimestre 3</option>
+            </select>
+          </div>
         </div>
         <div style="display:flex;gap:18px;align-items:center;">
           <button class="btn-icone" id="bulletin-imprimer-btn" title="Imprimer / Enregistrer en PDF">
