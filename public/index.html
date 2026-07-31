@@ -1735,7 +1735,7 @@ async function chargerEtAfficherBulletinEtudiant(etudiantId, trimestre, estMoiMe
   const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
 
   let moyennesClasse = {};
-  const classeIdPourComparaison = estMoiMeme ? state.user.classeId : null;
+  const classeIdPourComparaison = b.etudiant.classeId || (estMoiMeme ? state.user.classeId : null);
   try{
     if(classeIdPourComparaison){
       const rep = await api('/bulletins/classe/' + classeIdPourComparaison + '/moyennes');

@@ -175,6 +175,7 @@ export class BulletinsService {
       prenom: string;
       numeroEtudiant?: string | null;
       etablissementId?: number | null;
+      classeId?: number | null;
     },
     respecterPublication = false,
     trimestre?: number,
@@ -277,6 +278,7 @@ export class BulletinsService {
         nom: etudiant.nom,
         prenom: etudiant.prenom,
         numeroEtudiant: etudiant.numeroEtudiant ?? null,
+        classeId: etudiant.classeId ?? null,
       },
       matieres,
       moyenneGenerale:
