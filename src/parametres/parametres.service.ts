@@ -21,9 +21,14 @@ export class ParametresService {
 
   async update(dto: UpdateParametresDto, etablissementId: number | null) {
     const existing = await this.get(etablissementId);
+    const { debutTrimestre2, debutTrimestre3, ...reste } = dto;
     return this.prisma.parametrePlateforme.update({
       where: { id: existing.id },
-      data: dto,
+      data: {
+        ...reste,
+        ...(debutTrimestre2 !== undefined ? { debutTrimestre2: debutTrimestre2 ? new Date(debutTrimestre2) : null } : {}),
+        ...(debutTrimestre3 !== undefined ? { debutTrimestre3: debutTrimestre3 ? new Date(debutTrimestre3) : null } : {}),
+      },
       include: { etablissement: { select: { code: true } } },
     });
   }

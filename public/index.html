@@ -366,6 +366,12 @@
     padding:14px 16px;margin-bottom:12px;
   }
   .emploi-grille td.case-cours{background:#FDF8D6;}
+  .table-bulletin{border-collapse:collapse;width:100%;font-size:12.5px;}
+  .table-bulletin th, .table-bulletin td{border:1px solid var(--border);padding:8px 10px;vertical-align:top;}
+  .table-bulletin thead th{background:#fff;font-size:12px;text-align:center;}
+  .bulletin-matiere-cell{white-space:nowrap;min-width:150px;}
+  .bulletin-moy-cell{background:#4A4A4A;color:#fff;text-align:center;font-weight:700;min-width:55px;}
+  .bulletin-texte-cell{min-width:180px;line-height:1.5;}
   .table-appel{border-collapse:collapse;}
   .table-appel th, .table-appel td{border:1px solid var(--border);}
   .table-appel thead th{background:#fff;font-size:12px;padding:6px 8px;}
@@ -1644,86 +1650,102 @@ function selectMenu(menuId){
 /* ============================================================
    ÉTUDIANT
    ============================================================ */
+let trimestreBulletinActuel = 0; // 0 = année entière (pas de filtre)
+
 async function renderEtudiantBulletin(){
+  document.getElementById('page-subtitle').textContent = '';
+  await chargerEtAfficherBulletinEtudiant(state.user.id, trimestreBulletinActuel, true);
+}
+
+async function chargerEtAfficherBulletinEtudiant(etudiantId, trimestre, estMoiMeme, conteneurCible){
+  const content = conteneurCible || document.getElementById('content');
+  content.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
+
+  const suffixeTrimestre = trimestre ? '?trimestre=' + trimestre : '';
   const [b, toutesLesNotes, parametres] = await Promise.all([
-    api('/bulletins/etudiant/' + state.user.id),
+    api('/bulletins/etudiant/' + etudiantId + suffixeTrimestre),
     api('/notes'),
     api('/parametres').catch(() => ({ bareme: 20 })),
   ]);
-  const content = document.getElementById('content');
-  document.getElementById('page-subtitle').textContent = b.etudiant.prenom + ' ' + b.etudiant.nom;
+  if(estMoiMeme) document.getElementById('page-subtitle').textContent = b.etudiant.prenom + ' ' + b.etudiant.nom;
 
   const seuilAdmission = (parametres.bareme || 20) / 2;
   const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
 
   let moyennesClasse = {};
+  const classeIdPourComparaison = estMoiMeme ? state.user.classeId : null;
   try{
-    if(state.user.classeId){
-      const rep = await api('/bulletins/classe/' + state.user.classeId + '/moyennes');
+    if(classeIdPourComparaison){
+      const rep = await api('/bulletins/classe/' + classeIdPourComparaison + '/moyennes');
       rep.moyennesParMatiere.forEach(m => { moyennesClasse[m.matiereId] = m.moyenneClasse; });
     }
   }catch(err){ /* comparaison facultative, on l'ignore si indisponible */ }
 
-  const mesNotes = toutesLesNotes.filter(n => String(n.etudiantId) === String(state.user.id));
-  const notesParMatiere = {};
-  mesNotes.forEach(n => {
-    const nom = n.enseignement.matiere.nom;
-    if(!notesParMatiere[nom]) notesParMatiere[nom] = [];
-    notesParMatiere[nom].push(n);
-  });
+  const mesNotes = toutesLesNotes.filter(n => String(n.etudiantId) === String(etudiantId));
 
-  const cartes = b.matieres.map(m => {
-    const notesDeLaMatiere = (notesParMatiere[m.nom] || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-    const rowsNotes = notesDeLaMatiere.map(n => `
-      <tr>
-        <td>${new Date(n.createdAt).toLocaleDateString('fr-FR')}</td>
-        <td>${TYPE_EVALUATION_LABELS[n.type] || n.type}</td>
-        <td><strong>${n.valeur.toFixed(2)}</strong> / 20</td>
-        <td>${n.coefficient}</td>
-        <td>${n.commentaire ? escapeHtml(n.commentaire) : '—'}</td>
-      </tr>`).join('');
+  const lignesMatieres = b.matieres.map(m => {
+    const moyClasse = moyennesClasse[m.matiereId];
     return `
-      <div class="carte-matiere" style="border-left-color:${stringToColor(m.nom)};">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-          <span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <span class="moy-pill ${moyennePillClass(m.moyenne)}">Ma moyenne : ${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'} (coef. ${m.coefficient})</span>
-            ${moyennesClasse[m.matiereId] !== undefined ? `<span class="moy-pill" style="background:var(--teal-100);color:var(--teal-900);">Classe : ${moyennesClasse[m.matiereId].toFixed(2)}</span>` : ''}
-          </div>
-        </div>
-        ${notesDeLaMatiere.length ? `<table><thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Coef.</th><th>Commentaire</th></tr></thead><tbody>${rowsNotes}</tbody></table>` : '<div class="empty-state">Aucune évaluation notée.</div>'}
-      </div>`;
+      <tr>
+        <td class="bulletin-matiere-cell">
+          <strong>${escapeHtml(m.nom.toUpperCase())}</strong>
+          ${m.professeur ? `<div style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(m.professeur)}</div>` : ''}
+        </td>
+        <td class="bulletin-moy-cell">${m.moyenne !== null ? m.moyenne.toFixed(2) : ''}</td>
+        <td class="bulletin-moy-cell">${moyClasse !== undefined ? moyClasse.toFixed(2) : ''}</td>
+        <td class="bulletin-texte-cell">${m.elementsProgramme ? escapeHtml(m.elementsProgramme).replace(/\n/g,'<br>') : ''}</td>
+        <td class="bulletin-texte-cell">${m.appreciationTravail ? escapeHtml(m.appreciationTravail) : ''}</td>
+        <td class="bulletin-texte-cell">${m.appreciationAvis ? escapeHtml(m.appreciationAvis) : ''}</td>
+      </tr>`;
   }).join('');
 
   content.innerHTML = `
-    <div class="grid-3">
-      <div class="card">
-        <div class="stat">
-          <div class="label">Moyenne générale</div>
-          <div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} <span style="font-size:16px;color:var(--text-muted);">/ ${parametres.bareme || 20}</span></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="stat">
-          <div class="label">Matières notées</div>
-          <div class="big">${b.matieres.length}</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="stat">
-          <div class="label">Statut</div>
-          <div class="big" style="font-size:20px;">
-            ${b.moyenneGenerale === null ? '—' : estAdmis
-              ? `<span class="badge-justifiee">Admis(e)</span>`
-              : `<span class="badge-non-justifiee">Ajourné(e)</span>`}
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="card">
-      <h2>Détail par matière</h2>
-      ${b.matieres.length ? cartes : `<div class="empty-state">Aucune note pour l'instant.</div>`}
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:10px;">
+        <div class="f" style="margin:0;max-width:200px;">
+          <label>Période</label>
+          <select id="bulletin-trimestre-select">
+            <option value="0" ${trimestre === 0 ? 'selected' : ''}>Année entière</option>
+            <option value="1" ${trimestre === 1 ? 'selected' : ''}>Trimestre 1</option>
+            <option value="2" ${trimestre === 2 ? 'selected' : ''}>Trimestre 2</option>
+            <option value="3" ${trimestre === 3 ? 'selected' : ''}>Trimestre 3</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:18px;align-items:center;">
+          <button class="btn-icone" id="bulletin-imprimer-btn" title="Imprimer / Enregistrer en PDF">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h9l3 3v3M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          </button>
+          <div class="stat" style="text-align:right;">
+            <div class="label">Moyenne générale</div>
+            <div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} <span style="font-size:14px;color:var(--text-muted);">/ ${parametres.bareme || 20}</span></div>
+          </div>
+          <div>${b.moyenneGenerale === null ? '' : estAdmis ? '<span class="badge-justifiee">Admis(e)</span>' : '<span class="badge-non-justifiee">Ajourné(e)</span>'}</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="table-bulletin">
+          <thead>
+            <tr>
+              <th rowspan="2" style="vertical-align:bottom;">Matière</th>
+              <th colspan="2">Moyennes</th>
+              <th rowspan="2" style="vertical-align:bottom;">Éléments du programme travaillés durant la période</th>
+              <th rowspan="2" style="vertical-align:bottom;">App. A : Travail</th>
+              <th rowspan="2" style="vertical-align:bottom;">App. B : Avis global</th>
+            </tr>
+            <tr><th>Élève</th><th>Classe</th></tr>
+          </thead>
+          <tbody>${lignesMatieres || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Aucune note pour cette période.</td></tr>'}</tbody>
+        </table>
+      </div>
     </div>`;
+
+  document.getElementById('bulletin-imprimer-btn').addEventListener('click', () => window.print());
+
+  document.getElementById('bulletin-trimestre-select').addEventListener('change', (e) => {
+    const nouveauTrimestre = Number(e.target.value);
+    if(estMoiMeme) trimestreBulletinActuel = nouveauTrimestre;
+    chargerEtAfficherBulletinEtudiant(etudiantId, nouveauTrimestre, estMoiMeme, content);
+  });
 }
 
 async function renderEtudiantAbsences(){
@@ -2122,7 +2144,69 @@ async function renderProfEnseignements(){
             </div>
             <button class="btn-submit" id="dossier-enregistrer-notes-btn" style="margin-top:16px;">Enregistrer les modifications</button>
             ` : '<div class="empty-state">Crée une première évaluation ci-dessus pour commencer à saisir des notes.</div>'}
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+              <h2 style="margin:0;">Bulletin — Programme &amp; appréciations</h2>
+              <div class="f" style="margin:0;max-width:160px;">
+                <label>Trimestre</label>
+                <select id="bulletin-matiere-trimestre">
+                  <option value="1">Trimestre 1</option>
+                  <option value="2">Trimestre 2</option>
+                  <option value="3">Trimestre 3</option>
+                </select>
+              </div>
+            </div>
+            <div id="bulletin-matiere-zone"></div>
           </div>`;
+
+        const chargerBulletinMatiere = async () => {
+          const trimestre = document.getElementById('bulletin-matiere-trimestre').value;
+          const zoneBM = document.getElementById('bulletin-matiere-zone');
+          zoneBM.innerHTML = '<div class="empty-state">Chargement…</div>';
+          const existant = await api('/bulletin-matiere/enseignement/' + enseignementId + '?trimestre=' + trimestre);
+          const parEtudiant = {};
+          existant.forEach(bm => { parEtudiant[bm.etudiantId] = bm; });
+          const programmeExistant = existant.length ? (existant[0].elementsProgramme || '') : '';
+
+          const lignesEleves = etudiants.map(et => {
+            const bm = parEtudiant[et.id];
+            return `
+              <tr>
+                <td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>
+                <td><textarea data-appreciation-travail="${et.id}" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;font-family:inherit;">${bm ? escapeHtml(bm.appreciationTravail || '') : ''}</textarea></td>
+                <td><textarea data-appreciation-avis="${et.id}" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;font-family:inherit;">${bm ? escapeHtml(bm.appreciationAvis || '') : ''}</textarea></td>
+              </tr>`;
+          }).join('');
+
+          zoneBM.innerHTML = `
+            <div class="f" style="width:100%;margin-bottom:14px;">
+              <label>Éléments du programme travaillés durant la période (commun à toute la classe)</label>
+              <textarea id="bulletin-matiere-programme" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;" placeholder="Ex : Comprendre des textes courts et simples...">${escapeHtml(programmeExistant)}</textarea>
+            </div>
+            <div style="overflow-x:auto;">
+              <table><thead><tr><th>Élève</th><th>App. A : Travail</th><th>App. B : Avis global</th></tr></thead><tbody>${lignesEleves}</tbody></table>
+            </div>
+            <button class="btn-submit" id="bulletin-matiere-enregistrer-btn" style="margin-top:14px;">Enregistrer le bulletin de cette matière</button>`;
+
+          document.getElementById('bulletin-matiere-enregistrer-btn').addEventListener('click', async () => {
+            const programme = document.getElementById('bulletin-matiere-programme').value;
+            try{
+              await Promise.all(etudiants.map(et => api('/bulletin-matiere', { method:'POST', body: JSON.stringify({
+                etudiantId: et.id,
+                enseignementId: Number(enseignementId),
+                trimestre: Number(trimestre),
+                elementsProgramme: programme,
+                appreciationTravail: zoneBM.querySelector(`[data-appreciation-travail="${et.id}"]`).value,
+                appreciationAvis: zoneBM.querySelector(`[data-appreciation-avis="${et.id}"]`).value,
+              })})));
+              toast('Bulletin de la matière enregistré.');
+            }catch(err){ toast(err.message, 'error'); }
+          });
+        };
+
+        document.getElementById('bulletin-matiere-trimestre').addEventListener('change', chargerBulletinMatiere);
+        await chargerBulletinMatiere();
 
         document.getElementById('dossier-cahier-btn').addEventListener('click', () => {
           cahierTextePrefillEnseignementId = Number(enseignementId);
@@ -2543,57 +2627,7 @@ async function renderParentEnfants(){
       target.innerHTML = '<div class="empty-state">Chargement…</div>';
       try{
         if(btn.dataset.action === 'bulletin'){
-          const enfant = enfants.find(c => String(c.id) === String(id));
-          const [b, toutesLesNotes, moyennesClasseRep, parametres] = await Promise.all([
-            api('/bulletins/etudiant/' + id),
-            api('/notes'),
-            enfant && enfant.classeId ? api('/bulletins/classe/' + enfant.classeId + '/moyennes').catch(() => null) : Promise.resolve(null),
-            api('/parametres').catch(() => ({ bareme: 20 })),
-          ]);
-          const seuilAdmission = (parametres.bareme || 20) / 2;
-          const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
-          const moyennesClasse = {};
-          if(moyennesClasseRep){
-            moyennesClasseRep.moyennesParMatiere.forEach(m => { moyennesClasse[m.matiereId] = m.moyenneClasse; });
-          }
-          const mesNotes = toutesLesNotes.filter(n => String(n.etudiantId) === String(id));
-          const notesParMatiere = {};
-          mesNotes.forEach(n => {
-            const nom = n.enseignement.matiere.nom;
-            if(!notesParMatiere[nom]) notesParMatiere[nom] = [];
-            notesParMatiere[nom].push(n);
-          });
-
-          const sections = b.matieres.map(m => {
-            const notesDeLaMatiere = (notesParMatiere[m.nom] || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-            const rowsNotes = notesDeLaMatiere.map(n => `
-              <tr>
-                <td>${new Date(n.createdAt).toLocaleDateString('fr-FR')}</td>
-                <td>${TYPE_EVALUATION_LABELS[n.type] || n.type}</td>
-                <td><strong>${n.valeur.toFixed(2)}</strong> / 20</td>
-                <td>${n.coefficient}</td>
-                <td>${n.commentaire ? escapeHtml(n.commentaire) : '—'}</td>
-              </tr>`).join('');
-            return `
-              <div class="carte-matiere" style="border-left-color:${stringToColor(m.nom)};">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-                  <span class="chip" style="background:${stringToColor(m.nom)}">${escapeHtml(m.nom)}</span>
-                  <div style="display:flex;gap:8px;align-items:center;">
-                    <span class="moy-pill ${moyennePillClass(m.moyenne)}">Ma moyenne : ${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'} (coef. ${m.coefficient})</span>
-                    ${moyennesClasse[m.matiereId] !== undefined ? `<span class="moy-pill" style="background:var(--teal-100);color:var(--teal-900);">Classe : ${moyennesClasse[m.matiereId].toFixed(2)}</span>` : ''}
-                  </div>
-                </div>
-                ${notesDeLaMatiere.length ? `<table><thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Coef.</th><th>Commentaire</th></tr></thead><tbody>${rowsNotes}</tbody></table>` : '<div class="empty-state">Aucune évaluation notée.</div>'}
-              </div>`;
-          }).join('');
-
-          target.innerHTML = `<div style="margin-top:14px;">
-            <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;">
-              <div class="stat"><div class="label">Moyenne générale</div><div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme || 20}</div></div>
-              <div class="stat"><div class="label">Statut</div><div class="big" style="font-size:18px;">${b.moyenneGenerale === null ? '—' : estAdmis ? '<span class="badge-justifiee">Admis(e)</span>' : '<span class="badge-non-justifiee">Ajourné(e)</span>'}</div></div>
-            </div>
-            ${b.matieres.length ? sections : '<div class="empty-state">Aucune note.</div>'}
-          </div>`;
+          await chargerEtAfficherBulletinEtudiant(id, 0, false, target);
         } else if(btn.dataset.action === 'absences'){
           const absences = await api('/absences');
           const mine = absences.filter(a => String(a.etudiantId) === String(id));
@@ -6153,6 +6187,8 @@ async function renderParametres(){
           <div class="f"><label>Adresse de l'établissement</label><input type="text" name="adresse" value="${escapeHtml(params.adresse || '')}" placeholder="Quartier, ville" /></div>
           <div class="f"><label>Numéro d'accueil</label><input type="text" name="telephone" value="${escapeHtml(params.telephone || '')}" placeholder="+235 ..." /></div>
           <div class="f"><label>Site internet de l'établissement</label><input type="text" name="siteWeb" value="${escapeHtml(params.siteWeb || '')}" placeholder="https://..." /></div>
+          <div class="f"><label>Début du 2e trimestre</label><input type="date" name="debutTrimestre2" value="${params.debutTrimestre2 ? params.debutTrimestre2.slice(0,10) : ''}" /></div>
+          <div class="f"><label>Début du 3e trimestre</label><input type="date" name="debutTrimestre3" value="${params.debutTrimestre3 ? params.debutTrimestre3.slice(0,10) : ''}" /></div>
           <button class="btn-submit" type="submit">Enregistrer</button>
         </form>
         ${params.etablissement && params.etablissement.code ? `
@@ -6239,6 +6275,8 @@ async function renderParametres(){
           adresse: fd.get('adresse') || undefined,
           telephone: fd.get('telephone') || undefined,
           siteWeb: fd.get('siteWeb') || undefined,
+          debutTrimestre2: fd.get('debutTrimestre2') || undefined,
+          debutTrimestre3: fd.get('debutTrimestre3') || undefined,
         })});
         toast('Paramètres de la plateforme mis à jour.');
       }catch(err){ toast(err.message, 'error'); }

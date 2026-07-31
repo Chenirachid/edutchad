@@ -34,6 +34,7 @@ import { DossiersProfesseurModule } from './dossiers-professeur/dossiers-profess
 import { RessourcesProfModule } from './ressources-prof/ressources-prof.module';
 import { BibliothequeModule } from './bibliotheque/bibliotheque.module';
 import { AppelFaitModule } from './appel-fait/appel-fait.module';
+import { BulletinMatiereModule } from './bulletin-matiere/bulletin-matiere.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { AppelFaitModule } from './appel-fait/appel-fait.module';
     RessourcesProfModule,
     BibliothequeModule,
     AppelFaitModule,
+    BulletinMatiereModule,
   ],
   controllers: [],
   providers: [

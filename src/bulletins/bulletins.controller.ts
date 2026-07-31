@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { BulletinsService } from './bulletins.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -16,8 +16,9 @@ export class BulletinsController {
   getBulletinEtudiant(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
+    @Query('trimestre') trimestre?: string,
   ) {
-    return this.bulletinsService.getBulletinEtudiant(id, user);
+    return this.bulletinsService.getBulletinEtudiant(id, user, trimestre ? Number(trimestre) : undefined);
   }
 
   @Get('classe/:id')

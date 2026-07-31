@@ -47,6 +47,7 @@ export class NotesService {
         coefficient: dto.coefficient,
         type: dto.type,
         commentaire: dto.commentaire,
+        trimestre: dto.trimestre,
         etudiantId: dto.etudiantId,
         enseignementId: dto.enseignementId,
       },

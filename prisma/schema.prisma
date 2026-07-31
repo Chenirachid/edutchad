@@ -72,6 +72,7 @@ model User {
 
   inscriptionsAdministratives InscriptionAdministrative[]
   mentionsBulletin            MentionBulletin[]
+  bulletinMatieres            BulletinMatiere[]
 
   demandesSuppressionCible     DemandeSuppressionAdmin[] @relation("DemandeCible")
   demandesSuppressionEmises    DemandeSuppressionAdmin[] @relation("DemandeDemandeur")
@@ -158,6 +159,7 @@ model Enseignement {
   cahiersTexte  CahierTexte[]
   epreuves      Epreuve[]
   appelsFaits   AppelFait[]
+  bulletinMatieres BulletinMatiere[]
 }
 
 enum TypeEvaluation {
@@ -172,6 +174,7 @@ model Note {
   coefficient Float           @default(1)
   type        TypeEvaluation  @default(CONTROLE)
   commentaire String?
+  trimestre   Int             @default(1)
   createdAt   DateTime        @default(now())
 
   etudiant       User         @relation("NotesEtudiant", fields: [etudiantId], references: [id])
@@ -191,6 +194,7 @@ model Epreuve {
   type            TypeEvaluation @default(CONTROLE)
   date            DateTime
   coefficient     Float          @default(1)
+  trimestre       Int            @default(1)
   datePublication DateTime       @default(now())
   createdAt       DateTime       @default(now())
 
@@ -214,6 +218,22 @@ model AppelFait {
   enseignementId Int
 
   @@unique([enseignementId, date])
+}
+
+model BulletinMatiere {
+  id                  Int      @id @default(autoincrement())
+  trimestre           Int
+  elementsProgramme   String?  @db.Text
+  appreciationTravail String?  @db.Text
+  appreciationAvis    String?  @db.Text
+  updatedAt           DateTime @updatedAt
+
+  etudiant       User         @relation(fields: [etudiantId], references: [id])
+  etudiantId     Int
+  enseignement   Enseignement @relation(fields: [enseignementId], references: [id])
+  enseignementId Int
+
+  @@unique([etudiantId, enseignementId, trimestre])
 }
 
 model Absence {
@@ -276,6 +296,8 @@ model ParametrePlateforme {
   adresse          String?
   telephone        String?
   siteWeb          String?
+  debutTrimestre2  DateTime?
+  debutTrimestre3  DateTime?
   updatedAt        DateTime @updatedAt
 
   etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])

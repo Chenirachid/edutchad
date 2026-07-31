@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
 import { TypeEvaluation } from '@prisma/client';
 
 export class CreateEpreuveDto {
@@ -20,6 +20,12 @@ export class CreateEpreuveDto {
   @IsOptional()
   @IsDateString()
   datePublication?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(3)
+  trimestre?: number;
 
   @IsInt()
   enseignementId: number;

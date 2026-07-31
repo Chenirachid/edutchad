@@ -44,4 +44,12 @@ export class UpdateParametresDto {
   @IsOptional()
   @IsString()
   siteWeb?: string;
+
+  @IsOptional()
+  @IsString()
+  debutTrimestre2?: string;
+
+  @IsOptional()
+  @IsString()
+  debutTrimestre3?: string;
 }

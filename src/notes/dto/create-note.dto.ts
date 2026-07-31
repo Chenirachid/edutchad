@@ -27,6 +27,12 @@ export class CreateNoteDto {
   @IsString()
   commentaire?: string;
 
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(3)
+  trimestre?: number;
+
   @IsInt()
   etudiantId: number;
 
