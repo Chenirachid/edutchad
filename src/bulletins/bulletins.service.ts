@@ -58,7 +58,7 @@ export class BulletinsService {
     );
   }
 
-  async getBulletinClasse(classeId: number, currentUser: JwtPayload) {
+  async getBulletinClasse(classeId: number, currentUser: JwtPayload, trimestre?: number) {
     if (currentUser.role === Role.ETUDIANT || currentUser.role === Role.PARENT) {
       throw new ForbiddenException(
         "Vous n'avez pas accès au bulletin de toute la classe",
@@ -81,7 +81,7 @@ export class BulletinsService {
     }
 
     const bulletins = await Promise.all(
-      classe.etudiants.map((etudiant) => this.computeBulletin(etudiant)),
+      classe.etudiants.map((etudiant) => this.computeBulletin(etudiant, false, trimestre)),
     );
 
     return {

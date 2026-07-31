@@ -25,8 +25,9 @@ export class BulletinsController {
   getBulletinClasse(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
+    @Query('trimestre') trimestre?: string,
   ) {
-    return this.bulletinsService.getBulletinClasse(id, user);
+    return this.bulletinsService.getBulletinClasse(id, user, trimestre ? Number(trimestre) : undefined);
   }
 
   @Get('classe/:id/moyennes')
