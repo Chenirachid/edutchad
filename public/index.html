@@ -2098,7 +2098,7 @@ async function renderProfEnseignements(){
           const somme = notesElevePourMoyenne.reduce((acc, x) => acc + x.note.valeur * x.coef, 0);
           const poids = notesElevePourMoyenne.reduce((acc, x) => acc + x.coef, 0);
           const moyenne = poids ? somme / poids : null;
-          return `<tr><td style="white-space:nowrap;"><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code></td><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</td>${cellules}<td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td></tr>`;
+          return `<tr><td style="white-space:nowrap;"><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code></td><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)} <a href="#" data-voir-bulletin="${et.id}" style="font-size:11px;color:var(--teal-700);font-weight:600;text-decoration:none;">📄 Bulletin</a></td>${cellules}<td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td></tr>`;
         }).join('');
 
         const ligneMoyenneClasse = epreuvesClasse.map(ep => {
@@ -2158,7 +2158,18 @@ async function renderProfEnseignements(){
               </div>
             </div>
             <div id="bulletin-matiere-zone"></div>
-          </div>`;
+          </div>
+          <div id="prof-voir-bulletin-zone"></div>`;
+
+        content.querySelectorAll('[data-voir-bulletin]').forEach(lien => {
+          lien.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const etId = Number(lien.dataset.voirBulletin);
+            const zoneBulletin = document.getElementById('prof-voir-bulletin-zone');
+            zoneBulletin.scrollIntoView({ behavior:'smooth', block:'start' });
+            await chargerEtAfficherBulletinEtudiant(etId, 0, false, zoneBulletin);
+          });
+        });
 
         const chargerBulletinMatiere = async () => {
           const trimestre = document.getElementById('bulletin-matiere-trimestre').value;
