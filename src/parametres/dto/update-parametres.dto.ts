@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
 
 export class UpdateParametresDto {
   @IsOptional()
@@ -52,4 +52,8 @@ export class UpdateParametresDto {
   @IsOptional()
   @IsString()
   debutTrimestre3?: string;
+
+  @IsOptional()
+  @IsIn(['TRIMESTRE', 'SEMESTRE'])
+  systemePeriode?: string;
 }

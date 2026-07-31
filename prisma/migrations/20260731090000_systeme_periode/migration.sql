@@ -1,0 +1,1 @@
+ALTER TABLE "ParametrePlateforme" ADD COLUMN "systemePeriode" TEXT NOT NULL DEFAULT 'TRIMESTRE';

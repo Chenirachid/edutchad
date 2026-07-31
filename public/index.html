@@ -1661,8 +1661,23 @@ function selectMenu(menuId){
    ============================================================ */
 let trimestreBulletinActuel = 0; // 0 = année entière (pas de filtre)
 
+function optionsPeriode(systemePeriode, valeurActuelle){
+  const nbPeriodes = systemePeriode === 'SEMESTRE' ? 2 : 3;
+  const motPeriode = systemePeriode === 'SEMESTRE' ? 'Semestre' : 'Trimestre';
+  let options = `<option value="0" ${valeurActuelle === 0 ? 'selected' : ''}>Année entière</option>`;
+  for(let i = 1; i <= nbPeriodes; i++){
+    options += `<option value="${i}" ${valeurActuelle === i ? 'selected' : ''}>${motPeriode} ${i}</option>`;
+  }
+  return options;
+}
+
+function libellePeriode(systemePeriode, numero){
+  if(numero === 0) return 'Année scolaire complète';
+  return (systemePeriode === 'SEMESTRE' ? 'Semestre' : 'Trimestre') + ' ' + numero;
+}
+
 function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
-  const libellePeriode = trimestre === 0 ? "Année scolaire complète" : `Trimestre ${trimestre}`;
+  const libellePeriodeTexte = libellePeriode(parametres.systemePeriode, trimestre);
   const seuilAdmission = (parametres.bareme || 20) / 2;
   const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
 
@@ -1685,7 +1700,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
   return `
     <div class="bulletin-impression" style="page-break-after:always;">
       <h1>${escapeHtml(parametres.nomEtablissement || 'Établissement')}</h1>
-      <p class="sous-titre">Bulletin de scolarité — ${escapeHtml(libellePeriode)} — Année ${escapeHtml(parametres.anneeScolaire || '')}</p>
+      <p class="sous-titre">Bulletin de scolarité — ${escapeHtml(libellePeriodeTexte)} — Année ${escapeHtml(parametres.anneeScolaire || '')}</p>
       <div class="infos-generales">
         <div><strong>${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)}</strong>${b.etudiant.numeroEtudiant ? ` — N° ${escapeHtml(b.etudiant.numeroEtudiant)}` : ''}</div>
         <div><strong>Moyenne générale : ${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme || 20}</strong> — ${b.moyenneGenerale === null ? '' : (estAdmis ? 'Admis(e)' : 'Ajourné(e)')}</div>
@@ -1773,12 +1788,7 @@ async function chargerEtAfficherBulletinEtudiant(etudiantId, trimestre, estMoiMe
           </div>
           <div class="f" style="margin:0;max-width:200px;">
             <label>Période</label>
-            <select id="bulletin-trimestre-select">
-              <option value="0" ${trimestre === 0 ? 'selected' : ''}>Année entière</option>
-              <option value="1" ${trimestre === 1 ? 'selected' : ''}>Trimestre 1</option>
-              <option value="2" ${trimestre === 2 ? 'selected' : ''}>Trimestre 2</option>
-              <option value="3" ${trimestre === 3 ? 'selected' : ''}>Trimestre 3</option>
-            </select>
+            <select id="bulletin-trimestre-select">${optionsPeriode(parametres.systemePeriode, trimestre)}</select>
           </div>
         </div>
         <div style="display:flex;gap:18px;align-items:center;">
@@ -2140,10 +2150,11 @@ async function renderProfEnseignements(){
       const zone = document.getElementById('roster-zone');
       zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
       try{
-        const [etudiants, epreuvesTous, notesTous] = await Promise.all([
+        const [etudiants, epreuvesTous, notesTous, parametresProf] = await Promise.all([
           api('/enseignements/' + enseignementId + '/etudiants'),
           api('/epreuves'),
           api('/notes'),
+          api('/parametres').catch(() => ({ systemePeriode: 'TRIMESTRE' })),
         ]);
         const epreuvesClasse = epreuvesTous
           .filter(ep => ep.enseignement.id === Number(enseignementId))
@@ -2220,11 +2231,7 @@ async function renderProfEnseignements(){
               <h2 style="margin:0;">Bulletin — Programme &amp; appréciations</h2>
               <div class="f" style="margin:0;max-width:160px;">
                 <label>Trimestre</label>
-                <select id="bulletin-matiere-trimestre">
-                  <option value="1">Trimestre 1</option>
-                  <option value="2">Trimestre 2</option>
-                  <option value="3">Trimestre 3</option>
-                </select>
+                <select id="bulletin-matiere-trimestre">${optionsPeriode(parametresProf.systemePeriode, 1).replace('<option value="0" selected>Année entière</option>', '')}</select>
               </div>
             </div>
             <div id="bulletin-matiere-zone"></div>
@@ -4155,23 +4162,33 @@ async function renderAdminBulletinsPdf(){
     <div class="card">
       <h2>Générer les bulletins d'une classe</h2>
       <form class="inline-form" id="bulletins-pdf-form">
+        <div class="f" style="min-width:160px;">
+          <label>Année scolaire</label>
+          <select name="anneeScolaire">${[...new Set(classes.map(c => c.anneeScolaire))].map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('') || '<option value="">—</option>'}</select>
+        </div>
         <div class="f" style="min-width:220px;">
           <label>Classe</label>
-          <select name="classeId" required>${classes.map(c=>`<option value="${c.id}">${escapeHtml(c.nom)} (${escapeHtml(c.anneeScolaire)})</option>`).join('') || '<option value="">Aucune classe</option>'}</select>
+          <select name="classeId" required id="bulletins-pdf-classe-select"></select>
         </div>
         <div class="f" style="min-width:160px;">
           <label>Période</label>
-          <select name="trimestre">
-            <option value="0">Année entière</option>
-            <option value="1">Trimestre 1</option>
-            <option value="2">Trimestre 2</option>
-            <option value="3">Trimestre 3</option>
-          </select>
+          <select name="trimestre" id="bulletins-pdf-trimestre-select"></select>
         </div>
         <button class="btn-submit" type="submit">Charger les bulletins</button>
       </form>
     </div>
     <div id="bulletins-pdf-liste"></div>`;
+
+  const parametresPourPeriode = await api('/parametres').catch(() => ({ systemePeriode: 'TRIMESTRE' }));
+  document.getElementById('bulletins-pdf-trimestre-select').innerHTML = optionsPeriode(parametresPourPeriode.systemePeriode, 0);
+
+  const majClassesPourAnnee = () => {
+    const anneeChoisie = document.querySelector('[name="anneeScolaire"]').value;
+    const classesDeLAnnee = classes.filter(c => c.anneeScolaire === anneeChoisie);
+    document.getElementById('bulletins-pdf-classe-select').innerHTML = classesDeLAnnee.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('') || '<option value="">Aucune classe</option>';
+  };
+  document.querySelector('[name="anneeScolaire"]').addEventListener('change', majClassesPourAnnee);
+  majClassesPourAnnee();
 
   document.getElementById('bulletins-pdf-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -6267,7 +6284,7 @@ async function renderVieScolaire(){
 async function renderParametres(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const isAdmin = state.user.role === 'ADMIN';
+  const isAdmin = state.user.role === 'ADMIN' || state.user.role === 'CHEF_ETABLISSEMENT';
 
   let plateformeCard = '';
   if(isAdmin){
@@ -6281,6 +6298,12 @@ async function renderParametres(){
           <div class="f"><label>Barème de notation (sur)</label><input type="number" name="bareme" min="10" max="100" value="${params.bareme}" required /></div>
           <div class="f"><label>Début de la pause</label><input type="time" name="heureDebutPause" value="${params.heureDebutPause || '12:00'}" required /></div>
           <div class="f"><label>Fin de la pause</label><input type="time" name="heureFinPause" value="${params.heureFinPause || '13:00'}" required /></div>
+          <div class="f"><label>Système de périodes</label>
+            <select name="systemePeriode">
+              <option value="TRIMESTRE" ${(params.systemePeriode || 'TRIMESTRE') === 'TRIMESTRE' ? 'selected' : ''}>Trimestres (1, 2, 3)</option>
+              <option value="SEMESTRE" ${params.systemePeriode === 'SEMESTRE' ? 'selected' : ''}>Semestres (1, 2)</option>
+            </select>
+          </div>
           <div class="f"><label>Adresse de l'établissement</label><input type="text" name="adresse" value="${escapeHtml(params.adresse || '')}" placeholder="Quartier, ville" /></div>
           <div class="f"><label>Numéro d'accueil</label><input type="text" name="telephone" value="${escapeHtml(params.telephone || '')}" placeholder="+235 ..." /></div>
           <div class="f"><label>Site internet de l'établissement</label><input type="text" name="siteWeb" value="${escapeHtml(params.siteWeb || '')}" placeholder="https://..." /></div>
@@ -6369,6 +6392,7 @@ async function renderParametres(){
           bareme: Number(fd.get('bareme')),
           heureDebutPause: fd.get('heureDebutPause'),
           heureFinPause: fd.get('heureFinPause'),
+          systemePeriode: fd.get('systemePeriode'),
           adresse: fd.get('adresse') || undefined,
           telephone: fd.get('telephone') || undefined,
           siteWeb: fd.get('siteWeb') || undefined,

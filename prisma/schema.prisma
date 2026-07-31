@@ -298,6 +298,7 @@ model ParametrePlateforme {
   siteWeb          String?
   debutTrimestre2  DateTime?
   debutTrimestre3  DateTime?
+  systemePeriode   String    @default("TRIMESTRE")
   updatedAt        DateTime @updatedAt
 
   etablissement   Etablissement? @relation(fields: [etablissementId], references: [id])
