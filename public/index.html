@@ -48,6 +48,9 @@
     zoom:1.15;
   }
   h1,h2,h3,.brand,.nav-item{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;}
+  @media (max-width:600px){
+    body{zoom:1;}
+  }
   .hidden{display:none !important;}
   button{font-family:inherit;cursor:pointer;}
   input,select{font-family:inherit;}
@@ -190,6 +193,12 @@
     font-size:13px;font-weight:600;line-height:1;
   }
   .bandeau-espace-actions{display:flex;align-items:center;gap:8px;}
+  #bandeau-espace-texte{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw;}
+  @media (max-width:480px){
+    .bandeau-etablissement{font-size:11px;padding:0 8px;}
+    .bandeau-espace{font-size:11.5px;padding:0 10px;gap:8px;}
+    #bandeau-espace-texte{max-width:48vw;}
+  }
   .bandeau-espace-actions .raccourci-icone{width:22px;height:22px;color:#111;background:rgba(0,0,0,.06);}
   .bandeau-espace-actions .raccourci-icone:hover{background:rgba(0,0,0,.12);}
   .brand{display:flex;align-items:center;gap:10px;flex-shrink:0;order:3;}
@@ -600,6 +609,45 @@
     #presentation-screen .hero h1{font-size:29px;}
     #presentation-screen .hero{padding:56px 0 46px;}
     #presentation-screen section{padding:46px 0;}
+  }
+
+  /* ---------- CORRECTIFS MOBILE GÉNÉRAUX (téléphone) ---------- */
+  @media (max-width:600px){
+    /* Tableaux : au lieu de déborder de l'écran, ils deviennent défilables horizontalement */
+    table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;max-width:100%;}
+    table thead, table tbody, table tr{display:table;width:100%;table-layout:auto;}
+
+    /* Formulaires : les champs prennent toute la largeur au lieu d'un min-width trop grand */
+    form.inline-form{gap:10px;}
+    form.inline-form .f{min-width:0 !important;width:100%;}
+    .f input, .f select, .f textarea{width:100%;box-sizing:border-box;}
+
+    /* Cartes et conteneurs : moins de marge/padding pour gagner de la place */
+    .card{padding:14px;margin-bottom:12px;}
+    .grid-3{grid-template-columns:1fr;gap:10px;}
+    .dashboard-etudiant{gap:10px;}
+
+    /* Barre du haut et bandeaux : texte plus petit, pas de coupure moche */
+    .bandeau-etablissement{font-size:11px;padding:0 10px;height:auto;min-height:22px;}
+    .bandeau-espace{font-size:11.5px;padding:6px 10px;height:auto;flex-wrap:wrap;gap:8px;}
+    .topnav{padding:0 10px;height:56px;}
+    .brand span{font-size:14px;}
+    .topnav-raccourcis{gap:2px;}
+    .lang-dropdown-btn-app span{display:none;} /* garde juste le drapeau/icône, pas le texte "FR" */
+
+    /* Titres et textes : tailles réduites pour ne pas déborder */
+    #page-title{font-size:16px;}
+    h1{font-size:22px;}
+    h2{font-size:16px;}
+    .btn-submit, .btn-secondary{width:100%;box-sizing:border-box;text-align:center;margin-top:4px;}
+    .inline-form .btn-submit, .inline-form .btn-secondary{width:auto;}
+
+    /* Contenu principal : moins de marge sur les côtés */
+    #content{padding:10px;}
+
+    /* Écran de connexion : cartes qui prennent toute la largeur disponible */
+    .login-card{width:100%;max-width:100%;padding:24px 18px;}
+    .espace-carte span:last-child{font-size:13px;}
   }
 </style>
 </head>
