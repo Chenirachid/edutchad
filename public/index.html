@@ -1376,13 +1376,27 @@ async function actualiserBadgesRaccourcis(){
 }
 
 function deconnecterUtilisateur(){
+  const roleAvantDeconnexion = state.user ? state.user.role : null;
   clearSession();
   document.getElementById('app-screen').classList.add('hidden');
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('presentation-screen').classList.remove('hidden');
   document.getElementById('login-card-connexion').classList.add('hidden');
-  document.getElementById('espace-selection-card').classList.remove('hidden');
   document.getElementById('login-form').reset();
+
+  if(roleAvantDeconnexion === 'ADMIN' || roleAvantDeconnexion === 'CHEF_ETABLISSEMENT' || roleAvantDeconnexion === 'VIE_SCOLAIRE'){
+    document.getElementById('presentation-screen').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('espace-selection-card').classList.add('hidden');
+    document.getElementById('espace-administration-card').classList.remove('hidden');
+  } else if(roleAvantDeconnexion === 'CHEF_PROJET'){
+    document.getElementById('presentation-screen').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('espace-selection-card').classList.add('hidden');
+    document.getElementById('espace-chef-projet-card').classList.remove('hidden');
+  } else {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('presentation-screen').classList.remove('hidden');
+    document.getElementById('espace-selection-card').classList.remove('hidden');
+  }
 }
 
 ['btn-mon-compte', 'btn-mon-compte-hero', 'btn-mon-compte-cta'].forEach(id => {
