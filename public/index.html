@@ -1636,7 +1636,11 @@ async function enterApp(){
   const rolesAvecRendezVous = ['ADMIN', 'CHEF_ETABLISSEMENT', 'PARENT'];
   document.getElementById('raccourci-rendezvous').classList.toggle('hidden', !rolesAvecRendezVous.includes(u.role));
 
-  document.getElementById('bandeau-espace-texte').textContent = `Espace ${u.role} — ${u.prenom} ${u.nom}`;
+  const libellesRoles = {
+    ETUDIANT: 'Élève', PROFESSEUR: 'Professeur', PARENT: 'Parent', ADMIN: 'Administrateur',
+    CHEF_ETABLISSEMENT: "Chef d'établissement", VIE_SCOLAIRE: 'Vie scolaire', CHEF_PROJET: 'Chef de projet',
+  };
+  document.getElementById('bandeau-espace-texte').textContent = `Espace ${libellesRoles[u.role] || u.role} — ${u.prenom} ${u.nom}`;
   const parametresApp = await api('/parametres').catch(() => ({ nomEtablissement: 'EduCheni', emploiVisibleEleves: false }));
   document.getElementById('bandeau-nom-etablissement').textContent = parametresApp.nomEtablissement;
 
@@ -6157,11 +6161,19 @@ async function construireBlocAccueilParent(){
     const absencesEnfant = absences.filter(a => a.etudiant?.id === enfant.id);
     const cahiersEnfant = cahiers.filter(c => c.enseignement?.classe?.id === enfant.classeId);
 
-    // Emploi du temps de la semaine
-    const grilleSemaine = genererGrilleSimple(creneauxEnfant, c => escapeHtml(c.enseignement.professeur.prenom) + ' ' + escapeHtml(c.enseignement.professeur.nom));
+    // Emploi du temps du jour, en blocs colorés
+    const maintenant = new Date();
+    const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
+    const jourAujourdhui = joursNoms[maintenant.getDay()];
+    const creneauxAujourdhui = creneauxEnfant.filter(c => c.jour === jourAujourdhui).sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
+    const grilleSemaine = creneauxAujourdhui.map(c => `
+      <div style="background:${stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+        <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+        <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
 
     // Travail à faire
-    const maintenant = new Date();
     const devoirsAVenir = cahiersEnfant
       .filter(c => c.devoirs && new Date(c.date) >= new Date(maintenant.toDateString()))
       .sort((a,b) => new Date(a.date) - new Date(b.date))
@@ -6218,7 +6230,7 @@ async function construireBlocAccueilParent(){
       </div>
       <div class="card dashboard-emploi-carte" id="dashboard-emploi-parent">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <h3 style="margin:0;">Emploi du temps — cette semaine</h3>
+          <h3 style="margin:0;">Emploi du temps — aujourd'hui</h3>
           <button class="btn-icone" data-plein-ecran="dashboard-emploi-parent" title="Afficher en plein écran">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
           </button>
@@ -6264,8 +6276,13 @@ async function construireBlocAccueilEtudiant(){
     const jourAujourdhui = joursNoms[maintenant.getDay()];
     const creneauxAujourdhui = creneaux.filter(c => c.jour === jourAujourdhui).sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
 
-    // Colonne 1 : emploi du temps de toute la semaine (grille complète)
-    const blocsHoraires = genererGrilleSimple(creneaux, c => escapeHtml(c.enseignement.professeur.prenom) + ' ' + escapeHtml(c.enseignement.professeur.nom));
+    // Colonne 1 : emploi du temps du jour, en blocs colorés
+    const blocsHoraires = creneauxAujourdhui.map(c => `
+      <div style="background:${stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+        <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+        <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
 
     // Colonne 2 : devoirs à faire, groupés par jour (cahier de texte à venir avec un champ "devoirs")
     const devoirsAVenir = cahiers
@@ -6328,7 +6345,7 @@ async function construireBlocAccueilEtudiant(){
     return `
       <div class="card dashboard-emploi-carte" id="dashboard-emploi-etudiant">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <h3 style="margin:0;">Emploi du temps — cette semaine</h3>
+          <h3 style="margin:0;">Emploi du temps — aujourd'hui</h3>
           <button class="btn-icone" data-plein-ecran="dashboard-emploi-etudiant" title="Afficher en plein écran">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
           </button>
