@@ -375,6 +375,8 @@
     padding:14px 16px;margin-bottom:12px;
   }
   .emploi-grille td.case-cours{background:#FDF8D6;}
+  .emploi-grille td.case-epreuve{background:#FDE4E4 !important;}
+  .creneau-epreuve{border:1.5px solid var(--danger);border-radius:6px;padding:4px;}
   .dashboard-etudiant{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
   .dashboard-emploi-carte{margin-bottom:16px;}
   .dashboard-emploi-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -2041,8 +2043,8 @@ function lundiDeLaSemaineISO(annee, semaine){
 
 async function renderEmploiDuTemps(){
   const estProf = state.user.role === 'PROFESSEUR';
-  const [creneaux, reunions, parametres] = await Promise.all([
-    api('/creneaux'), api('/reunions').catch(() => []), api('/parametres').catch(() => ({ heureDebutPause: '12:00' })),
+  const [creneaux, reunions, parametres, epreuvesTous] = await Promise.all([
+    api('/creneaux'), api('/reunions').catch(() => []), api('/parametres').catch(() => ({ heureDebutPause: '12:00' })), api('/epreuves').catch(() => []),
   ]);
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
@@ -2066,6 +2068,14 @@ async function renderEmploiDuTemps(){
       return { ...r, jour: joursNoms[d.getDay()], heure: d.toTimeString().slice(0,5) };
     });
 
+  // Épreuves (contrôles, examens...) programmées cette semaine : on marque en rouge
+  // le créneau correspondant, pour l'enseignement concerné, quel que soit le rôle qui regarde.
+  const joursAvecEpreuve = new Set(
+    epreuvesTous
+      .filter(ep => { const d = new Date(ep.date); return d >= lundi && d <= samedi; })
+      .map(ep => { const d = new Date(ep.date); return ep.enseignement.id + '|' + joursNoms[d.getDay()]; })
+  );
+
   // Grille horaire FIXE de 8h à 00h (une ligne par heure), même s'il n'y a aucun cours
   // à cette heure-là — un cours est affiché dans toutes les lignes qu'il chevauche.
   const plages = [];
@@ -2087,9 +2097,10 @@ async function renderEmploiDuTemps(){
       const cours = creneaux.filter(c => c.jour === jour && chevauche(debut, fin, c.heureDebut, c.heureFin));
       const reunionsCellule = reunionsSemaine.filter(r => r.jour === jour && chevauche(debut, fin, r.heure, r.heure));
       const occupee = cours.length || reunionsCellule.length;
+      const aUneEpreuve = cours.some(c => joursAvecEpreuve.has(c.enseignement.id + '|' + jour));
       const contenuCours = cours.map(c => `
-        <div class="creneau-case">
-          <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+        <div class="creneau-case${joursAvecEpreuve.has(c.enseignement.id + '|' + jour) ? ' creneau-epreuve' : ''}">
+          <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${joursAvecEpreuve.has(c.enseignement.id + '|' + jour) ? ' 🔴' : ''}</div>
           <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
           ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
           <div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;" data-cahier-enseignement="${c.enseignement.id}">📖 Cahier de texte →</div>
@@ -2100,7 +2111,7 @@ async function renderEmploiDuTemps(){
           <div style="font-weight:600;">🗓️ ${escapeHtml(r.sujet)}</div>
           ${r.lieu ? `<div style="font-size:10.5px;color:var(--text-muted);">${escapeHtml(r.lieu)}</div>` : ''}
         </div>`).join('');
-      return `<td class="${occupee ? 'case-cours' : 'case-libre'}">${contenuCours}${contenuReunions}</td>`;
+      return `<td class="${occupee ? 'case-cours' : 'case-libre'}${aUneEpreuve ? ' case-epreuve' : ''}">${contenuCours}${contenuReunions}</td>`;
     }).join('');
     return `<tr class="${debut === plages.find(([d]) => d >= (parametres.heureDebutPause || '12:00'))?.[0] ? 'ligne-pause-midi' : ''}"><td class="heure-col">${debut}</td>${cellules}</tr>`;
   }).join('');
@@ -6147,13 +6158,14 @@ async function construireBlocAccueilParent(){
     if(!enfants.length) return '<div class="card"><div class="empty-state">Aucun enfant n\'est encore relié à ce compte parent — contactez l\'administration de l\'établissement.</div></div>';
     const enfant = enfants[0];
 
-    const [creneaux, notes, absences, cahiers, recus, actualites] = await Promise.all([
+    const [creneaux, notes, absences, cahiers, recus, actualites, epreuves] = await Promise.all([
       api('/creneaux').catch(() => []),
       api('/notes').catch(() => []),
       api('/absences').catch(() => []),
       api('/cahiers-texte').catch(() => []),
       api('/messages/recus').catch(() => []),
       api('/actualites').catch(() => []),
+      api('/epreuves').catch(() => []),
     ]);
 
     const creneauxEnfant = creneaux.filter(c => c.enseignement?.classe?.id === enfant.classeId);
@@ -6165,13 +6177,19 @@ async function construireBlocAccueilParent(){
     const maintenant = new Date();
     const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
     const jourAujourdhui = joursNoms[maintenant.getDay()];
+    const enseignementsAvecEpreuveAujourdhui = new Set(
+      epreuves.filter(ep => new Date(ep.date).toDateString() === maintenant.toDateString()).map(ep => ep.enseignement.id)
+    );
     const creneauxAujourdhui = creneauxEnfant.filter(c => c.jour === jourAujourdhui).sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
-    const grilleSemaine = creneauxAujourdhui.map(c => `
-      <div style="background:${stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+    const grilleSemaine = creneauxAujourdhui.map(c => {
+      const aUneEpreuve = enseignementsAvecEpreuveAujourdhui.has(c.enseignement.id);
+      return `
+      <div style="background:${aUneEpreuve ? '#FDE4E4' : stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
         <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
-        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' 🔴 Évaluation' : ''}</div>
         <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
-      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
+      </div>`;
+    }).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
 
     // Travail à faire
     const devoirsAVenir = cahiersEnfant
@@ -6263,26 +6281,33 @@ async function construireBlocAccueilParent(){
 
 async function construireBlocAccueilEtudiant(){
   try{
-    const [creneaux, cahiers, notes, recus, actualites] = await Promise.all([
+    const [creneaux, cahiers, notes, recus, actualites, epreuves] = await Promise.all([
       api('/creneaux').catch(() => []),
       api('/cahiers-texte').catch(() => []),
       api('/notes').catch(() => []),
       api('/messages/recus').catch(() => []),
       api('/actualites').catch(() => []),
+      api('/epreuves').catch(() => []),
     ]);
 
     const maintenant = new Date();
     const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
     const jourAujourdhui = joursNoms[maintenant.getDay()];
     const creneauxAujourdhui = creneaux.filter(c => c.jour === jourAujourdhui).sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
+    const enseignementsAvecEpreuveAujourdhui = new Set(
+      epreuves.filter(ep => new Date(ep.date).toDateString() === maintenant.toDateString()).map(ep => ep.enseignement.id)
+    );
 
     // Colonne 1 : emploi du temps du jour, en blocs colorés
-    const blocsHoraires = creneauxAujourdhui.map(c => `
-      <div style="background:${stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+    const blocsHoraires = creneauxAujourdhui.map(c => {
+      const aUneEpreuve = enseignementsAvecEpreuveAujourdhui.has(c.enseignement.id);
+      return `
+      <div style="background:${aUneEpreuve ? '#FDE4E4' : stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
         <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
-        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' 🔴 Évaluation' : ''}</div>
         <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
-      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
+      </div>`;
+    }).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
 
     // Colonne 2 : devoirs à faire, groupés par jour (cahier de texte à venir avec un champ "devoirs")
     const devoirsAVenir = cahiers
