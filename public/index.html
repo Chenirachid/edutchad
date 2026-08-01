@@ -5916,6 +5916,11 @@ async function renderActualites(){
     blocEtudiant = await construireBlocAccueilEtudiant();
   }
 
+  let blocParent = '';
+  if(state.user.role === 'PARENT'){
+    blocParent = await construireBlocAccueilParent();
+  }
+
   const blocMessages = await construireBlocMessagesAccueil();
 
   const cartes = actualites.map(a => `
@@ -5938,7 +5943,7 @@ async function renderActualites(){
       </form>
     </div>` : '';
 
-  content.innerHTML = `${blocMessages}${blocEmploiProf}${blocEtudiant}${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
+  content.innerHTML = `${blocMessages}${blocEmploiProf}${blocEtudiant}${blocParent}${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
 
   if(peutPublier){
     document.getElementById('actualite-form').addEventListener('submit', async (e) => {
@@ -5981,6 +5986,112 @@ async function construireBlocMessagesAccueil(){
           <button class="btn-secondary" id="accueil-aller-messagerie-btn">Voir la messagerie</button>
         </div>
         <div style="margin-top:10px;">${apercu}</div>
+      </div>`;
+  }catch(err){
+    return '';
+  }
+}
+
+async function construireBlocAccueilParent(){
+  try{
+    const enfants = await api('/parents/mes-enfants');
+    if(!enfants.length) return '';
+    const enfant = enfants[0];
+
+    const [creneaux, notes, absences, cahiers, recus, actualites] = await Promise.all([
+      api('/creneaux').catch(() => []),
+      api('/notes').catch(() => []),
+      api('/absences').catch(() => []),
+      api('/cahiers-texte').catch(() => []),
+      api('/messages/recus').catch(() => []),
+      api('/actualites').catch(() => []),
+    ]);
+
+    const creneauxEnfant = creneaux.filter(c => c.enseignement.classe.id === enfant.classeId);
+    const notesEnfant = notes.filter(n => n.etudiant && n.etudiant.id === enfant.id);
+    const absencesEnfant = absences.filter(a => a.etudiant && a.etudiant.id === enfant.id);
+    const cahiersEnfant = cahiers.filter(c => c.enseignement.classe.id === enfant.classeId);
+
+    // Emploi du temps de la semaine
+    const grilleSemaine = genererGrilleSimple(creneauxEnfant, c => escapeHtml(c.enseignement.professeur.prenom) + ' ' + escapeHtml(c.enseignement.professeur.nom));
+
+    // Travail à faire
+    const maintenant = new Date();
+    const devoirsAVenir = cahiersEnfant
+      .filter(c => c.devoirs && new Date(c.date) >= new Date(maintenant.toDateString()))
+      .sort((a,b) => new Date(a.date) - new Date(b.date))
+      .slice(0, 6);
+    const blocsDevoirs = devoirsAVenir.map(c => `
+      <div style="border-bottom:1px solid var(--border);padding:6px 0;">
+        <div style="font-size:11px;color:var(--teal-700);font-weight:700;">${new Date(c.date).toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' })}</div>
+        <div style="font-size:12.5px;font-weight:700;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+        <div style="font-size:12px;color:var(--text-muted);">${escapeHtml(c.devoirs)}</div>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun travail à faire pour l\'instant.</div>';
+
+    // Dernières notes
+    const dernieresNotes = notesEnfant.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 6);
+    const blocsNotes = dernieresNotes.map(n => `
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;">
+        <div>
+          <div style="font-size:12.5px;font-weight:700;">${escapeHtml(n.enseignement.matiere.nom)}</div>
+          <div style="font-size:11px;color:var(--text-muted);">le ${new Date(n.createdAt).toLocaleDateString('fr-FR')}</div>
+        </div>
+        <span class="moy-pill ${moyennePillClass(n.valeur)}">${n.valeur.toFixed(2)}</span>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune note pour l\'instant.</div>';
+
+    // Absences, punitions...
+    const dernieresAbsences = absencesEnfant.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
+    const blocsAbsences = dernieresAbsences.map(a => `
+      <div style="border-bottom:1px solid var(--border);padding:6px 0;">
+        <div style="font-size:12.5px;font-weight:700;color:${a.type === 'ABSENCE' ? 'var(--danger)' : 'var(--teal-700)'};">${a.type === 'ABSENCE' ? (a.justifiee ? 'Absence justifiée' : 'Absence non justifiée') : 'Retard'}</div>
+        <div style="font-size:11.5px;color:var(--text-muted);">le ${new Date(a.date).toLocaleDateString('fr-FR')}</div>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune absence pour l\'instant.</div>';
+
+    // Discussions
+    const parCorrespondant = {};
+    recus.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(m => {
+      const cle = m.expediteur.id;
+      if(!parCorrespondant[cle]) parCorrespondant[cle] = { expediteur: m.expediteur, dernier: m, nonLus: 0 };
+      if(!m.lu) parCorrespondant[cle].nonLus++;
+    });
+    const blocsDiscussions = Object.values(parCorrespondant).slice(0, 6).map(d => `
+      <div style="border-bottom:1px solid var(--border);padding:7px 0;">
+        <div style="font-size:12.5px;font-weight:700;">${escapeHtml(d.expediteur.prenom)} ${escapeHtml(d.expediteur.nom)}${d.nonLus ? ` <span style="background:var(--danger);color:#fff;border-radius:8px;font-size:10px;padding:1px 6px;margin-left:4px;">${d.nonLus}</span>` : ''}</div>
+        <div style="font-size:11.5px;color:var(--text-muted);">${escapeHtml((d.dernier.contenu || '').slice(0, 50))}${(d.dernier.contenu || '').length > 50 ? '…' : ''}</div>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune discussion pour l\'instant.</div>';
+
+    // Agenda (actualités)
+    const blocsAgenda = actualites.slice(0, 6).map(a => `
+      <div style="border-bottom:1px solid var(--border);padding:7px 0;">
+        <div style="font-size:11px;color:var(--teal-700);font-weight:700;">${new Date(a.createdAt).toLocaleDateString('fr-FR', { day:'numeric', month:'short' })}</div>
+        <div style="font-size:12.5px;">${escapeHtml(a.titre)}</div>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun évènement pour l\'instant.</div>';
+
+    return `
+      <div class="card" style="margin-bottom:12px;">
+        <p style="margin:0;font-size:13px;font-weight:600;color:var(--teal-900);">Suivi de ${escapeHtml(enfant.prenom)} ${escapeHtml(enfant.nom)}${enfants.length > 1 ? ` <span style="font-weight:400;color:var(--text-muted);">(premier enfant affiché — ${enfants.length} enfants au total)</span>` : ''}</p>
+      </div>
+      <div class="dashboard-etudiant">
+        <div class="dashboard-colonne">
+          <h3>Emploi du temps — cette semaine</h3>
+          ${grilleSemaine}
+        </div>
+        <div class="dashboard-colonne">
+          <h3>Travail à faire</h3>
+          ${blocsDevoirs}
+          <h3 style="margin-top:14px;">Dernières notes</h3>
+          ${blocsNotes}
+        </div>
+        <div class="dashboard-colonne">
+          <h3>Absences, retards...</h3>
+          ${blocsAbsences}
+        </div>
+        <div class="dashboard-colonne">
+          <h3>Discussions</h3>
+          ${blocsDiscussions}
+          <h3 style="margin-top:14px;">Agenda</h3>
+          ${blocsAgenda}
+        </div>
       </div>`;
   }catch(err){
     return '';
