@@ -408,6 +408,15 @@
     text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);
     white-space:nowrap;width:70px;background:var(--bg);
   }
+  .section-matiere-notes{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:16px;}
+  .section-matiere-entete{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:2px solid var(--teal-100);padding-bottom:12px;margin-bottom:14px;}
+  .section-matiere-entete h2{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;color:var(--teal-900);margin:0;}
+  .section-matiere-moyenne{display:flex;align-items:center;gap:8px;}
+  .section-matiere-moyenne .label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);}
+  .table-notes-matiere{width:100%;border-collapse:collapse;}
+  .table-notes-matiere th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-muted);padding:6px 8px;border-bottom:2px solid var(--border);}
+  .table-notes-matiere td{padding:8px;border-bottom:1px solid var(--border);font-size:13px;}
+  .table-notes-matiere tbody tr:nth-child(odd){background:var(--bg);}
   .carte-matiere{
     border-left:4px solid var(--teal-500);background:var(--bg);border-radius:10px;
     padding:14px 16px;margin-bottom:12px;
@@ -2062,28 +2071,35 @@ async function renderNotesListeEtudiant(){
     notesParMatiere[nom].push(n);
   });
 
-  const cartes = Object.entries(notesParMatiere).map(([nom, liste]) => {
+  const sections = Object.entries(notesParMatiere).map(([nom, liste]) => {
     const triees = liste.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const somme = triees.reduce((acc, n) => acc + n.valeur * n.coefficient, 0);
+    const poids = triees.reduce((acc, n) => acc + n.coefficient, 0);
+    const moyenne = poids ? somme / poids : null;
     const rows = triees.map(n => `
       <tr>
         <td>${new Date(n.createdAt).toLocaleDateString('fr-FR')}</td>
         <td>${TYPE_EVALUATION_LABELS[n.type] || n.type}</td>
-        <td><strong>${n.valeur.toFixed(2)}</strong> / 20</td>
-        <td>${n.coefficient}</td>
+        <td class="bulletin-moy-cell" style="font-size:13px;">${n.valeur.toFixed(2)}</td>
+        <td>Coef. ${n.coefficient}</td>
         <td>${n.commentaire ? escapeHtml(n.commentaire) : '—'}</td>
       </tr>`).join('');
     return `
-      <div class="carte-matiere" style="border-left-color:${stringToColor(nom)};">
-        <span class="chip" style="background:${stringToColor(nom)}">${escapeHtml(nom)}</span>
-        <table style="margin-top:10px;"><thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Coef.</th><th>Commentaire</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="section-matiere-notes">
+        <div class="section-matiere-entete">
+          <h2>${escapeHtml(nom)}</h2>
+          <div class="section-matiere-moyenne">
+            <span class="label">Moyenne</span>
+            <span class="moy-pill ${moyennePillClass(moyenne)}" style="font-size:15px;">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span>
+          </div>
+        </div>
+        <table class="table-notes-matiere"><thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Coefficient</th><th>Commentaire</th></tr></thead><tbody>${rows}</tbody></table>
       </div>`;
   }).join('');
 
   content.innerHTML = `
-    <div class="card">
-      <h2>Toutes mes notes</h2>
-      ${cartes || '<div class="empty-state">Aucune note pour l\'instant.</div>'}
-    </div>`;
+    <h1 style="font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--teal-900);margin:0 0 18px;">Toutes mes notes</h1>
+    ${sections || '<div class="card"><div class="empty-state">Aucune note pour l\'instant.</div></div>'}`;
 }
 
 async function renderEtudiantBulletin(){
@@ -6669,7 +6685,13 @@ async function construireBlocAccueilEtudiant(){
       </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun travail à faire pour l\'instant.</div>';
 
     // Colonne 3 : dernières notes, avec la valeur exacte affichée (ex: 8,00 / 20)
-    const dernieresNotesListe = notes.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
+    const notesTriees = notes.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const derniereParMatiere = new Map();
+    notesTriees.forEach(n => {
+      const nom = n.enseignement.matiere.nom;
+      if(!derniereParMatiere.has(nom)) derniereParMatiere.set(nom, n);
+    });
+    const dernieresNotesListe = Array.from(derniereParMatiere.values());
     const blocsNotes = dernieresNotesListe.map(n => `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding:6px 0;">
         <div style="min-width:0;flex:1;overflow:hidden;">
@@ -6715,7 +6737,7 @@ async function construireBlocAccueilEtudiant(){
           ${blocsDevoirs}
         </div>
         <div class="dashboard-colonne">
-          <h3>Dernières notes</h3>
+          <h3>Dernière note par matière</h3>
           ${blocsNotes}
         </div>
         <div class="dashboard-colonne">
