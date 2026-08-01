@@ -38,6 +38,10 @@ export class EtablissementsController {
       adresse: etablissement.parametres?.adresse ?? null,
       telephone: etablissement.parametres?.telephone ?? null,
       siteWeb: etablissement.parametres?.siteWeb ?? null,
+      emailPublic: etablissement.parametres?.emailPublic ?? null,
+      texteAccueil: etablissement.parametres?.texteAccueil ?? null,
+      photoData: etablissement.parametres?.photoData ?? null,
+      photoType: etablissement.parametres?.photoType ?? null,
       cachetData: etablissement.parametres?.cachetData ?? null,
       cachetType: etablissement.parametres?.cachetType ?? null,
     };

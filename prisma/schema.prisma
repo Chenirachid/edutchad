@@ -325,6 +325,10 @@ model ParametrePlateforme {
   adresse          String?
   telephone        String?
   siteWeb          String?
+  emailPublic      String?
+  texteAccueil     String?  @db.Text
+  photoData        String?  @db.Text
+  photoType        String?
   debutTrimestre2  DateTime?
   debutTrimestre3  DateTime?
   systemePeriode   String    @default("TRIMESTRE")

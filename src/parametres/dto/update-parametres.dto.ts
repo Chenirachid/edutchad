@@ -47,6 +47,22 @@ export class UpdateParametresDto {
 
   @IsOptional()
   @IsString()
+  emailPublic?: string;
+
+  @IsOptional()
+  @IsString()
+  texteAccueil?: string;
+
+  @IsOptional()
+  @IsString()
+  photoData?: string;
+
+  @IsOptional()
+  @IsString()
+  photoType?: string;
+
+  @IsOptional()
+  @IsString()
   debutTrimestre2?: string;
 
   @IsOptional()

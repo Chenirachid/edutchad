@@ -914,9 +914,12 @@
   </div>
   <div class="portail-panneau-droit">
     <div class="login-card hidden" id="vitrine-etablissement-card">
+      <img id="vitrine-photo" class="hidden" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-bottom:14px;" alt="Photo de l'établissement" />
       <p style="text-align:center;font-size:20px;font-weight:700;color:var(--teal-900);margin:0 0 6px;" id="vitrine-nom"></p>
+      <p id="vitrine-accueil" class="hidden" style="text-align:center;font-size:13px;color:var(--text);line-height:1.6;margin:0 0 12px;"></p>
       <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 4px;" id="vitrine-adresse"></p>
-      <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 20px;" id="vitrine-telephone"></p>
+      <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 4px;" id="vitrine-telephone"></p>
+      <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 20px;" id="vitrine-email"></p>
       <button class="btn-primary" id="vitrine-se-connecter-btn" style="width:100%;">Se connecter →</button>
     </div>
     <div class="login-card" id="espace-selection-card">
@@ -7209,6 +7212,12 @@ async function renderParametres(){
           <div class="f"><label>Adresse de l'établissement</label><input type="text" name="adresse" value="${escapeHtml(params.adresse || '')}" placeholder="Quartier, ville" /></div>
           <div class="f"><label>Numéro d'accueil</label><input type="text" name="telephone" value="${escapeHtml(params.telephone || '')}" placeholder="+235 ..." /></div>
           <div class="f"><label>Site internet de l'établissement</label><input type="text" name="siteWeb" value="${escapeHtml(params.siteWeb || '')}" placeholder="https://..." /></div>
+          <div class="f"><label>Adresse email de contact (publique)</label><input type="email" name="emailPublic" value="${escapeHtml(params.emailPublic || '')}" placeholder="contact@ecole.com" /></div>
+          <div class="f" style="width:100%;"><label>Texte d'accueil (affiché sur la page de connexion de l'établissement)</label><textarea name="texteAccueil" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;" placeholder="Ex : Bienvenue à l'école Al Amal, un établissement à taille humaine...">${escapeHtml(params.texteAccueil || '')}</textarea></div>
+          <div class="f"><label>Photo de l'établissement</label>
+            ${params.photoData ? `<img src="data:${params.photoType};base64,${params.photoData}" alt="Photo établissement" style="max-width:160px;max-height:100px;border-radius:8px;display:block;margin-bottom:8px;object-fit:cover;" />` : ''}
+            <input type="file" name="photo" id="parametres-photo-input" accept="image/*" />
+          </div>
           <div class="f"><label>Début du 2e trimestre</label><input type="date" name="debutTrimestre2" value="${params.debutTrimestre2 ? params.debutTrimestre2.slice(0,10) : ''}" /></div>
           <div class="f"><label>Début du 3e trimestre</label><input type="date" name="debutTrimestre3" value="${params.debutTrimestre3 ? params.debutTrimestre3.slice(0,10) : ''}" /></div>
           <button class="btn-submit" type="submit">Enregistrer</button>
@@ -7312,7 +7321,19 @@ async function renderParametres(){
     document.getElementById('plateforme-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
+      const fichierPhoto = document.getElementById('parametres-photo-input').files[0];
       try{
+        let photoData, photoType;
+        if(fichierPhoto){
+          if(fichierPhoto.size > 3 * 1024 * 1024){ toast('La photo dépasse 3 Mo.', 'error'); return; }
+          photoData = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(fichierPhoto);
+          });
+          photoType = fichierPhoto.type;
+        }
         await api('/parametres', { method:'PATCH', body: JSON.stringify({
           nomEtablissement: fd.get('nomEtablissement'),
           anneeScolaire: fd.get('anneeScolaire'),
@@ -7324,10 +7345,14 @@ async function renderParametres(){
           adresse: fd.get('adresse') || undefined,
           telephone: fd.get('telephone') || undefined,
           siteWeb: fd.get('siteWeb') || undefined,
+          emailPublic: fd.get('emailPublic') || undefined,
+          texteAccueil: fd.get('texteAccueil') || undefined,
+          photoData, photoType,
           debutTrimestre2: fd.get('debutTrimestre2') || undefined,
           debutTrimestre3: fd.get('debutTrimestre3') || undefined,
         })});
         toast('Paramètres de la plateforme mis à jour.');
+        renderParametres();
       }catch(err){ toast(err.message, 'error'); }
     });
 
@@ -7444,8 +7469,19 @@ if(restoreSession()){
           marque.classList.remove('hidden');
 
           document.getElementById('vitrine-nom').textContent = data.nom;
+          if(data.photoData){
+            const img = document.getElementById('vitrine-photo');
+            img.src = `data:${data.photoType};base64,${data.photoData}`;
+            img.classList.remove('hidden');
+          }
+          if(data.texteAccueil){
+            const p = document.getElementById('vitrine-accueil');
+            p.textContent = data.texteAccueil;
+            p.classList.remove('hidden');
+          }
           if(data.adresse){ document.getElementById('vitrine-adresse').textContent = data.adresse; }
           if(data.telephone){ document.getElementById('vitrine-telephone').textContent = data.telephone; }
+          if(data.emailPublic){ document.getElementById('vitrine-email').textContent = data.emailPublic; }
           document.getElementById('espace-selection-card').classList.add('hidden');
           document.getElementById('vitrine-etablissement-card').classList.remove('hidden');
           document.getElementById('vitrine-se-connecter-btn').addEventListener('click', () => {
