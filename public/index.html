@@ -366,8 +366,8 @@
     padding:14px 16px;margin-bottom:12px;
   }
   .emploi-grille td.case-cours{background:#FDF8D6;}
-  .dashboard-etudiant{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
-  .dashboard-colonne{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;max-height:420px;overflow-y:auto;}
+  .dashboard-etudiant{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+  .dashboard-colonne{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;max-height:420px;overflow-y:auto;overflow-x:auto;}
   .dashboard-colonne h3{font-size:13.5px;color:var(--teal-900);margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid var(--teal-100);}
   @media (max-width:900px){.dashboard-etudiant{grid-template-columns:1fr;}}
   .table-bulletin{border-collapse:collapse;width:100%;font-size:12.5px;}
@@ -944,7 +944,7 @@ const I18N = {
     login_mdp_oublie: 'Mot de passe oublié ?', login_retour_accueil: "← Retour à l'accueil",
     login_connecte_a: 'Connecté à',
     logout: 'Se déconnecter',
-    nav_actualites: 'Actualités', nav_sondages: 'Sondages', nav_bulletin: 'Mon bulletin', nav_absences: 'Mes absences', nav_comportement: 'Mon comportement',
+    nav_actualites: 'Actualités', nav_sondages: 'Sondages', nav_bulletin: 'Mon bulletin', nav_notes_liste: 'Notes', nav_resultats: 'Résultats', nav_absences: 'Mes absences', nav_comportement: 'Mon comportement',
     nav_emploi: 'Emploi du temps', nav_emploi_classes: 'Emploi du temps des classes', nav_emploi_profs: 'Emploi du temps des professeurs', nav_groupes: 'Groupes', nav_reunions: 'Réunions', nav_messagerie: 'Messagerie', nav_rendez_vous: 'Rendez-vous', nav_mes_documents: 'Mes documents',
     nav_enseignements: 'Mes classes', nav_appel: "Faire l'appel", nav_saisir_note: 'Saisir une note', nav_epreuves: 'Épreuves',
     nav_declarer_absence: 'Déclarer une absence', nav_observations: 'Observations', nav_punitions: 'Punitions',
@@ -953,7 +953,7 @@ const I18N = {
     nav_matieres: 'Matières', nav_enseignements_admin: 'Enseignements', nav_creneaux_admin: 'Emploi du temps',
     nav_liaisons: 'Liaisons parents', nav_vie_scolaire: 'Vie scolaire', nav_bulletins_pdf: 'Bulletins PDF', nav_certificats: 'Certificats',
     nav_frais: 'Frais scolaires', nav_demandes_suppression: 'Demandes de suppression',
-    title_actualites: 'Accueil', title_sondages: 'Sondages', title_bulletin: 'Mon bulletin', title_absences: 'Mes absences', title_comportement: 'Mon comportement',
+    title_actualites: 'Accueil', title_sondages: 'Sondages', title_bulletin: 'Mon bulletin', title_notes_liste: 'Notes', title_resultats: 'Résultats', title_absences: 'Mes absences', title_comportement: 'Mon comportement',
     title_emploi: 'Emploi du temps', title_emploi_classes: 'Emploi du temps des classes', title_emploi_profs: 'Emploi du temps des professeurs', title_enseignements: 'Mes classes', title_appel: "Faire l'appel",
     title_saisir_note: 'Saisir une note', title_declarer_absence: 'Déclarer une absence', title_epreuves: 'Épreuves',
     title_observations: 'Observations', title_punitions: 'Punitions', title_groupes: 'Groupes',
@@ -976,7 +976,7 @@ const I18N = {
     login_mdp_oublie: 'Forgot password?', login_retour_accueil: '← Back to home',
     login_connecte_a: 'Connected to',
     logout: 'Log out',
-    nav_actualites: 'News', nav_sondages: 'Polls', nav_bulletin: 'My report card', nav_absences: 'My absences', nav_comportement: 'My behaviour',
+    nav_actualites: 'News', nav_sondages: 'Polls', nav_bulletin: 'My report card', nav_notes_liste: 'Grades', nav_resultats: 'Results', nav_absences: 'My absences', nav_comportement: 'My behaviour',
     nav_emploi: 'Timetable', nav_emploi_classes: 'Class timetables', nav_emploi_profs: 'Teacher timetables', nav_groupes: 'Groups', nav_reunions: 'Meetings', nav_messagerie: 'Messages', nav_rendez_vous: 'Appointments', nav_mes_documents: 'My documents',
     nav_enseignements: 'My classes', nav_appel: 'Take attendance', nav_saisir_note: 'Enter a grade', nav_epreuves: 'Tests',
     nav_declarer_absence: 'Report an absence', nav_observations: 'Remarks', nav_punitions: 'Sanctions',
@@ -985,7 +985,7 @@ const I18N = {
     nav_matieres: 'Subjects', nav_enseignements_admin: 'Teaching assignments', nav_creneaux_admin: 'Timetable',
     nav_liaisons: 'Parent links', nav_vie_scolaire: 'Student life', nav_bulletins_pdf: 'Report cards (PDF)', nav_certificats: 'Certificates',
     nav_frais: 'School fees', nav_demandes_suppression: 'Deletion requests',
-    title_actualites: 'Home', title_sondages: 'Polls', title_bulletin: 'My report card', title_absences: 'My absences', title_comportement: 'My behaviour',
+    title_actualites: 'Home', title_sondages: 'Polls', title_bulletin: 'My report card', title_notes_liste: 'Grades', title_resultats: 'Results', title_absences: 'My absences', title_comportement: 'My behaviour',
     title_emploi: 'Timetable', title_emploi_classes: 'Class timetables', title_emploi_profs: 'Teacher timetables', title_enseignements: 'My classes', title_appel: 'Take attendance',
     title_saisir_note: 'Enter a grade', title_declarer_absence: 'Report an absence', title_epreuves: 'Tests',
     title_observations: 'Remarks', title_punitions: 'Sanctions', title_groupes: 'Groups',
@@ -1008,7 +1008,7 @@ const I18N = {
     login_mdp_oublie: 'نسيت كلمة المرور؟', login_retour_accueil: '→ العودة إلى الرئيسية',
     login_connecte_a: 'متصل بـ',
     logout: 'تسجيل الخروج',
-    nav_actualites: 'الأخبار', nav_sondages: 'استطلاعات', nav_bulletin: 'كشف نقاطي', nav_absences: 'غياباتي', nav_comportement: 'سلوكي',
+    nav_actualites: 'الأخبار', nav_sondages: 'استطلاعات', nav_bulletin: 'كشف نقاطي', nav_notes_liste: 'الدرجات', nav_resultats: 'النتائج', nav_absences: 'غياباتي', nav_comportement: 'سلوكي',
     nav_emploi: 'الجدول الزمني', nav_emploi_classes: 'جدول الأقسام', nav_emploi_profs: 'جدول الأساتذة', nav_groupes: 'المجموعات', nav_reunions: 'الاجتماعات', nav_messagerie: 'الرسائل', nav_rendez_vous: 'المواعيد', nav_mes_documents: 'مستنداتي',
     nav_enseignements: 'أقسامي', nav_appel: 'أخذ الحضور', nav_saisir_note: 'إدخال نقطة', nav_epreuves: 'الاختبارات',
     nav_declarer_absence: 'تسجيل غياب', nav_observations: 'ملاحظات', nav_punitions: 'عقوبات',
@@ -1017,7 +1017,7 @@ const I18N = {
     nav_matieres: 'المواد', nav_enseignements_admin: 'التكليفات التعليمية', nav_creneaux_admin: 'الجدول الزمني',
     nav_liaisons: 'روابط أولياء الأمور', nav_vie_scolaire: 'الحياة المدرسية', nav_bulletins_pdf: 'كشوف النقاط PDF', nav_certificats: 'الشهادات',
     nav_frais: 'الرسوم المدرسية', nav_demandes_suppression: 'طلبات الحذف',
-    title_actualites: 'الرئيسية', title_sondages: 'استطلاعات', title_bulletin: 'كشف نقاطي', title_absences: 'غياباتي', title_comportement: 'سلوكي',
+    title_actualites: 'الرئيسية', title_sondages: 'استطلاعات', title_bulletin: 'كشف نقاطي', title_notes_liste: 'الدرجات', title_resultats: 'النتائج', title_absences: 'غياباتي', title_comportement: 'سلوكي',
     title_emploi: 'الجدول الزمني', title_emploi_classes: 'جدول الأقسام', title_emploi_profs: 'جدول الأساتذة', title_enseignements: 'أقسامي', title_appel: 'أخذ الحضور',
     title_saisir_note: 'إدخال نقطة', title_declarer_absence: 'تسجيل غياب', title_epreuves: 'الاختبارات',
     title_observations: 'ملاحظات', title_punitions: 'عقوبات', title_groupes: 'المجموعات',
@@ -1419,11 +1419,13 @@ function deconnecterUtilisateur(){
 const MENUS = {
   ETUDIANT: [
     { id:'actualites', label:'Accueil', render: renderActualites },
-    { id:'bulletin', label:'Notes', render: renderEtudiantBulletin },
+    { id:'bulletin', label:'Mon bulletin', render: renderEtudiantBulletin, hidden: true },
+    { id:'notes-liste', label:'Notes', render: renderNotesListeEtudiant },
+    { id:'resultats', label:'Résultats', render: renderEtudiantBulletin },
     { id:'absences', label:'Mes absences', render: renderEtudiantAbsences, grupo:'vie-scolaire' },
     { id:'comportement', label:'Mon comportement', render: renderComportement, grupo:'vie-scolaire' },
-    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte, hidden: true },
-    { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps, hidden: true },
+    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
+    { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'bibliotheque', label:'Bibliothèque', render: renderBibliotheque },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
   ],
@@ -1576,8 +1578,8 @@ async function enterApp(){
   document.querySelectorAll('.nav-dropdown').forEach(d => d.remove());
   const items = MENUS[u.role] || [];
   if(u.role === 'ETUDIANT'){
-    const itemEmploi = items.find(i => i.id === 'emploi');
-    if(itemEmploi) itemEmploi.hidden = !parametresApp.emploiVisibleEleves;
+    const itemBulletin = items.find(i => i.id === 'bulletin');
+    if(itemBulletin) itemBulletin.hidden = !parametresApp.bulletinVisibleEleves;
   }
   const itemsVisibles = items.filter(item => !item.hidden && item.id !== 'actualites');
 
@@ -1753,6 +1755,42 @@ function imprimerBulletin(b, parametres, moyennesClasse, trimestre){
     .replace('page-break-after:always;', '');
 
   window.print();
+}
+
+async function renderNotesListeEtudiant(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const toutesLesNotes = await api('/notes');
+
+  const notesParMatiere = {};
+  toutesLesNotes.forEach(n => {
+    const nom = n.enseignement.matiere.nom;
+    if(!notesParMatiere[nom]) notesParMatiere[nom] = [];
+    notesParMatiere[nom].push(n);
+  });
+
+  const cartes = Object.entries(notesParMatiere).map(([nom, liste]) => {
+    const triees = liste.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const rows = triees.map(n => `
+      <tr>
+        <td>${new Date(n.createdAt).toLocaleDateString('fr-FR')}</td>
+        <td>${TYPE_EVALUATION_LABELS[n.type] || n.type}</td>
+        <td><strong>${n.valeur.toFixed(2)}</strong> / 20</td>
+        <td>${n.coefficient}</td>
+        <td>${n.commentaire ? escapeHtml(n.commentaire) : '—'}</td>
+      </tr>`).join('');
+    return `
+      <div class="carte-matiere" style="border-left-color:${stringToColor(nom)};">
+        <span class="chip" style="background:${stringToColor(nom)}">${escapeHtml(nom)}</span>
+        <table style="margin-top:10px;"><thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Coef.</th><th>Commentaire</th></tr></thead><tbody>${rows}</tbody></table>
+      </div>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Toutes mes notes</h2>
+      ${cartes || '<div class="empty-state">Aucune note pour l\'instant.</div>'}
+    </div>`;
 }
 
 async function renderEtudiantBulletin(){
@@ -5957,13 +5995,8 @@ async function construireBlocAccueilEtudiant(){
     const jourAujourdhui = joursNoms[maintenant.getDay()];
     const creneauxAujourdhui = creneaux.filter(c => c.jour === jourAujourdhui).sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
 
-    // Colonne 1 : emploi du temps du jour, en blocs colorés
-    const blocsHoraires = creneauxAujourdhui.map(c => `
-      <div style="background:${stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;">
-        <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
-        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
-        <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
-      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
+    // Colonne 1 : emploi du temps de toute la semaine (grille complète)
+    const blocsHoraires = genererGrilleSimple(creneaux, c => escapeHtml(c.enseignement.professeur.prenom) + ' ' + escapeHtml(c.enseignement.professeur.nom));
 
     // Colonne 2 : devoirs à faire, groupés par jour (cahier de texte à venir avec un champ "devoirs")
     const devoirsAVenir = cahiers
@@ -6026,7 +6059,7 @@ async function construireBlocAccueilEtudiant(){
     return `
       <div class="dashboard-etudiant">
         <div class="dashboard-colonne">
-          <h3>Emploi du temps — aujourd'hui</h3>
+          <h3>Emploi du temps — cette semaine</h3>
           ${blocsHoraires}
         </div>
         <div class="dashboard-colonne">
@@ -6443,8 +6476,8 @@ async function renderParametres(){
             </select>
           </div>
           <div class="f" style="flex-direction:row;align-items:center;gap:8px;">
-            <input type="checkbox" name="emploiVisibleEleves" id="emploi-visible-eleves-check" ${params.emploiVisibleEleves ? 'checked' : ''} style="width:auto;" />
-            <label for="emploi-visible-eleves-check" style="margin:0;">Autoriser les élèves à voir leur emploi du temps</label>
+            <input type="checkbox" name="bulletinVisibleEleves" id="bulletin-visible-eleves-check" ${params.bulletinVisibleEleves ? 'checked' : ''} style="width:auto;" />
+            <label for="bulletin-visible-eleves-check" style="margin:0;">Autoriser les élèves à voir leur bulletin</label>
           </div>
           <div class="f"><label>Adresse de l'établissement</label><input type="text" name="adresse" value="${escapeHtml(params.adresse || '')}" placeholder="Quartier, ville" /></div>
           <div class="f"><label>Numéro d'accueil</label><input type="text" name="telephone" value="${escapeHtml(params.telephone || '')}" placeholder="+235 ..." /></div>
@@ -6535,7 +6568,7 @@ async function renderParametres(){
           heureDebutPause: fd.get('heureDebutPause'),
           heureFinPause: fd.get('heureFinPause'),
           systemePeriode: fd.get('systemePeriode'),
-          emploiVisibleEleves: document.getElementById('emploi-visible-eleves-check').checked,
+          bulletinVisibleEleves: document.getElementById('bulletin-visible-eleves-check').checked,
           adresse: fd.get('adresse') || undefined,
           telephone: fd.get('telephone') || undefined,
           siteWeb: fd.get('siteWeb') || undefined,

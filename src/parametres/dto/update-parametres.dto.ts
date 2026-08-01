@@ -59,4 +59,7 @@ export class UpdateParametresDto {
 
   @IsOptional()
   emploiVisibleEleves?: boolean;
+
+  @IsOptional()
+  bulletinVisibleEleves?: boolean;
 }
