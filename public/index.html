@@ -514,6 +514,7 @@
   .bloc-nouvelle-epreuve{background:var(--bg);border:1.5px dashed var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;}
   .bloc-nouvelle-epreuve-titre{font-size:12px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;}
   .bloc-nouvelle-epreuve form.inline-form{margin-bottom:0;}
+  .panneau-cahier-texte{border-left:4px solid var(--teal-700);animation:toastIn .2s ease-out;}
   .cartes-classe-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
   .carte-classe-prof{
     position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;
@@ -2248,6 +2249,85 @@ function lundiDeLaSemaineISO(annee, semaine){
   return lundi;
 }
 
+async function ouvrirPanneauCahierTexte(enseignementId, jour, lundi){
+  const panneau = document.getElementById('cahier-texte-panel-emploi');
+  panneau.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
+  panneau.scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+  const indexJour = JOURS_ORDRE.indexOf(jour);
+  const dateExacte = new Date(lundi);
+  dateExacte.setDate(dateExacte.getDate() + indexJour);
+  const dateStr = dateExacte.toISOString().slice(0, 10);
+
+  const tousLesCahiers = await api('/cahiers-texte').catch(() => []);
+  const existant = tousLesCahiers.find(ct => ct.enseignement.id === enseignementId && new Date(ct.date).toISOString().slice(0,10) === dateStr);
+
+  panneau.innerHTML = `
+    <div class="card panneau-cahier-texte">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <h3 style="margin:0;">Cahier de texte — ${dateExacte.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' })}</h3>
+        <button class="btn-icone" id="fermer-panneau-cahier-btn" title="Fermer">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="panneau-cahier-form">
+        <div class="f" style="width:100%;margin-bottom:12px;">
+          <label>Contenu de la séance</label>
+          <textarea name="contenu" required rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;">${existant ? escapeHtml(existant.contenu) : ''}</textarea>
+        </div>
+        <div class="f" style="width:100%;margin-bottom:12px;">
+          <label>Travail à faire (devoirs)</label>
+          <textarea name="devoirs" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;" placeholder="Facultatif">${existant && existant.devoirs ? escapeHtml(existant.devoirs) : ''}</textarea>
+        </div>
+        <div class="f" style="width:100%;margin-bottom:12px;">
+          <label>Pièce jointe</label>
+          ${existant && existant.pieceJointeNom ? `<div style="font-size:12px;color:var(--teal-700);margin-bottom:6px;">Fichier actuel : ${escapeHtml(existant.pieceJointeNom)} (sera remplacé si vous en choisissez un autre)</div>` : ''}
+          <input type="file" name="fichier" id="panneau-cahier-fichier" />
+        </div>
+        <button class="btn-submit" type="submit">${existant ? 'Mettre à jour' : 'Enregistrer'}</button>
+      </form>
+      <div id="panneau-cahier-statut" style="margin-top:8px;font-size:12.5px;"></div>
+    </div>`;
+
+  document.getElementById('fermer-panneau-cahier-btn').addEventListener('click', () => { panneau.innerHTML = ''; });
+
+  document.getElementById('panneau-cahier-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const fichier = document.getElementById('panneau-cahier-fichier').files[0];
+    const statutEl = document.getElementById('panneau-cahier-statut');
+    try{
+      let pieceJointeNom, pieceJointeType, pieceJointeData;
+      if(fichier){
+        if(fichier.size > 5 * 1024 * 1024){ toast('Le fichier dépasse 5 Mo.', 'error'); return; }
+        pieceJointeData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(fichier);
+        });
+        pieceJointeNom = fichier.name;
+        pieceJointeType = fichier.type;
+      }
+      const corps = {
+        date: dateStr, contenu: fd.get('contenu'), devoirs: fd.get('devoirs') || undefined,
+        enseignementId, pieceJointeNom, pieceJointeType, pieceJointeData,
+      };
+      if(existant){
+        await api('/cahiers-texte/' + existant.id, { method:'PATCH', body: JSON.stringify(corps) });
+      } else {
+        await api('/cahiers-texte', { method:'POST', body: JSON.stringify(corps) });
+      }
+      statutEl.textContent = 'Enregistré.';
+      statutEl.style.color = 'var(--success)';
+      toast('Cahier de texte enregistré.');
+    }catch(err){
+      statutEl.textContent = err.message;
+      statutEl.style.color = 'var(--danger)';
+    }
+  });
+}
+
 async function renderEmploiDuTemps(){
   const estProf = state.user.role === 'PROFESSEUR';
   const estEtudiant = state.user.role === 'ETUDIANT';
@@ -2325,7 +2405,7 @@ async function renderEmploiDuTemps(){
           ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
           ${estEtudiant
             ? (devoirsParJour.has(c.enseignement.id + '|' + jour) ? `<div style="font-size:10px;color:var(--teal-700);margin-top:3px;text-align:left;">${escapeHtml(devoirsParJour.get(c.enseignement.id + '|' + jour))}</div>` : '')
-            : `<div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;display:flex;align-items:center;gap:4px;" data-cahier-enseignement="${c.enseignement.id}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg> Cahier de texte →</div>`}
+            : `<div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;display:flex;align-items:center;gap:4px;" data-cahier-enseignement="${c.enseignement.id}" data-cahier-jour="${jour}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg> Cahier de texte →</div>`}
           ${estMonCours(c) && estCoursEnCours(c) ? `<div style="font-size:10px;color:var(--success);font-weight:700;margin-top:3px;cursor:pointer;display:flex;align-items:center;gap:4px;" data-appel-enseignement="${c.enseignement.id}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Faire l'appel →</div>` : ''}
         </div>`).join('');
       const contenuReunions = reunionsCellule.map(r => `
@@ -2368,7 +2448,8 @@ async function renderEmploiDuTemps(){
           <tbody>${lignes}</tbody>
         </table>` : '<div class="empty-state">Aucun créneau pour l\'instant.</div>'}
       </div>
-    </div>`;
+    </div>
+    <div id="cahier-texte-panel-emploi"></div>`;
 
   document.getElementById('semaine-precedente-btn').addEventListener('click', () => {
     semaineEmploiAffichee = numeroSemaineISO(new Date(lundi.getTime() - 2*24*3600*1000));
@@ -2390,8 +2471,7 @@ async function renderEmploiDuTemps(){
 
   content.querySelectorAll('[data-cahier-enseignement]').forEach(bloc => {
     bloc.addEventListener('click', () => {
-      cahierTextePrefillEnseignementId = Number(bloc.dataset.cahierEnseignement);
-      selectMenu('cahier-texte');
+      ouvrirPanneauCahierTexte(Number(bloc.dataset.cahierEnseignement), bloc.dataset.cahierJour, lundi);
     });
   });
 
