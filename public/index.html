@@ -705,8 +705,14 @@
     .topnav-raccourcis, .lang-dropdown-wrap-app{display:none;}
 
     /* Tableaux : au lieu de déborder de l'écran, ils deviennent défilables horizontalement */
-    table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;max-width:100%;}
-    table thead, table tbody, table tr{display:table;width:100%;table-layout:auto;}
+    table:not(.emploi-grille){display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;max-width:100%;}
+    table:not(.emploi-grille) thead, table:not(.emploi-grille) tbody, table:not(.emploi-grille) tr{display:table;width:100%;table-layout:auto;}
+
+    /* La grille de l'emploi du temps garde sa vraie structure de tableau (rowspan/colspan),
+       mais défile horizontalement dans un conteneur dédié, avec des colonnes assez larges
+       pour rester lisibles plutôt que d'être écrasées. */
+    .emploi-grille{min-width:800px;}
+    .emploi-grille .heure-col{width:52px;font-size:10px;}
 
     /* Formulaires : les champs prennent toute la largeur au lieu d'un min-width trop grand */
     form.inline-form{gap:10px;}
