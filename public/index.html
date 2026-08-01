@@ -643,7 +643,7 @@
   #presentation-screen .sous-titre-section{text-align:center;font-size:15px;color:var(--text-muted);max-width:560px;margin:0 auto 44px;}
   #presentation-screen .grille-fonctions{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;}
   #presentation-screen .carte-fonction{background:var(--bg);border-radius:var(--radius);padding:26px 22px;border:1px solid var(--border);}
-  #presentation-screen .carte-fonction .icone{font-size:26px;margin-bottom:14px;display:block;}
+  #presentation-screen .carte-fonction .numero{font-size:13px;color:#B45309;font-weight:700;display:block;margin-bottom:12px;}
   #presentation-screen .carte-fonction h3{font-size:16px;color:var(--teal-900);margin:0 0 8px;}
   #presentation-screen .carte-fonction p{font-size:13.5px;color:var(--text-muted);margin:0;}
   #presentation-screen .grille-publics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
@@ -741,14 +741,14 @@
       <h2 class="titre-section">Tout ce dont un établissement a besoin</h2>
       <p class="sous-titre-section">Une seule plateforme, pensée pour simplifier la vie scolaire au quotidien.</p>
       <div class="grille-fonctions">
-        <div class="carte-fonction"><span class="icone">📊</span><h3>Notes &amp; bulletins</h3><p>Saisie des notes par évaluation, moyennes calculées automatiquement, bulletins imprimables et comparaison avec la moyenne de la classe.</p></div>
-        <div class="carte-fonction"><span class="icone">👁️</span><h3>Vie scolaire</h3><p>Absences, retards, punitions et observations, organisés par classe, avec justification en un clic.</p></div>
-        <div class="carte-fonction"><span class="icone">🗓️</span><h3>Emploi du temps</h3><p>Grille hebdomadaire claire, navigable semaine par semaine, avec appel et cahier de texte accessibles directement depuis chaque créneau.</p></div>
-        <div class="carte-fonction"><span class="icone">✉️</span><h3>Messagerie</h3><p>Échanges directs entre familles, professeurs et administration — y compris par classe entière.</p></div>
-        <div class="carte-fonction"><span class="icone">📚</span><h3>Bibliothèque numérique</h3><p>Livres et ressources partagés, avec une section réservée aux professeurs pour les corrigés.</p></div>
-        <div class="carte-fonction"><span class="icone">💳</span><h3>Frais scolaires</h3><p>Suivi des paiements par classe, statut payé/non payé et quittances imprimables.</p></div>
-        <div class="carte-fonction"><span class="icone">📄</span><h3>Certificats &amp; attestations</h3><p>Certificats de scolarité générés instantanément, avec le cachet propre à votre établissement.</p></div>
-        <div class="carte-fonction"><span class="icone">🏫</span><h3>Multi-établissements</h3><p>Chaque établissement gère ses propres classes, comptes et paramètres, en toute indépendance.</p></div>
+        <div class="carte-fonction"><span class="numero">01</span><h3>Notes &amp; bulletins</h3><p>Saisie des notes par évaluation, moyennes calculées automatiquement, bulletins imprimables et comparaison avec la moyenne de la classe.</p></div>
+        <div class="carte-fonction"><span class="numero">02</span><h3>Vie scolaire</h3><p>Absences, retards, punitions et observations, organisés par classe, avec justification en un clic.</p></div>
+        <div class="carte-fonction"><span class="numero">03</span><h3>Emploi du temps</h3><p>Grille hebdomadaire claire, navigable semaine par semaine, avec appel et cahier de texte accessibles directement depuis chaque créneau.</p></div>
+        <div class="carte-fonction"><span class="numero">04</span><h3>Messagerie</h3><p>Échanges directs entre familles, professeurs et administration — y compris par classe entière.</p></div>
+        <div class="carte-fonction"><span class="numero">05</span><h3>Bibliothèque numérique</h3><p>Livres et ressources partagés, avec une section réservée aux professeurs pour les corrigés.</p></div>
+        <div class="carte-fonction"><span class="numero">06</span><h3>Frais scolaires</h3><p>Suivi des paiements par classe, statut payé/non payé et quittances imprimables.</p></div>
+        <div class="carte-fonction"><span class="numero">07</span><h3>Certificats &amp; attestations</h3><p>Certificats de scolarité générés instantanément, avec le cachet propre à votre établissement.</p></div>
+        <div class="carte-fonction"><span class="numero">08</span><h3>Multi-établissements</h3><p>Chaque établissement gère ses propres classes, comptes et paramètres, en toute indépendance.</p></div>
       </div>
     </div>
   </section>
@@ -832,7 +832,7 @@
         </button>
       </div>
       <p style="text-align:center;font-size:11px;color:var(--text-muted);margin:16px 0 0;line-height:1.5;border-top:1px solid var(--border);padding-top:14px;">
-        🔒 Vos données personnelles sont protégées et ne sont utilisées que dans le cadre de la gestion scolaire de votre établissement. Elles ne sont ni partagées ni vendues à des tiers.
+        Vos données personnelles sont protégées et ne sont utilisées que dans le cadre de la gestion scolaire de votre établissement. Elles ne sont ni partagées ni vendues à des tiers.
       </p>
     </div>
     <div class="login-card hidden" id="espace-administration-card">
@@ -1294,10 +1294,10 @@ function stringToPastel(str){
 function genererBarreIconesEDT(mode){
   const style = mode === 'absolute' ? 'position:absolute;top:0;right:0;' : mode === 'horizontal' ? 'flex-direction:row;justify-content:center;margin-bottom:16px;' : '';
   return `<div class="barre-icones-edt" style="${style}">
-    <button title="Cahier de texte" id="edt-icone-cahier">📖</button>
-    <button title="Messagerie" id="edt-icone-messagerie">✉️</button>
-    <button title="Notes / Bulletin" id="edt-icone-notes">📊</button>
-    <button title="Vie scolaire" id="edt-icone-vie-scolaire">👁️</button>
+    <button title="Cahier de texte" id="edt-icone-cahier"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg></button>
+    <button title="Messagerie" id="edt-icone-messagerie"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
+    <button title="Notes / Bulletin" id="edt-icone-notes"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></button>
+    <button title="Vie scolaire" id="edt-icone-vie-scolaire"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <button title="Paramètres" id="edt-icone-parametres">⚙️</button>
   </div>`;
 }
@@ -1323,7 +1323,7 @@ function attacherBarreIconesEDT(){
 function libelleEnLigne(derniereActivite){
   if(!derniereActivite) return '<span style="font-size:11px;color:var(--text-muted);">— jamais connecté</span>';
   const minutes = (Date.now() - new Date(derniereActivite).getTime()) / 60000;
-  if(minutes < 5) return '<span style="font-size:11px;color:var(--success);font-weight:600;">🟢 En ligne</span>';
+  if(minutes < 5) return '<span style="font-size:11px;color:var(--success);font-weight:600;">En ligne</span>';
   if(minutes < 60) return `<span style="font-size:11px;color:var(--text-muted);">vu il y a ${Math.round(minutes)} min</span>`;
   if(minutes < 60*24) return `<span style="font-size:11px;color:var(--text-muted);">vu il y a ${Math.round(minutes/60)} h</span>`;
   return `<span style="font-size:11px;color:var(--text-muted);">vu le ${new Date(derniereActivite).toLocaleDateString('fr-FR')}</span>`;
@@ -2239,7 +2239,7 @@ async function renderEmploiDuTemps(){
         </div>`).join('');
       const contenuReunions = reunionsCellule.map(r => `
         <div class="creneau-case reunion-case">
-          <div style="font-weight:600;">🗓️ ${escapeHtml(r.sujet)}</div>
+          <div style="font-weight:600;">${escapeHtml(r.sujet)}</div>
           ${r.lieu ? `<div style="font-size:10.5px;color:var(--text-muted);">${escapeHtml(r.lieu)}</div>` : ''}
         </div>`).join('');
       return `<td class="${occupee ? 'case-cours' : 'case-libre'}${aUneEpreuve ? ' case-epreuve' : ''}">${contenuCours}${contenuReunions}</td>`;
@@ -2269,7 +2269,7 @@ async function renderEmploiDuTemps(){
         <button class="rond-nav" id="semaine-suivante-btn" title="Semaine suivante">›</button>
         <button class="rond-nav" id="semaine-actuelle-btn" title="Aujourd'hui" style="background:var(--teal-700);color:#fff;">⌂</button>
       </div>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">🗓️ = réunion prévue cette semaine-là.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">= réunion prévue cette semaine-là.</p>
       <div style="overflow-x:auto;">
         ${plages.length ? `
         <table class="emploi-grille">
@@ -2453,7 +2453,7 @@ async function renderProfEnseignements(){
 
         const entetesEpreuves = epreuvesClasse.map(ep => {
           const estPubliee = new Date(ep.datePublication) <= new Date();
-          return `<th>${escapeHtml(ep.titre)}<br><span style="font-weight:400;font-size:10.5px;color:var(--text-muted);">coef. ${ep.coefficient}</span><br><span style="font-weight:600;font-size:9.5px;cursor:pointer;color:${estPubliee ? 'var(--success)' : 'var(--warning)'};" data-changer-publication="${ep.id}" data-actuelle="${new Date(ep.datePublication).toISOString().slice(0,16)}" title="Cliquer pour changer la date de publication">${estPubliee ? '✅ Publiée' : '🔒 Programmée'}</span></th>`;
+          return `<th>${escapeHtml(ep.titre)}<br><span style="font-weight:400;font-size:10.5px;color:var(--text-muted);">coef. ${ep.coefficient}</span><br><span style="font-weight:600;font-size:9.5px;cursor:pointer;color:${estPubliee ? 'var(--success)' : 'var(--warning)'};" data-changer-publication="${ep.id}" data-actuelle="${new Date(ep.datePublication).toISOString().slice(0,16)}" title="Cliquer pour changer la date de publication">${estPubliee ? 'Publiée' : 'Programmée'}</span></th>`;
         }).join('');
 
         const rowsGrille = etudiants.map(et => {
@@ -2467,7 +2467,7 @@ async function renderProfEnseignements(){
           const somme = notesElevePourMoyenne.reduce((acc, x) => acc + x.note.valeur * x.coef, 0);
           const poids = notesElevePourMoyenne.reduce((acc, x) => acc + x.coef, 0);
           const moyenne = poids ? somme / poids : null;
-          return `<tr><td style="white-space:nowrap;"><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code></td><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)} <a href="#" data-voir-bulletin="${et.id}" style="font-size:11px;color:var(--teal-700);font-weight:600;text-decoration:none;">📄 Bulletin</a></td>${cellules}<td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td></tr>`;
+          return `<tr><td style="white-space:nowrap;"><code style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(et.numeroEtudiant || '—')}</code></td><td style="white-space:nowrap;">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)} <a href="#" data-voir-bulletin="${et.id}" style="font-size:11px;color:var(--teal-700);font-weight:600;text-decoration:none;">Bulletin</a></td>${cellules}<td><span class="moy-pill ${moyennePillClass(moyenne)}">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span></td></tr>`;
         }).join('');
 
         const ligneMoyenneClasse = epreuvesClasse.map(ep => {
@@ -2481,7 +2481,7 @@ async function renderProfEnseignements(){
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
               <h2 style="margin:0;">${escapeHtml(ligne.classe.nom)} — ${escapeHtml(ligne.matiere.nom)} (${etudiants.length} élève${etudiants.length > 1 ? 's' : ''})</h2>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn-secondary" id="dossier-cahier-btn">📖 Cahier de texte</button>
+                <button class="btn-secondary" id="dossier-cahier-btn">Cahier de texte</button>
               </div>
             </div>
           </div>
@@ -3218,11 +3218,11 @@ async function renderAdminUsers(filtreRoles){
       <td style="min-width:140px;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
           <button class="btn-secondary" data-save-user="${u.id}">Enregistrer</button>
-          <button class="btn-icone icone-cle" data-reset-password="${u.id}" title="Réinitialiser le mot de passe">🔑</button>
-          <button class="btn-icone icone-imprimante" data-regenerer-activation="${u.id}" title="Réimprimer le document d'activation">🖨️</button>
-          ${u.role === 'PROFESSEUR' ? `<button class="btn-icone icone-dossier" data-dossier-prof="${u.id}" title="Dossier professeur">📁</button>` : ''}
-          <button class="btn-icone icone-cadenas" data-toggle-actif="${u.id}" title="${u.actif === false ? 'Réactiver le compte' : 'Désactiver le compte'}">${u.actif === false ? '🔓' : '🔒'}</button>
-          <button class="btn-icone icone-corbeille" data-delete-user="${u.id}" title="Supprimer le compte">🗑️</button>
+          <button class="btn-icone icone-cle" data-reset-password="${u.id}" title="Réinitialiser le mot de passe"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.5 12.5 19 4M17 6l2 2M14 9l2 2"/></svg></button>
+          <button class="btn-icone icone-imprimante" data-regenerer-activation="${u.id}" title="Réimprimer le document d'activation"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h9l3 3v3M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
+          ${u.role === 'PROFESSEUR' ? `<button class="btn-icone icone-dossier" data-dossier-prof="${u.id}" title="Dossier professeur"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg></button>` : ''}
+          <button class="btn-icone icone-cadenas" data-toggle-actif="${u.id}" title="${u.actif === false ? 'Réactiver le compte' : 'Désactiver le compte'}">${u.actif === false ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.5-2.3"/></svg>' : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'}</button>
+          <button class="btn-icone icone-corbeille" data-delete-user="${u.id}" title="Supprimer le compte"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16z"/></svg></button>
         </div>
       </td>
     </tr>`;
@@ -3535,7 +3535,7 @@ async function afficherDossierProfesseur(profId, u){
   try{ dossierExistant = await api('/dossiers-professeur/' + profId); }catch(e){ /* pas encore de dossier */ }
 
   const documents = dossierExistant ? dossierExistant.documents : [];
-  const STATUT_DOC_LABELS = { EN_ATTENTE: '🕓 En attente', VALIDE: '✅ Validé', REFUSE: '❌ Refusé' };
+  const STATUT_DOC_LABELS = { EN_ATTENTE: 'En attente', VALIDE: 'Validé', REFUSE: 'Refusé' };
   const rowsDocuments = documents.map(d => `
     <tr>
       <td><span class="chip" style="background:var(--teal-100);color:var(--teal-900);">${CATEGORIE_DOCUMENT_LABELS[d.categorie] || d.categorie}</span></td>
@@ -3544,8 +3544,8 @@ async function afficherDossierProfesseur(profId, u){
       <td>${STATUT_DOC_LABELS[d.statut] || d.statut}</td>
       <td>
         <button class="btn-secondary" data-telecharger-doc-prof="${d.id}">Télécharger</button>
-        ${d.statut !== 'VALIDE' ? `<button class="btn-secondary" data-valider-doc-prof="${d.id}" style="border-color:var(--success);color:var(--success);margin-left:6px;">✅ Valider</button>` : ''}
-        ${d.statut !== 'REFUSE' ? `<button class="btn-secondary" data-refuser-doc-prof="${d.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">❌ Refuser</button>` : ''}
+        ${d.statut !== 'VALIDE' ? `<button class="btn-secondary" data-valider-doc-prof="${d.id}" style="border-color:var(--success);color:var(--success);margin-left:6px;">Valider</button>` : ''}
+        ${d.statut !== 'REFUSE' ? `<button class="btn-secondary" data-refuser-doc-prof="${d.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>` : ''}
       </td>
     </tr>`).join('');
 
@@ -3907,8 +3907,8 @@ async function renderAdminCreneaux(){
           <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}</div>
           ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
           <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">
-            <span style="font-size:10px;color:var(--teal-700);font-weight:600;cursor:pointer;" data-modifier-creneau="${c.id}">✏️ Modifier</span>
-            <span style="font-size:10px;color:var(--teal-700);font-weight:600;cursor:pointer;" data-programmer-reunion="${c.id}">📅</span>
+            <span style="font-size:10px;color:var(--teal-700);font-weight:600;cursor:pointer;" data-modifier-creneau="${c.id}">Modifier</span>
+            <span style="font-size:10px;color:var(--teal-700);font-weight:600;cursor:pointer;" data-programmer-reunion="${c.id}">Réunion</span>
             <span style="font-size:10px;color:var(--danger);font-weight:600;cursor:pointer;" data-delete-creneau-grille="${c.id}">✕</span>
           </div>
         </div>`).join('');
@@ -3924,7 +3924,7 @@ async function renderAdminCreneaux(){
         <h2 style="margin:0;">Emploi du temps par classe</h2>
         <div class="f" style="margin:0;"><label>Classe</label><select id="creneaux-admin-classe">${classes.map(c => `<option value="${c.id}" ${c.id === creneauxAdminClasseId ? 'selected' : ''}>${escapeHtml(c.nom)}</option>`).join('') || '<option value="">Aucune classe</option>'}</select></div>
       </div>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Cliquez sur une case vide (« + ») pour ajouter un cours à cette heure-là. Sur un cours existant : ✏️ pour modifier, 📅 pour programmer une réunion, ✕ pour supprimer. La pause (${escapeHtml(parametres.heureDebutPause)}–${escapeHtml(parametres.heureFinPause)}, réglable dans Paramètres) est signalée par la ligne verte.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Cliquez sur une case vide (« + ») pour ajouter un cours à cette heure-là. Sur un cours existant : Modifier, Réunion ou ✕ pour supprimer. La pause (${escapeHtml(parametres.heureDebutPause)}–${escapeHtml(parametres.heureFinPause)}, réglable dans Paramètres) est signalée par la ligne verte.</p>
       ${classes.length ? `<table class="emploi-grille"><thead><tr><th></th>${enTetes}</tr></thead><tbody>${lignesGrille}</tbody></table>` : '<div class="empty-state">Aucune classe pour l\'instant.</div>'}
     </div>
     <div id="creneau-form-zone"></div>
@@ -5163,7 +5163,7 @@ function afficherEntreesCahier(arbo, entrees, isProf, options){
       <td>${new Date(e.date).toLocaleDateString('fr-FR')}</td>
       <td>${escapeHtml(e.contenu)}</td>
       <td>${e.devoirs ? escapeHtml(e.devoirs) : '—'}</td>
-      <td>${e.pieceJointeNom ? `<a href="#" data-telecharger-piece="${e.id}" style="color:var(--teal-700);font-weight:600;">📎 ${escapeHtml(e.pieceJointeNom)}</a>` : '—'}</td>
+      <td>${e.pieceJointeNom ? `<a href="#" data-telecharger-piece="${e.id}" style="color:var(--teal-700);font-weight:600;">${escapeHtml(e.pieceJointeNom)}</a>` : '—'}</td>
       ${isProf ? `<td><button class="btn-secondary" data-delete-cahier="${e.id}" style="border-color:var(--danger);color:var(--danger);">Supprimer</button></td>` : ''}
     </tr>`).join('');
 
@@ -5473,7 +5473,7 @@ async function renderEtablissements(){
     </div>
     <div class="card">
       <h2>Établissements (${etablissements.length})</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Modifie le nom directement dans la case puis cliquez « Enregistrer ». ⚠️ Supprimer un établissement supprime aussi définitivement tous ses comptes, classes et matières.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Modifie le nom directement dans la case puis cliquez « Enregistrer ». Supprimer un établissement supprime aussi définitivement tous ses comptes, classes et matières.</p>
       ${etablissements.length ? `<table><thead><tr><th>ID</th><th>Nom</th><th>Code</th><th>Utilisateurs</th><th>Classes</th><th>Créé le</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucun établissement pour l\'instant.</div>'}
     </div>
     <div class="card">
@@ -5798,7 +5798,7 @@ async function renderProfDocuments(){
   let dossierExistant = null;
   try{ dossierExistant = await api('/dossiers-professeur/' + state.user.id); }catch(e){ /* pas encore de dossier */ }
   const CATEGORIE_DOC_LABELS = { DIPLOME: 'Diplôme', ATTESTATION: 'Attestation', AUTRE: 'Autre' };
-  const STATUT_DOC_LABELS = { EN_ATTENTE: '🕓 En attente de validation', VALIDE: '✅ Validé par l\'administration', REFUSE: '❌ Refusé — renouvelle ce document' };
+  const STATUT_DOC_LABELS = { EN_ATTENTE: 'En attente de validation', VALIDE: 'Validé par l\'administration', REFUSE: 'Refusé — renouvelle ce document' };
   const documentsQualif = dossierExistant ? dossierExistant.documents : [];
   const rowsQualif = documentsQualif.map(d => `
     <tr>
@@ -6281,7 +6281,7 @@ async function construireBlocMessagesAccueil(){
     return `
       <div class="card" style="border-left:4px solid var(--teal-700);">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h2 style="margin:0;">✉️ ${nonLus.length} message${nonLus.length > 1 ? 's' : ''} non lu${nonLus.length > 1 ? 's' : ''}</h2>
+          <h2 style="margin:0;">${nonLus.length} message${nonLus.length > 1 ? 's' : ''} non lu${nonLus.length > 1 ? 's' : ''}</h2>
           <button class="btn-secondary" id="accueil-aller-messagerie-btn">Voir la messagerie</button>
         </div>
         <div style="margin-top:10px;">${apercu}</div>
@@ -6568,8 +6568,8 @@ async function construireBlocAccueilProf(){
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:6px;background:${manque ? '#FEE2E2' : estEnCours ? 'var(--teal-100)' : 'var(--bg)'};">
           <div>
             <strong>${c.heureDebut} – ${c.heureFin}</strong> — ${escapeHtml(c.enseignement.classe.nom)} — ${escapeHtml(c.enseignement.matiere.nom)}
-            ${manque ? '<div style="color:var(--danger);font-size:12px;font-weight:600;margin-top:2px;">⚠️ Appel non fait</div>' : ''}
-            ${estEnCours ? '<div style="color:var(--teal-700);font-size:12px;font-weight:600;margin-top:2px;">🟢 En cours actuellement</div>' : ''}
+            ${manque ? '<div style="color:var(--danger);font-size:12px;font-weight:600;margin-top:2px;">Appel non fait</div>' : ''}
+            ${estEnCours ? '<div style="color:var(--teal-700);font-size:12px;font-weight:600;margin-top:2px;">En cours actuellement</div>' : ''}
           </div>
           ${estEnCours ? `<button class="btn-submit" id="accueil-aller-appel-btn" style="margin:0;">Faire l'appel</button>` : ''}
         </div>`;
@@ -6767,7 +6767,7 @@ async function renderVieScolaire(){
   const declarationsEnAttente = declarations.filter(d => d.statut === 'EN_ATTENTE');
   const carteDeclarations = declarationsEnAttente.length ? `
     <div class="card" style="border-left:4px solid var(--warning);">
-      <h2>📋 Déclarations d'absence des parents en attente (${declarationsEnAttente.length})</h2>
+      <h2>Déclarations d'absence des parents en attente (${declarationsEnAttente.length})</h2>
       <table><thead><tr><th>Élève</th><th>Période</th><th>Raison</th><th>Commentaire</th><th>Justificatif</th><th></th></tr></thead><tbody>
         ${declarationsEnAttente.map(d => `
           <tr>
@@ -6775,10 +6775,10 @@ async function renderVieScolaire(){
             <td>${new Date(d.dateDebut).toLocaleString('fr-FR', { dateStyle:'short', timeStyle:'short' })} → ${new Date(d.dateFin).toLocaleString('fr-FR', { dateStyle:'short', timeStyle:'short' })}</td>
             <td>${escapeHtml(d.raison)}</td>
             <td>${d.commentaire ? escapeHtml(d.commentaire) : '—'}</td>
-            <td>${d.justificatifNom ? `<a href="#" data-telecharger-justificatif="${d.id}" style="color:var(--teal-700);font-weight:600;">📎 ${escapeHtml(d.justificatifNom)}</a>` : '—'}</td>
+            <td>${d.justificatifNom ? `<a href="#" data-telecharger-justificatif="${d.id}" style="color:var(--teal-700);font-weight:600;">${escapeHtml(d.justificatifNom)}</a>` : '—'}</td>
             <td>
-              <button class="btn-secondary" data-valider-declaration="${d.id}" style="border-color:var(--success);color:var(--success);">✅ Valider</button>
-              <button class="btn-secondary" data-refuser-declaration="${d.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">❌ Refuser</button>
+              <button class="btn-secondary" data-valider-declaration="${d.id}" style="border-color:var(--success);color:var(--success);">Valider</button>
+              <button class="btn-secondary" data-refuser-declaration="${d.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>
             </td>
           </tr>`).join('')}
       </tbody></table>
@@ -6990,7 +6990,7 @@ async function renderParametres(){
           <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 10px;">Ajoutez un bouton « Se connecter » sur la page d'accueil de votre propre site internet, qui pointe vers ce lien — il amène directement à l'espace de connexion de votre établissement sur ${escapeHtml(params.nomEtablissement)}.</p>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <code id="lien-connexion-etab" style="background:var(--bg);padding:8px 12px;border-radius:6px;font-size:12.5px;">${API_BASE}/e/${escapeHtml(params.etablissement.code)}</code>
-            <button class="btn-secondary" id="copier-lien-etab-btn" type="button">📋 Copier le lien</button>
+            <button class="btn-secondary" id="copier-lien-etab-btn" type="button">Copier le lien</button>
           </div>
         </div>` : ''}
         <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);">
