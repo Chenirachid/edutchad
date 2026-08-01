@@ -6449,21 +6449,15 @@ async function construireBlocAccueilEtudiant(){
           </div>`).join('')}
       </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun travail à faire pour l\'instant.</div>';
 
-    // Colonne 3 : dernières notes, avec puces colorées façon Pronote
-    const dernieresNotesParMatiere = {};
-    notes.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(n => {
-      const nom = n.enseignement.matiere.nom;
-      if(!dernieresNotesParMatiere[nom]) dernieresNotesParMatiere[nom] = [];
-      if(dernieresNotesParMatiere[nom].length < 8) dernieresNotesParMatiere[nom].push(n);
-    });
-    const puceCouleur = (valeur) => valeur >= 14 ? 'var(--success)' : valeur >= 10 ? '#EAB308' : 'var(--danger)';
-    const blocsNotes = Object.entries(dernieresNotesParMatiere).slice(0, 8).map(([matiere, liste]) => `
-      <div style="margin-bottom:10px;">
-        <div style="font-size:12.5px;font-weight:700;">${escapeHtml(matiere)}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">le ${new Date(liste[0].createdAt).toLocaleDateString('fr-FR')}</div>
-        <div style="display:flex;gap:4px;">
-          ${liste.slice().reverse().map(n => `<span title="${n.valeur.toFixed(2)}/20" style="width:12px;height:12px;border-radius:50%;background:${puceCouleur(n.valeur)};display:inline-block;"></span>`).join('')}
+    // Colonne 3 : dernières notes, avec la valeur exacte affichée (ex: 8,00 / 20)
+    const dernieresNotesListe = notes.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
+    const blocsNotes = dernieresNotesListe.map(n => `
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;">
+        <div>
+          <div style="font-size:12.5px;font-weight:700;">${escapeHtml(n.enseignement.matiere.nom)}</div>
+          <div style="font-size:11px;color:var(--text-muted);">le ${new Date(n.createdAt).toLocaleDateString('fr-FR')}</div>
         </div>
+        <span class="moy-pill ${moyennePillClass(n.valeur)}">${n.valeur.toFixed(2)} / 20</span>
       </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune note pour l\'instant.</div>';
 
     // Colonne 4a : discussions — regroupées par correspondant, les plus récentes d'abord
