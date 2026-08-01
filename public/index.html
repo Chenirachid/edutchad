@@ -370,7 +370,7 @@
 
   .emploi-grille{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;}
   .emploi-grille th{text-align:center;font-size:12px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.03em;padding:10px 6px;border-bottom:2px solid var(--border);}
-  .emploi-grille td{border:1px solid var(--border);vertical-align:top;padding:4px;height:1px;}
+  .emploi-grille td{border:1px solid var(--border);vertical-align:top;padding:4px;height:1px;overflow:hidden;max-width:0;}
   .emploi-grille .heure-col{
     text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);
     white-space:nowrap;width:70px;background:var(--bg);
@@ -421,6 +421,7 @@
   .creneau-case{
     border-left:4px solid #E8D97A;background:transparent;border-radius:4px;
     padding:6px 8px;font-size:11.5px;height:100%;
+    overflow:hidden;overflow-wrap:break-word;word-break:break-word;box-sizing:border-box;
   }
   .rond-nav{
     width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
@@ -570,7 +571,8 @@
       position:relative;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.14);
       color:#fff;display:flex;align-items:center;justify-content:center;border:none;
     }
-    .entete-mobile-langue-wrap{position:relative;}
+    .entete-mobile-langue-wrap{position:static;}
+    #lang-dropdown-menu-mobile{position:fixed !important;}
     .entete-mobile-badge{
       position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
       background:#F5A623;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
@@ -1421,7 +1423,20 @@ function toggleLangDropdown(btnId, menuId){
 }
 toggleLangDropdown('lang-dropdown-btn', 'lang-dropdown-menu');
 toggleLangDropdown('lang-dropdown-btn-app', 'lang-dropdown-menu-app');
-toggleLangDropdown('entete-mobile-langue-btn', 'lang-dropdown-menu-mobile');
+document.getElementById('entete-mobile-langue-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const menu = document.getElementById('lang-dropdown-menu-mobile');
+  const etaitOuvert = !menu.classList.contains('hidden');
+  document.querySelectorAll('.lang-dropdown-menu').forEach(m => m.classList.add('hidden'));
+  if(!etaitOuvert){
+    const rect = e.currentTarget.getBoundingClientRect();
+    menu.style.top = rect.bottom + 6 + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.style.left = 'auto';
+    menu.style.transform = 'none';
+  }
+  menu.classList.toggle('hidden', etaitOuvert);
+});
 document.addEventListener('click', () => {
   document.querySelectorAll('.lang-dropdown-menu').forEach(m => m.classList.add('hidden'));
 });
