@@ -1312,10 +1312,7 @@ function escapeHtml(str){
 }
 
 function stringToColor(str){
-  let hash = 0;
-  for(let i=0;i<str.length;i++){ hash = str.charCodeAt(i) + ((hash << 5) - hash); }
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue}, 55%, 45%)`;
+  return 'var(--teal-700)';
 }
 
 function stringToPastel(str){
@@ -1933,6 +1930,17 @@ function libellePeriode(systemePeriode, numero){
   return (systemePeriode === 'SEMESTRE' ? 'Semestre' : 'Trimestre') + ' ' + numero;
 }
 
+function mentionBulletin(moyenne, bareme){
+  if(moyenne === null || moyenne === undefined) return null;
+  const b = bareme || 20;
+  if(moyenne >= b * 0.9) return 'Excellent';
+  if(moyenne >= b * 0.8) return 'Très bien';
+  if(moyenne >= b * 0.7) return 'Bien';
+  if(moyenne >= b * 0.6) return 'Assez bien';
+  if(moyenne >= b * 0.5) return 'Passable';
+  return null;
+}
+
 function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
   const libellePeriodeTexte = libellePeriode(parametres.systemePeriode, trimestre);
   const seuilAdmission = (parametres.bareme || 20) / 2;
@@ -1960,7 +1968,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
       <p class="sous-titre">Bulletin de scolarité — ${escapeHtml(libellePeriodeTexte)} — Année ${escapeHtml(parametres.anneeScolaire || '')}</p>
       <div class="infos-generales">
         <div><strong>${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)}</strong>${b.etudiant.numeroEtudiant ? ` — N° ${escapeHtml(b.etudiant.numeroEtudiant)}` : ''}</div>
-        <div><strong>Moyenne générale : ${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme || 20}</strong> — ${b.moyenneGenerale === null ? '' : (estAdmis ? 'Admis(e)' : 'Ajourné(e)')}</div>
+        <div><strong>Moyenne générale : ${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme || 20}</strong> — ${b.moyenneGenerale === null ? '' : (estAdmis ? 'Admis(e)' : 'Ajourné(e)')}${mentionBulletin(b.moyenneGenerale, parametres.bareme) ? ' — Mention ' + mentionBulletin(b.moyenneGenerale, parametres.bareme) : ''}</div>
       </div>
       <table class="table-bulletin-impression">
         <thead>
@@ -2093,6 +2101,7 @@ async function chargerEtAfficherBulletinEtudiant(etudiantId, trimestre, estMoiMe
             <div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} <span style="font-size:14px;color:var(--text-muted);">/ ${parametres.bareme || 20}</span></div>
           </div>
           <div>${b.moyenneGenerale === null ? '' : estAdmis ? '<span class="badge-justifiee">Admis(e)</span>' : '<span class="badge-non-justifiee">Ajourné(e)</span>'}</div>
+          ${mentionBulletin(b.moyenneGenerale, parametres.bareme) ? `<div class="stat" style="text-align:right;"><div class="label">Mention</div><div class="big" style="font-size:16px;">${mentionBulletin(b.moyenneGenerale, parametres.bareme)}</div></div>` : ''}
         </div>
       </div>
       <div style="overflow-x:auto;">
@@ -6357,7 +6366,7 @@ async function construireBlocAccueilParent(){
     const grilleSemaine = creneauxAujourdhui.map(c => {
       const aUneEpreuve = enseignementsAvecEpreuveAujourdhui.has(c.enseignement.id);
       return `
-      <div style="background:${aUneEpreuve ? '#FDE4E4' : stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
+      <div style="background:${aUneEpreuve ? '#FDE4E4' : 'var(--bg)'};border-left:3px solid var(--teal-700);border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
         <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
         <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' <span class="puce-evaluation"></span> Évaluation' : ''}</div>
         <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
@@ -6379,12 +6388,12 @@ async function construireBlocAccueilParent(){
     // Dernières notes
     const dernieresNotes = notesEnfant.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
     const blocsNotes = dernieresNotes.map(n => `
-      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;">
-        <div>
-          <div style="font-size:12.5px;font-weight:700;">${escapeHtml(n.enseignement.matiere.nom)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding:6px 0;">
+        <div style="min-width:0;flex:1;overflow:hidden;">
+          <div style="font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(n.enseignement.matiere.nom)}</div>
           <div style="font-size:11px;color:var(--text-muted);">le ${new Date(n.createdAt).toLocaleDateString('fr-FR')}</div>
         </div>
-        <span class="moy-pill ${moyennePillClass(n.valeur)}">${n.valeur.toFixed(2)}</span>
+        <span class="moy-pill ${moyennePillClass(n.valeur)}" style="flex-shrink:0;">${n.valeur.toFixed(2)}</span>
       </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune note pour l\'instant.</div>';
 
     // Absences, punitions...
@@ -6475,7 +6484,7 @@ async function construireBlocAccueilEtudiant(){
     const blocsHoraires = creneauxAujourdhui.map(c => {
       const aUneEpreuve = enseignementsAvecEpreuveAujourdhui.has(c.enseignement.id);
       return `
-      <div style="background:${aUneEpreuve ? '#FDE4E4' : stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
+      <div style="background:${aUneEpreuve ? '#FDE4E4' : 'var(--bg)'};border-left:3px solid var(--teal-700);border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
         <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
         <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' <span class="puce-evaluation"></span> Évaluation' : ''}</div>
         <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
@@ -6506,12 +6515,12 @@ async function construireBlocAccueilEtudiant(){
     // Colonne 3 : dernières notes, avec la valeur exacte affichée (ex: 8,00 / 20)
     const dernieresNotesListe = notes.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
     const blocsNotes = dernieresNotesListe.map(n => `
-      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;">
-        <div>
-          <div style="font-size:12.5px;font-weight:700;">${escapeHtml(n.enseignement.matiere.nom)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding:6px 0;">
+        <div style="min-width:0;flex:1;overflow:hidden;">
+          <div style="font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(n.enseignement.matiere.nom)}</div>
           <div style="font-size:11px;color:var(--text-muted);">le ${new Date(n.createdAt).toLocaleDateString('fr-FR')}</div>
         </div>
-        <span class="moy-pill ${moyennePillClass(n.valeur)}">${n.valeur.toFixed(2)} / 20</span>
+        <span class="moy-pill ${moyennePillClass(n.valeur)}" style="flex-shrink:0;">${n.valeur.toFixed(2)} / 20</span>
       </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune note pour l\'instant.</div>';
 
     // Colonne 4a : discussions — regroupées par correspondant, les plus récentes d'abord
