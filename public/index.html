@@ -648,7 +648,10 @@
   #presentation-screen .carte-fonction p{font-size:13.5px;color:var(--text-muted);margin:0;}
   #presentation-screen .grille-publics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
   #presentation-screen .carte-public{border:1.5px solid var(--border);border-radius:var(--radius);padding:24px 20px;text-align:center;}
-  #presentation-screen .carte-public .icone{font-size:30px;margin-bottom:12px;display:block;}
+  #presentation-screen .carte-public .numero-public{
+    display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;
+    border-radius:50%;background:var(--teal-100, #E7F1EC);color:#123A3D;font-weight:700;font-size:14px;margin-bottom:12px;
+  }
   #presentation-screen .carte-public h3{font-size:15.5px;color:var(--teal-900);margin:0 0 10px;}
   #presentation-screen .carte-public ul{list-style:none;padding:0;margin:0;font-size:13px;color:var(--text-muted);text-align:left;}
   #presentation-screen .carte-public li{padding:4px 0;padding-left:18px;position:relative;}
@@ -759,22 +762,22 @@
       <p class="sous-titre-section">Un espace adapté à chaque rôle, avec exactement ce qu'il lui faut.</p>
       <div class="grille-publics">
         <div class="carte-public">
-          <span class="icone">🎓</span>
+          <span class="numero-public">A</span>
           <h3>Élèves</h3>
           <ul><li>Notes et bulletin en temps réel</li><li>Emploi du temps et cahier de texte</li><li>Absences et comportement</li></ul>
         </div>
         <div class="carte-public">
-          <span class="icone">👨‍🏫</span>
+          <span class="numero-public">B</span>
           <h3>Professeurs</h3>
           <ul><li>Appel et notes par classe</li><li>Cahier de texte en un clic</li><li>Messagerie avec les familles</li></ul>
         </div>
         <div class="carte-public">
-          <span class="icone">👪</span>
+          <span class="numero-public">C</span>
           <h3>Familles</h3>
           <ul><li>Suivi de chaque enfant</li><li>Rendez-vous avec l'administration</li><li>Suivi des frais de scolarité</li></ul>
         </div>
         <div class="carte-public">
-          <span class="icone">🏛️</span>
+          <span class="numero-public">D</span>
           <h3>Administration</h3>
           <ul><li>Gestion complète des comptes</li><li>Statistiques par classe</li><li>Documents officiels automatisés</li></ul>
         </div>
@@ -1298,7 +1301,7 @@ function genererBarreIconesEDT(mode){
     <button title="Messagerie" id="edt-icone-messagerie"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
     <button title="Notes / Bulletin" id="edt-icone-notes"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></button>
     <button title="Vie scolaire" id="edt-icone-vie-scolaire"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
-    <button title="Paramètres" id="edt-icone-parametres">⚙️</button>
+    <button title="Paramètres" id="edt-icone-parametres"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>`;
 }
 
@@ -3158,7 +3161,7 @@ async function imprimerDocumentActivation(user){
       <div style="background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;">
         ${contenuDocument}
         <div style="display:flex;gap:10px;padding:0 24px 24px;">
-          <button class="btn-submit" id="activation-modale-imprimer" style="flex:1;">🖨️ Imprimer</button>
+          <button class="btn-submit" id="activation-modale-imprimer" style="flex:1;">Imprimer</button>
           <button class="btn-secondary" id="activation-modale-fermer" style="flex:1;">Fermer</button>
         </div>
       </div>`;
@@ -4847,7 +4850,7 @@ async function renderAdminFrais(){
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
         <h2 style="margin:0;">Suivi des paiements par classe (${frais.length})</h2>
-        <button class="btn-secondary" id="frais-imprimer-btn">🖨️ Imprimer</button>
+        <button class="btn-secondary" id="frais-imprimer-btn">Imprimer</button>
       </div>
       ${frais.length ? sectionsParClasse : '<div class="empty-state">Aucun frais enregistré.</div>'}
     </div>`;
@@ -5714,7 +5717,7 @@ async function renderBibliotheque(){
       <td>${r.description ? escapeHtml(r.description) : '—'}</td>
       <td>${escapeHtml(r.ajoutePar.prenom)} ${escapeHtml(r.ajoutePar.nom)}</td>
       <td>
-        <a href="#" data-telecharger-biblio="${r.id}" data-nom="${escapeHtml(r.nom)}" style="color:var(--teal-700);font-weight:600;">📥 ${escapeHtml(r.nom)}</a>
+        <a href="#" data-telecharger-biblio="${r.id}" data-nom="${escapeHtml(r.nom)}" style="color:var(--teal-700);font-weight:600;">${escapeHtml(r.nom)}</a>
         ${peutGerer ? `<button class="btn-secondary" data-delete-biblio="${r.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>` : ''}
       </td>
     </tr>`;
@@ -5744,7 +5747,7 @@ async function renderBibliotheque(){
     </div>
     ${peutGerer ? `
     <div class="card">
-      <h2>📕 Réservé aux professeurs (${reservees.length})</h2>
+      <h2>Réservé aux professeurs (${reservees.length})</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Ces ressources (par exemple avec corrigés) ne sont jamais visibles par les élèves.</p>
       ${reservees.length ? `<table><thead><tr><th>Titre</th><th>Matière</th><th>Description</th><th>Ajouté par</th><th>Fichier</th></tr></thead><tbody>${reservees.map(ligne).join('')}</tbody></table>` : '<div class="empty-state">Aucune ressource réservée pour l\'instant.</div>'}
     </div>` : ''}`;
@@ -5815,7 +5818,7 @@ async function renderProfDocuments(){
       <td>${escapeHtml(d.nom)}</td>
       <td>${new Date(d.createdAt).toLocaleDateString('fr-FR')}</td>
       <td>
-        <button class="btn-submit" data-projeter-doc="${d.id}">📽️ Projeter</button>
+        <button class="btn-submit" data-projeter-doc="${d.id}">Projeter</button>
         <button class="btn-secondary" data-delete-doc-prof="${d.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Supprimer</button>
       </td>
     </tr>`).join('');
@@ -7190,8 +7193,8 @@ if(restoreSession()){
           marque.classList.remove('hidden');
 
           document.getElementById('vitrine-nom').textContent = data.nom;
-          if(data.adresse){ document.getElementById('vitrine-adresse').textContent = '📍 ' + data.adresse; }
-          if(data.telephone){ document.getElementById('vitrine-telephone').textContent = '📞 ' + data.telephone; }
+          if(data.adresse){ document.getElementById('vitrine-adresse').textContent = data.adresse; }
+          if(data.telephone){ document.getElementById('vitrine-telephone').textContent = data.telephone; }
           document.getElementById('espace-selection-card').classList.add('hidden');
           document.getElementById('vitrine-etablissement-card').classList.remove('hidden');
           document.getElementById('vitrine-se-connecter-btn').addEventListener('click', () => {
