@@ -543,11 +543,13 @@
   .bulletin-impression h1{font-size:16px;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.05em;}
   .bulletin-impression .sous-titre{text-align:center;font-size:12px;color:#333;margin:0 0 4px;}
   .bulletin-impression .infos-generales{display:flex;justify-content:space-between;margin:16px 0;font-size:12px;}
-  .table-bulletin-impression{border-collapse:collapse;width:100%;font-size:11px;}
-  .table-bulletin-impression th, .table-bulletin-impression td{border:1px solid #000;padding:6px 8px;vertical-align:top;color:#000;}
+  .table-bulletin-impression{border-collapse:collapse;width:100%;font-size:11px;table-layout:fixed;}
+  .table-bulletin-impression th, .table-bulletin-impression td{border:1px solid #000;padding:6px 8px;vertical-align:top;color:#000;overflow-wrap:break-word;word-break:break-word;}
+  .table-bulletin-impression thead{display:table-header-group;}
+  .table-bulletin-impression tr{page-break-inside:avoid;}
   .table-bulletin-impression thead th{text-align:center;font-weight:700;}
-  .table-bulletin-impression .matiere-cell{white-space:nowrap;}
-  .table-bulletin-impression .moy-cell{text-align:center;font-weight:700;}
+  .table-bulletin-impression .matiere-cell{width:14%;}
+  .table-bulletin-impression .moy-cell{width:8%;text-align:center;font-weight:700;}
 
   /* ---------- EN-TÊTE MOBILE (façon Pronote) ---------- */
   .entete-mobile{display:none;}
