@@ -366,6 +366,10 @@
     padding:14px 16px;margin-bottom:12px;
   }
   .emploi-grille td.case-cours{background:#FDF8D6;}
+  .dashboard-etudiant{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+  .dashboard-colonne{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;max-height:420px;overflow-y:auto;}
+  .dashboard-colonne h3{font-size:13.5px;color:var(--teal-900);margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid var(--teal-100);}
+  @media (max-width:900px){.dashboard-etudiant{grid-template-columns:1fr;}}
   .table-bulletin{border-collapse:collapse;width:100%;font-size:12.5px;}
   .table-bulletin th, .table-bulletin td{border:1px solid var(--border);padding:8px 10px;vertical-align:top;}
   .table-bulletin thead th{background:#fff;font-size:12px;text-align:center;}
@@ -5859,6 +5863,11 @@ async function renderActualites(){
     blocEmploiProf = await construireBlocAccueilProf();
   }
 
+  let blocEtudiant = '';
+  if(state.user.role === 'ETUDIANT'){
+    blocEtudiant = await construireBlocAccueilEtudiant();
+  }
+
   const blocMessages = await construireBlocMessagesAccueil();
 
   const cartes = actualites.map(a => `
@@ -5881,7 +5890,7 @@ async function renderActualites(){
       </form>
     </div>` : '';
 
-  content.innerHTML = `${blocMessages}${blocEmploiProf}${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
+  content.innerHTML = `${blocMessages}${blocEmploiProf}${blocEtudiant}${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
 
   if(peutPublier){
     document.getElementById('actualite-form').addEventListener('submit', async (e) => {
@@ -5924,6 +5933,85 @@ async function construireBlocMessagesAccueil(){
           <button class="btn-secondary" id="accueil-aller-messagerie-btn">Voir la messagerie</button>
         </div>
         <div style="margin-top:10px;">${apercu}</div>
+      </div>`;
+  }catch(err){
+    return '';
+  }
+}
+
+async function construireBlocAccueilEtudiant(){
+  try{
+    const [creneaux, cahiers, notes] = await Promise.all([
+      api('/creneaux').catch(() => []),
+      api('/cahiers-texte').catch(() => []),
+      api('/notes').catch(() => []),
+    ]);
+
+    const maintenant = new Date();
+    const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
+    const jourAujourdhui = joursNoms[maintenant.getDay()];
+    const creneauxAujourdhui = creneaux.filter(c => c.jour === jourAujourdhui).sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
+
+    // Colonne 1 : emploi du temps du jour, en blocs colorés
+    const blocsHoraires = creneauxAujourdhui.map(c => `
+      <div style="background:${stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+        <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+        <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
+
+    // Colonne 2 : devoirs à faire, groupés par jour (cahier de texte à venir avec un champ "devoirs")
+    const devoirsAVenir = cahiers
+      .filter(c => c.devoirs && new Date(c.date) >= new Date(maintenant.toDateString()))
+      .sort((a,b) => new Date(a.date) - new Date(b.date))
+      .slice(0, 8);
+    const parJourDevoirs = {};
+    devoirsAVenir.forEach(c => {
+      const cle = new Date(c.date).toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+      if(!parJourDevoirs[cle]) parJourDevoirs[cle] = [];
+      parJourDevoirs[cle].push(c);
+    });
+    const blocsDevoirs = Object.entries(parJourDevoirs).map(([jour, items]) => `
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11.5px;font-weight:700;color:var(--teal-700);text-transform:capitalize;margin-bottom:4px;">Pour le ${jour}</div>
+        ${items.map(c => `
+          <div style="border-bottom:1px solid var(--border);padding:6px 0;">
+            <div style="font-size:12.5px;font-weight:700;">${escapeHtml(c.enseignement.matiere.nom)}</div>
+            <div style="font-size:12px;color:var(--text-muted);">${escapeHtml(c.devoirs)}</div>
+          </div>`).join('')}
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun travail à faire pour l\'instant.</div>';
+
+    // Colonne 3 : dernières notes, avec puces colorées façon Pronote
+    const dernieresNotesParMatiere = {};
+    notes.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(n => {
+      const nom = n.enseignement.matiere.nom;
+      if(!dernieresNotesParMatiere[nom]) dernieresNotesParMatiere[nom] = [];
+      if(dernieresNotesParMatiere[nom].length < 8) dernieresNotesParMatiere[nom].push(n);
+    });
+    const puceCouleur = (valeur) => valeur >= 14 ? 'var(--success)' : valeur >= 10 ? '#EAB308' : 'var(--danger)';
+    const blocsNotes = Object.entries(dernieresNotesParMatiere).slice(0, 6).map(([matiere, liste]) => `
+      <div style="margin-bottom:10px;">
+        <div style="font-size:12.5px;font-weight:700;">${escapeHtml(matiere)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">le ${new Date(liste[0].createdAt).toLocaleDateString('fr-FR')}</div>
+        <div style="display:flex;gap:4px;">
+          ${liste.slice().reverse().map(n => `<span title="${n.valeur.toFixed(2)}/20" style="width:12px;height:12px;border-radius:50%;background:${puceCouleur(n.valeur)};display:inline-block;"></span>`).join('')}
+        </div>
+      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune note pour l\'instant.</div>';
+
+    return `
+      <div class="dashboard-etudiant">
+        <div class="dashboard-colonne">
+          <h3>Emploi du temps — aujourd'hui</h3>
+          ${blocsHoraires}
+        </div>
+        <div class="dashboard-colonne">
+          <h3>Travail à faire</h3>
+          ${blocsDevoirs}
+        </div>
+        <div class="dashboard-colonne">
+          <h3>Dernières évaluations</h3>
+          ${blocsNotes}
+        </div>
       </div>`;
   }catch(err){
     return '';
