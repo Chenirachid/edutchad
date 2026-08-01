@@ -12,26 +12,30 @@
 <meta property="og:image" content="https://educheni.com/educheni-logo.svg" />
 <meta property="og:type" content="website" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --teal-900:#0B4F52; --teal-700:#0F8B8D; --teal-600:#17A2A5; --teal-500:#2EC4C6; --teal-100:#E0F5F5;
-    --bg:#F2F7F7; --surface:#FFFFFF; --text:#1F2937; --text-muted:#6B7280; --border:#E5E7EB;
+    --accent:#E0672E; --accent-light:#FCE8DD;
+    --bg:#FBF8F3; --surface:#FFFFFF; --text:#20241F; --text-muted:#6B7280; --border:#E5E2D9;
     --success:#16A34A; --warning:#F59E0B;
     --radius:14px; --shadow:0 1px 2px rgba(11,79,82,.06), 0 8px 24px rgba(11,79,82,.08);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color:var(--text); background:var(--surface); line-height:1.5;
   }
+  h1, h2, .logo span{font-family:'Fraunces', Georgia, serif;}
   a{color:inherit;}
   .conteneur{max-width:1100px;margin:0 auto;padding:0 24px;}
 
   /* ---------- HEADER ---------- */
   header{padding:20px 0;border-bottom:1px solid var(--border);}
   .entete-flex{display:flex;align-items:center;justify-content:space-between;}
-  .logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:700;color:var(--teal-900);}
+  .logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600;color:var(--teal-900);}
   .logo-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--teal-500),var(--teal-700));display:flex;align-items:center;justify-content:center;}
   .btn-connexion{
     padding:10px 22px;border-radius:9px;background:var(--teal-700);color:#fff;font-weight:600;
@@ -39,27 +43,47 @@
   }
   .btn-connexion:hover{background:var(--teal-900);}
 
-  /* ---------- HERO ---------- */
-  .hero{padding:80px 0 70px;text-align:center;background:radial-gradient(circle at 50% 0%, var(--teal-100), transparent 60%);}
-  .hero h1{font-size:40px;font-weight:700;color:var(--teal-900);margin:0 0 18px;line-height:1.25;}
-  .hero p{font-size:17px;color:var(--text-muted);max-width:620px;margin:0 auto 34px;}
-  .hero-boutons{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
-  .btn-primaire{padding:14px 30px;border-radius:10px;background:var(--teal-700);color:#fff;font-weight:700;font-size:15px;text-decoration:none;}
+  /* ---------- HERO (asymétrique) ---------- */
+  .hero{padding:76px 0 60px;background:var(--bg);}
+  .hero .conteneur{display:grid;grid-template-columns:1.15fr 0.85fr;gap:48px;align-items:center;}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;}
+  .hero-eyebrow::before{content:'';width:22px;height:2px;background:var(--accent);display:inline-block;}
+  .hero h1{font-size:44px;font-weight:600;color:var(--teal-900);margin:0 0 20px;line-height:1.15;letter-spacing:-.01em;}
+  .hero p{font-size:16.5px;color:var(--text-muted);max-width:480px;margin:0 0 32px;}
+  .hero-boutons{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn-primaire{padding:14px 28px;border-radius:10px;background:var(--teal-700);color:#fff;font-weight:700;font-size:15px;text-decoration:none;}
   .btn-primaire:hover{background:var(--teal-900);}
-  .btn-secondaire{padding:14px 30px;border-radius:10px;border:1.5px solid var(--border);color:var(--teal-900);font-weight:700;font-size:15px;text-decoration:none;}
+  .btn-secondaire{padding:14px 28px;border-radius:10px;border:1.5px solid var(--border);color:var(--teal-900);font-weight:700;font-size:15px;text-decoration:none;}
   .btn-secondaire:hover{background:var(--teal-100);}
+
+  /* Composition graphique du hero : cartes empilées en biais, façon aperçu d'écran */
+  .hero-visuel{position:relative;height:340px;}
+  .hero-carte{
+    position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    box-shadow:var(--shadow);padding:18px 20px;
+  }
+  .hero-carte-1{top:0;left:10%;width:78%;transform:rotate(-4deg);}
+  .hero-carte-2{top:120px;left:0;width:70%;transform:rotate(3deg);background:var(--teal-900);color:#fff;}
+  .hero-carte-3{top:210px;right:0;width:58%;transform:rotate(-2deg);background:var(--accent-light);border-color:transparent;}
+  .hero-carte .ligne{height:8px;border-radius:4px;background:var(--border);margin-bottom:8px;}
+  .hero-carte-2 .ligne{background:rgba(255,255,255,.25);}
+  .hero-carte .ligne:nth-child(2){width:70%;}
+  .hero-carte .pastille{width:34px;height:34px;border-radius:50%;background:var(--teal-100);margin-bottom:10px;}
+  .hero-carte-2 .pastille{background:rgba(255,255,255,.2);}
+  .hero-carte-3 .pastille{background:var(--accent);}
 
   /* ---------- SECTIONS ---------- */
   section{padding:64px 0;}
-  .titre-section{text-align:center;font-size:28px;font-weight:700;color:var(--teal-900);margin:0 0 10px;}
-  .sous-titre-section{text-align:center;font-size:15px;color:var(--text-muted);max-width:560px;margin:0 auto 44px;}
+  .titre-section{font-size:30px;font-weight:600;color:var(--teal-900);margin:0 0 10px;}
+  .sous-titre-section{font-size:15px;color:var(--text-muted);max-width:560px;margin:0 0 44px;}
+  #fonctionnalites .titre-section, #fonctionnalites .sous-titre-section, #faq .titre-section{text-align:left;margin-left:0;}
 
-  .grille-fonctions{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;}
+  .grille-fonctions{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
   .carte-fonction{
-    background:var(--bg);border-radius:var(--radius);padding:26px 22px;border:1px solid var(--border);
+    background:var(--surface);padding:28px 24px;position:relative;
   }
-  .carte-fonction .icone{font-size:26px;margin-bottom:14px;display:block;}
-  .carte-fonction h3{font-size:16px;color:var(--teal-900);margin:0 0 8px;}
+  .carte-fonction .numero{font-family:'Fraunces',serif;font-size:13px;color:var(--accent);font-weight:600;display:block;margin-bottom:12px;}
+  .carte-fonction h3{font-size:16px;color:var(--teal-900);margin:0 0 8px;font-weight:600;}
   .carte-fonction p{font-size:13.5px;color:var(--text-muted);margin:0;}
 
   .grille-publics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
@@ -85,8 +109,10 @@
   footer{padding:30px 0;border-top:1px solid var(--border);text-align:center;font-size:12.5px;color:var(--text-muted);}
 
   @media (max-width:640px){
-    .hero h1{font-size:29px;}
-    .hero{padding:56px 0 46px;}
+    .hero .conteneur{grid-template-columns:1fr;}
+    .hero-visuel{display:none;}
+    .hero h1{font-size:30px;}
+    .hero{padding:48px 0 40px;}
     section{padding:46px 0;}
   }
 </style>
@@ -117,11 +143,30 @@
 
 <div class="hero">
   <div class="conteneur">
-    <h1>La plateforme scolaire tout-en-un<br/>pour votre établissement</h1>
-    <p>Notes, bulletins, absences, emploi du temps, messagerie et gestion administrative — réunis au même endroit pour élèves, professeurs, parents et administration.</p>
-    <div class="hero-boutons">
-      <a class="btn-primaire" href="/">Se connecter à mon espace</a>
-      <a class="btn-secondaire" href="#fonctionnalites">Découvrir les fonctionnalités</a>
+    <div>
+      <span class="hero-eyebrow">Gestion scolaire</span>
+      <h1>La plateforme scolaire tout-en-un pour votre établissement</h1>
+      <p>Notes, bulletins, absences, emploi du temps, messagerie et gestion administrative — réunis au même endroit pour élèves, professeurs, parents et administration.</p>
+      <div class="hero-boutons">
+        <a class="btn-primaire" href="/">Se connecter à mon espace</a>
+        <a class="btn-secondaire" href="#fonctionnalites">Découvrir les fonctionnalités</a>
+      </div>
+    </div>
+    <div class="hero-visuel">
+      <div class="hero-carte hero-carte-1">
+        <div class="pastille"></div>
+        <div class="ligne" style="width:85%;"></div>
+        <div class="ligne"></div>
+      </div>
+      <div class="hero-carte hero-carte-2">
+        <div class="pastille"></div>
+        <div class="ligne" style="width:60%;"></div>
+        <div class="ligne" style="width:80%;"></div>
+      </div>
+      <div class="hero-carte hero-carte-3">
+        <div class="pastille"></div>
+        <div class="ligne" style="width:75%;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -131,13 +176,13 @@
     <h2 class="titre-section">Tout ce dont un établissement a besoin</h2>
     <p class="sous-titre-section">Une seule plateforme, pensée pour simplifier la vie scolaire au quotidien.</p>
     <div class="grille-fonctions">
-      <div class="carte-fonction"><span class="icone">📊</span><h3>Notes &amp; bulletins</h3><p>Saisie des notes par évaluation, moyennes calculées automatiquement, bulletins imprimables et comparaison avec la moyenne de la classe.</p></div>
-      <div class="carte-fonction"><span class="icone">👁️</span><h3>Vie scolaire</h3><p>Absences, retards, punitions et observations, organisés par classe, avec justification en un clic.</p></div>
-      <div class="carte-fonction"><span class="icone">🗓️</span><h3>Emploi du temps</h3><p>Grille hebdomadaire claire, navigable semaine par semaine, avec appel et cahier de texte accessibles directement depuis chaque créneau.</p></div>
-      <div class="carte-fonction"><span class="icone">✉️</span><h3>Messagerie</h3><p>Échanges directs entre familles, professeurs et administration — y compris par classe entière.</p></div>
-      <div class="carte-fonction"><span class="icone">📚</span><h3>Bibliothèque numérique</h3><p>Livres et ressources partagés, avec une section réservée aux professeurs pour les corrigés.</p></div>
-      <div class="carte-fonction"><span class="icone">💳</span><h3>Frais scolaires</h3><p>Suivi des paiements par classe, statut payé/non payé et quittances imprimables.</p></div>
-      <div class="carte-fonction"><span class="icone">📄</span><h3>Certificats &amp; attestations</h3><p>Certificats de scolarité générés instantanément, avec le cachet propre à votre établissement.</p></div>
+      <div class="carte-fonction"><span class="numero">01</span><h3>Notes &amp; bulletins</h3><p>Saisie des notes par évaluation, moyennes calculées automatiquement, bulletins imprimables et comparaison avec la moyenne de la classe.</p></div>
+      <div class="carte-fonction"><span class="numero">02</span><h3>Vie scolaire</h3><p>Absences, retards, punitions et observations, organisés par classe, avec justification en un clic.</p></div>
+      <div class="carte-fonction"><span class="numero">03</span><h3>Emploi du temps</h3><p>Grille hebdomadaire claire, navigable semaine par semaine, avec appel et cahier de texte accessibles directement depuis chaque créneau.</p></div>
+      <div class="carte-fonction"><span class="numero">04</span><h3>Messagerie</h3><p>Échanges directs entre familles, professeurs et administration — y compris par classe entière.</p></div>
+      <div class="carte-fonction"><span class="numero">05</span><h3>Bibliothèque numérique</h3><p>Livres et ressources partagés, avec une section réservée aux professeurs pour les corrigés.</p></div>
+      <div class="carte-fonction"><span class="numero">06</span><h3>Frais scolaires</h3><p>Suivi des paiements par classe, statut payé/non payé et quittances imprimables.</p></div>
+      <div class="carte-fonction"><span class="numero">07</span><h3>Certificats &amp; attestations</h3><p>Certificats de scolarité générés instantanément, avec le cachet propre à votre établissement.</p></div>
       <div class="carte-fonction"><span class="icone">🏫</span><h3>Multi-établissements</h3><p>Chaque établissement gère ses propres classes, comptes et paramètres, en toute indépendance.</p></div>
     </div>
   </div>

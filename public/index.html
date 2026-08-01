@@ -967,6 +967,9 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
         <span class="entete-mobile-badge hidden" id="entete-mobile-badge">0</span>
       </button>
+      <button class="entete-mobile-icone" id="entete-mobile-deconnexion-btn" title="Se déconnecter" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+      </button>
     </div>
   </div>
   <div class="bandeau-etablissement">
@@ -1500,6 +1503,7 @@ document.getElementById('raccourci-messagerie').addEventListener('click', () => 
 document.getElementById('raccourci-rendezvous').addEventListener('click', () => selectMenu('rendez-vous'));
 document.getElementById('entete-mobile-accueil-btn').addEventListener('click', () => selectMenu('actualites'));
 document.getElementById('entete-mobile-messagerie-btn').addEventListener('click', () => selectMenu('messagerie'));
+document.getElementById('entete-mobile-deconnexion-btn').addEventListener('click', deconnecterUtilisateur);
 document.getElementById('entete-mobile-menu-btn').addEventListener('click', toggleMenuMobile);
 document.getElementById('bandeau-qrcode-btn').addEventListener('click', () => selectMenu('parametres'));
 document.getElementById('bandeau-deconnexion-btn').addEventListener('click', deconnecterUtilisateur);
