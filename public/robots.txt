@@ -4,5 +4,6 @@ Disallow: /api-docs
 Disallow: /auth
 Disallow: /users
 Disallow: /students
+Disallow: /rejoindre
 
 Sitemap: https://educheni.com/sitemap.xml

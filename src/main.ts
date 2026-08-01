@@ -81,6 +81,12 @@ async function bootstrap() {
     res.sendFile(join(process.cwd(), 'public', 'presentation.html'));
   });
 
+  // Page discrète de contact pour un nouvel établissement — volontairement non reliée
+  // au menu ni au sitemap, partagée uniquement par lien direct.
+  app.getHttpAdapter().getInstance().get('/rejoindre', (req, res) => {
+    res.sendFile(join(process.cwd(), 'public', 'rejoindre.html'));
+  });
+
   const config = new DocumentBuilder()
     .setTitle('EduCheni API')
     .setDescription(

@@ -35,6 +35,7 @@ import { RessourcesProfModule } from './ressources-prof/ressources-prof.module';
 import { BibliothequeModule } from './bibliotheque/bibliotheque.module';
 import { AppelFaitModule } from './appel-fait/appel-fait.module';
 import { BulletinMatiereModule } from './bulletin-matiere/bulletin-matiere.module';
+import { DemandeEtablissementModule } from './demande-etablissement/demande-etablissement.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { BulletinMatiereModule } from './bulletin-matiere/bulletin-matiere.modul
     BibliothequeModule,
     AppelFaitModule,
     BulletinMatiereModule,
+    DemandeEtablissementModule,
   ],
   controllers: [],
   providers: [
