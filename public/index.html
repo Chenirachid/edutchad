@@ -5995,7 +5995,7 @@ async function construireBlocMessagesAccueil(){
 async function construireBlocAccueilParent(){
   try{
     const enfants = await api('/parents/mes-enfants');
-    if(!enfants.length) return '';
+    if(!enfants.length) return '<div class="card"><div class="empty-state">Aucun enfant n\'est encore relié à ce compte parent — contactez l\'administration de l\'établissement.</div></div>';
     const enfant = enfants[0];
 
     const [creneaux, notes, absences, cahiers, recus, actualites] = await Promise.all([
@@ -6007,10 +6007,10 @@ async function construireBlocAccueilParent(){
       api('/actualites').catch(() => []),
     ]);
 
-    const creneauxEnfant = creneaux.filter(c => c.enseignement.classe.id === enfant.classeId);
-    const notesEnfant = notes.filter(n => n.etudiant && n.etudiant.id === enfant.id);
-    const absencesEnfant = absences.filter(a => a.etudiant && a.etudiant.id === enfant.id);
-    const cahiersEnfant = cahiers.filter(c => c.enseignement.classe.id === enfant.classeId);
+    const creneauxEnfant = creneaux.filter(c => c.enseignement?.classe?.id === enfant.classeId);
+    const notesEnfant = notes.filter(n => n.etudiant?.id === enfant.id);
+    const absencesEnfant = absences.filter(a => a.etudiant?.id === enfant.id);
+    const cahiersEnfant = cahiers.filter(c => c.enseignement?.classe?.id === enfant.classeId);
 
     // Emploi du temps de la semaine
     const grilleSemaine = genererGrilleSimple(creneauxEnfant, c => escapeHtml(c.enseignement.professeur.prenom) + ' ' + escapeHtml(c.enseignement.professeur.nom));
@@ -6094,7 +6094,8 @@ async function construireBlocAccueilParent(){
         </div>
       </div>`;
   }catch(err){
-    return '';
+    console.error('Erreur tableau de bord parent :', err);
+    return `<div class="card" style="border-left:4px solid var(--danger);"><p style="color:var(--danger);font-size:13px;margin:0;">Le tableau de bord n'a pas pu se charger : ${escapeHtml(err.message)}</p></div>`;
   }
 }
 
