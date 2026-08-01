@@ -508,6 +508,23 @@
   }
 
   .dossiers-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;}
+  .cartes-classe-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
+  .carte-classe-prof{
+    position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:20px 18px 16px;cursor:pointer;transition:border-color .15s,transform .15s;overflow:hidden;
+  }
+  .carte-classe-prof::before{
+    content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--teal-700);
+    transition:width .15s;
+  }
+  .carte-classe-prof:hover{border-color:var(--teal-700);transform:translateY(-2px);}
+  .carte-classe-prof:hover::before{width:5px;background:var(--accent);}
+  .carte-classe-numero{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:10px;}
+  .carte-classe-matiere{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:4px;}
+  .carte-classe-nom{font-size:22px;font-weight:600;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;margin-bottom:16px;line-height:1.15;}
+  .carte-classe-pied{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:10px;}
+  .carte-classe-fleche{color:var(--teal-700);font-weight:700;transition:transform .15s;}
+  .carte-classe-prof:hover .carte-classe-fleche{transform:translateX(3px);}
   .dossier-classe{
     background:var(--bg);border:1.5px solid var(--border);border-radius:12px;
     padding:18px 14px;text-align:center;cursor:pointer;transition:transform .1s,box-shadow .1s;
@@ -2484,18 +2501,21 @@ async function renderProfEnseignements(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
 
-  const dossiers = mine.map(e => `
-    <div class="dossier-classe" data-dossier-enseignement="${e.id}">
-      <div class="dossier-icone" style="color:#333;">${ICONE_DOSSIER}</div>
-      <div class="dossier-nom">${escapeHtml(e.classe.nom)}</div>
-      <div class="dossier-matiere"><span class="chip" style="background:${stringToColor(e.matiere.nom)}">${escapeHtml(e.matiere.nom)}</span></div>
-      <div class="dossier-coef">Coefficient ${e.matiere.coefficient}</div>
+  const dossiers = mine.map((e, i) => `
+    <div class="carte-classe-prof" data-dossier-enseignement="${e.id}">
+      <div class="carte-classe-numero">${String(i + 1).padStart(2, '0')}</div>
+      <div class="carte-classe-matiere">${escapeHtml(e.matiere.nom)}</div>
+      <div class="carte-classe-nom">${escapeHtml(e.classe.nom)}</div>
+      <div class="carte-classe-pied">
+        <span>Coefficient ${e.matiere.coefficient}</span>
+        <span class="carte-classe-fleche">→</span>
+      </div>
     </div>`).join('');
 
   content.innerHTML = `
     <div class="card">
       <h2>Mes classes</h2>
-      ${mine.length ? `<div class="dossiers-grille">${dossiers}</div>` : `<div class="empty-state">Aucun enseignement ne vous est encore assigné.</div>`}
+      ${mine.length ? `<div class="cartes-classe-grille">${dossiers}</div>` : `<div class="empty-state">Aucun enseignement ne vous est encore assigné.</div>`}
     </div>
     <div id="roster-zone"></div>`;
 
