@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, Matches } from 'class-validator';
+import { IsEnum, IsIn, IsInt, IsOptional, IsString, Matches } from 'class-validator';
 import { JourSemaine } from '@prisma/client';
 
 const HEURE_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -18,6 +18,10 @@ export class CreateCreneauDto {
   @IsOptional()
   @IsString()
   salle?: string;
+
+  @IsOptional()
+  @IsIn(['TOUTES', 'PAIRE', 'IMPAIRE'])
+  parite?: string;
 
   @IsInt()
   enseignementId: number;

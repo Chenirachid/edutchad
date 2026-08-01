@@ -292,6 +292,7 @@ model Creneau {
   heureDebut String
   heureFin   String
   salle      String?
+  parite     String      @default("TOUTES")
   createdAt  DateTime    @default(now())
 
   enseignement   Enseignement @relation(fields: [enseignementId], references: [id])

@@ -2110,6 +2110,10 @@ async function renderEmploiDuTemps(){
   const maintenant = new Date();
   if(!semaineEmploiAffichee) semaineEmploiAffichee = numeroSemaineISO(maintenant);
   const { annee, semaine } = semaineEmploiAffichee;
+  const semaineEstPaire = semaine % 2 === 0;
+  const creneauxDeCetteSemaine = creneaux.filter(c =>
+    !c.parite || c.parite === 'TOUTES' || (c.parite === 'PAIRE' && semaineEstPaire) || (c.parite === 'IMPAIRE' && !semaineEstPaire)
+  );
 
   // Semaine affichée (lundi à samedi), servant à placer les réunions dans la grille
   const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
@@ -2151,7 +2155,7 @@ async function renderEmploiDuTemps(){
 
   const lignes = plages.map(([debut, fin]) => {
     const cellules = JOURS_ORDRE.map(jour => {
-      const cours = creneaux.filter(c => c.jour === jour && chevauche(debut, fin, c.heureDebut, c.heureFin));
+      const cours = creneauxDeCetteSemaine.filter(c => c.jour === jour && chevauche(debut, fin, c.heureDebut, c.heureFin));
       const reunionsCellule = reunionsSemaine.filter(r => r.jour === jour && chevauche(debut, fin, r.heure, r.heure));
       const occupee = cours.length || reunionsCellule.length;
       const aUneEpreuve = cours.some(c => joursAvecEpreuve.has(c.enseignement.id + '|' + jour));
@@ -2184,7 +2188,7 @@ async function renderEmploiDuTemps(){
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
         </button>
       </div>
-      <h2 style="color:var(--teal-700);margin-bottom:14px;">Emploi du temps (semaine ${semaine})</h2>
+      <h2 style="color:var(--teal-700);margin-bottom:14px;">Emploi du temps (semaine ${semaine} — <span style="text-transform:lowercase;">${semaineEstPaire ? 'paire' : 'impaire'}</span>)</h2>
       <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px;">
         <button class="rond-nav" id="semaine-precedente-btn" title="Semaine précédente">‹</button>
         <div class="pilule-date">
@@ -3873,6 +3877,13 @@ async function renderAdminCreneaux(){
           <div class="f"><label>Heure début</label><input type="time" name="heureDebut" value="${prefill.heureDebut || ''}" required /></div>
           <div class="f"><label>Heure fin</label><input type="time" name="heureFin" value="${prefill.heureFin || ''}" required /></div>
           <div class="f"><label>Salle</label><input type="text" name="salle" value="${escapeHtml(prefill.salle || '')}" placeholder="A101" /></div>
+          <div class="f"><label>Périodicité</label>
+            <select name="parite">
+              <option value="TOUTES" ${(prefill.parite || 'TOUTES') === 'TOUTES' ? 'selected' : ''}>Toutes les semaines</option>
+              <option value="PAIRE" ${prefill.parite === 'PAIRE' ? 'selected' : ''}>Semaines paires uniquement</option>
+              <option value="IMPAIRE" ${prefill.parite === 'IMPAIRE' ? 'selected' : ''}>Semaines impaires uniquement</option>
+            </select>
+          </div>
           <button class="btn-submit" type="submit">${estModif ? 'Enregistrer' : 'Ajouter'}</button>
           <button class="btn-secondary" type="button" id="creneau-form-annuler">Annuler</button>
         </form>
@@ -3886,6 +3897,7 @@ async function renderAdminCreneaux(){
       const corps = {
         jour: fd.get('jour'), heureDebut: fd.get('heureDebut'),
         heureFin: fd.get('heureFin'), salle: fd.get('salle') || undefined,
+        parite: fd.get('parite'),
       };
       try{
         if(estModif){
