@@ -508,6 +508,12 @@
   }
 
   .dossiers-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;}
+  .carte-entete-dossier{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+  .entete-dossier-matiere{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:2px;}
+  .entete-dossier-effectif{font-size:12.5px;color:var(--text-muted);margin-top:4px;}
+  .bloc-nouvelle-epreuve{background:var(--bg);border:1.5px dashed var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;}
+  .bloc-nouvelle-epreuve-titre{font-size:12px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;}
+  .bloc-nouvelle-epreuve form.inline-form{margin-bottom:0;}
   .cartes-classe-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
   .carte-classe-prof{
     position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;
@@ -2571,32 +2577,41 @@ async function renderProfEnseignements(){
         }).join('');
 
         zone.innerHTML = `
-          <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-              <h2 style="margin:0;">${escapeHtml(ligne.classe.nom)} — ${escapeHtml(ligne.matiere.nom)} (${etudiants.length} élève${etudiants.length > 1 ? 's' : ''})</h2>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn-secondary" id="dossier-cahier-btn">Cahier de texte</button>
-              </div>
+          <div class="card carte-entete-dossier">
+            <div class="entete-dossier-texte">
+              <div class="entete-dossier-matiere">${escapeHtml(ligne.matiere.nom)}</div>
+              <h2 style="margin:0;">${escapeHtml(ligne.classe.nom)}</h2>
+              <div class="entete-dossier-effectif">${etudiants.length} élève${etudiants.length > 1 ? 's' : ''}</div>
             </div>
+            <button class="btn-secondary" id="dossier-cahier-btn" style="display:flex;align-items:center;gap:6px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg>
+              Cahier de texte
+            </button>
           </div>
           <div class="card">
-            <h2>Notes — toutes les évaluations</h2>
+            <h2 style="display:flex;align-items:center;gap:8px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--teal-700)" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+              Notes — toutes les évaluations
+            </h2>
             <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Une colonne par évaluation (avec son coefficient), une ligne par élève. Modifiez une case puis cliquez « Enregistrer ». La moyenne de la classe pour chaque évaluation apparaît tout en bas.</p>
-            <form class="inline-form" id="dossier-epreuve-form" style="margin-bottom:18px;">
-              <div class="f" style="min-width:180px;"><label>Nouvelle évaluation — titre</label><input type="text" name="titre" required placeholder="Ex : Contrôle 4" /></div>
-              <div class="f">
-                <label>Type</label>
-                <select name="type">
-                  <option value="CONTROLE">Contrôle</option>
-                  <option value="DEVOIR">Devoir</option>
-                  <option value="EXAMEN">Examen</option>
-                </select>
-              </div>
-              <div class="f"><label>Date</label><input type="date" name="date" required value="${new Date().toISOString().slice(0,10)}" /></div>
-              <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
-              <div class="f"><label>Afficher aux élèves à partir de</label><input type="datetime-local" name="datePublication" value="${new Date().toISOString().slice(0,16)}" /></div>
-              <button class="btn-submit" type="submit">Ajouter la colonne</button>
-            </form>
+            <div class="bloc-nouvelle-epreuve">
+              <div class="bloc-nouvelle-epreuve-titre">+ Nouvelle évaluation</div>
+              <form class="inline-form" id="dossier-epreuve-form">
+                <div class="f" style="min-width:180px;"><label>Titre</label><input type="text" name="titre" required placeholder="Ex : Contrôle 4" /></div>
+                <div class="f">
+                  <label>Type</label>
+                  <select name="type">
+                    <option value="CONTROLE">Contrôle</option>
+                    <option value="DEVOIR">Devoir</option>
+                    <option value="EXAMEN">Examen</option>
+                  </select>
+                </div>
+                <div class="f"><label>Date</label><input type="date" name="date" required value="${new Date().toISOString().slice(0,10)}" /></div>
+                <div class="f"><label>Coefficient</label><input type="number" name="coefficient" min="0.1" step="0.1" value="1" /></div>
+                <div class="f"><label>Afficher aux élèves à partir de</label><input type="datetime-local" name="datePublication" value="${new Date().toISOString().slice(0,16)}" /></div>
+                <button class="btn-submit" type="submit">Ajouter la colonne</button>
+              </form>
+            </div>
             ${etudiants.length && epreuvesClasse.length ? `
             <div style="overflow-x:auto;">
               <table class="table-notes-saisie">
@@ -2610,7 +2625,10 @@ async function renderProfEnseignements(){
           </div>
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-              <h2 style="margin:0;">Bulletin — Programme &amp; appréciations</h2>
+              <h2 style="margin:0;display:flex;align-items:center;gap:8px;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--teal-700)" stroke-width="2"><path d="M6 3h9l4 4v14H6V3z"/><path d="M9 12h6M9 15h6M9 9h3"/></svg>
+                Bulletin — Programme &amp; appréciations
+              </h2>
               <div class="f" style="margin:0;max-width:160px;">
                 <label>Trimestre</label>
                 <select id="bulletin-matiere-trimestre">${optionsPeriode(parametresProf.systemePeriode, 1).replace('<option value="0" selected>Année entière</option>', '')}</select>
