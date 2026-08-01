@@ -432,9 +432,28 @@
   .bulletin-matiere-cell{white-space:nowrap;min-width:150px;}
   .bulletin-moy-cell{background:#4A4A4A;color:#fff;text-align:center;font-weight:700;min-width:55px;}
   .bulletin-texte-cell{min-width:180px;line-height:1.5;}
+  .table-notes-saisie{border-collapse:collapse;width:100%;}
+  .table-notes-saisie th, .table-notes-saisie td{border:1px solid var(--border);}
+  .table-notes-saisie thead th{background:var(--teal-900);color:#fff;padding:8px;vertical-align:top;}
+  .table-notes-saisie thead th:first-child, .table-notes-saisie thead th:nth-child(2){background:var(--teal-900);}
+  .th-epreuve{min-width:120px;text-align:center;}
+  .epreuve-titre{font-size:12.5px;font-weight:700;margin-bottom:6px;}
+  .epreuve-meta{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .coef-badge{
+    display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;
+    background:rgba(255,255,255,.16);color:#fff;
+  }
+  .statut-badge{
+    display:inline-block;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:5px;cursor:pointer;
+  }
+  .statut-badge.statut-publiee{background:var(--success-bg);color:var(--success);}
+  .statut-badge.statut-programmee{background:var(--warning-bg);color:var(--warning);}
+  .table-notes-saisie tbody tr:nth-child(odd){background:var(--bg);}
+  .table-notes-saisie td{padding:6px;text-align:center;}
+  .table-notes-saisie td:nth-child(1), .table-notes-saisie td:nth-child(2){text-align:left;padding:8px 10px;}
   .table-appel{border-collapse:collapse;}
   .table-appel th, .table-appel td{border:1px solid var(--border);}
-  .table-appel thead th{background:#fff;font-size:12px;padding:6px 8px;}
+  .table-appel thead th{background:var(--teal-900);color:#fff;font-size:12px;padding:8px;}
   .table-appel tbody tr:nth-child(odd) .appel-nom-cell,
   .table-appel tbody tr:nth-child(odd) .appel-toggle-cell,
   .table-appel tbody tr:nth-child(odd) .appel-retard-min-cell,
@@ -2502,7 +2521,13 @@ async function renderProfEnseignements(){
 
         const entetesEpreuves = epreuvesClasse.map(ep => {
           const estPubliee = new Date(ep.datePublication) <= new Date();
-          return `<th>${escapeHtml(ep.titre)}<br><span style="font-weight:400;font-size:10.5px;color:var(--text-muted);">coef. ${ep.coefficient}</span><br><span style="font-weight:600;font-size:9.5px;cursor:pointer;color:${estPubliee ? 'var(--success)' : 'var(--warning)'};" data-changer-publication="${ep.id}" data-actuelle="${new Date(ep.datePublication).toISOString().slice(0,16)}" title="Cliquer pour changer la date de publication">${estPubliee ? 'Publiée' : 'Programmée'}</span></th>`;
+          return `<th class="th-epreuve">
+            <div class="epreuve-titre">${escapeHtml(ep.titre)}</div>
+            <div class="epreuve-meta">
+              <span class="coef-badge">Coef. ${ep.coefficient}</span>
+              <span class="statut-badge ${estPubliee ? 'statut-publiee' : 'statut-programmee'}" data-changer-publication="${ep.id}" data-actuelle="${new Date(ep.datePublication).toISOString().slice(0,16)}" title="Cliquer pour changer la date de publication">${estPubliee ? 'Publiée' : 'Programmée'}</span>
+            </div>
+          </th>`;
         }).join('');
 
         const rowsGrille = etudiants.map(et => {
@@ -2554,7 +2579,7 @@ async function renderProfEnseignements(){
             </form>
             ${etudiants.length && epreuvesClasse.length ? `
             <div style="overflow-x:auto;">
-              <table>
+              <table class="table-notes-saisie">
                 <thead><tr><th>N° étudiant</th><th>Étudiant</th>${entetesEpreuves}<th>Moyenne</th></tr></thead>
                 <tbody>${rowsGrille}</tbody>
                 <tfoot><tr style="background:var(--bg);"><td></td><td><strong>Moyenne de la classe</strong></td>${ligneMoyenneClasse}<td></td></tr></tfoot>
