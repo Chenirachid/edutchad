@@ -6524,7 +6524,7 @@ async function construireBlocAccueilParent(){
 
     // Travail à faire
     const devoirsAVenir = cahiersEnfant
-      .filter(c => c.devoirs && new Date(c.date) >= new Date(maintenant.toDateString()))
+      .filter(c => c.devoirs && new Date(c.date).toISOString().slice(0,10) >= maintenant.toISOString().slice(0,10))
       .sort((a,b) => new Date(a.date) - new Date(b.date))
       .slice(0, 6);
     const blocsDevoirs = devoirsAVenir.map(c => `
@@ -6642,7 +6642,7 @@ async function construireBlocAccueilEtudiant(){
 
     // Colonne 2 : devoirs à faire, groupés par jour (cahier de texte à venir avec un champ "devoirs")
     const devoirsAVenir = cahiers
-      .filter(c => c.devoirs && new Date(c.date) >= new Date(maintenant.toDateString()))
+      .filter(c => c.devoirs && new Date(c.date).toISOString().slice(0,10) >= maintenant.toISOString().slice(0,10))
       .sort((a,b) => new Date(a.date) - new Date(b.date))
       .slice(0, 8);
     const parJourDevoirs = {};
