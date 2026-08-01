@@ -93,6 +93,11 @@ async function bootstrap() {
     res.sendFile(join(process.cwd(), 'public', 'index.html'));
   });
 
+  // Accès séparé, réservé au chef de projet — distinct de /direction (administrateurs).
+  app.getHttpAdapter().getInstance().get('/pilotage', (req, res) => {
+    res.sendFile(join(process.cwd(), 'public', 'index.html'));
+  });
+
   const config = new DocumentBuilder()
     .setTitle('EduCheni API')
     .setDescription(
