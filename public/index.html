@@ -1428,6 +1428,7 @@ const MENUS = {
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'bibliotheque', label:'Bibliothèque', render: renderBibliotheque },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
+    { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
   PROFESSEUR: [
     { id:'actualites', label:'Accueil', render: renderActualites },
@@ -1447,6 +1448,7 @@ const MENUS = {
     { id:'enfants', label:'Mes enfants', render: renderParentEnfants },
     { id:'rendez-vous', label:'Rendez-vous administration', render: renderParentRendezVous },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
+    { id:'parametres', label:'Paramètres', render: renderParametres },
   ],
   ADMIN: [
     { id:'actualites', label:'Accueil', render: renderActualites },
@@ -1484,6 +1486,7 @@ MENUS.VIE_SCOLAIRE = [
   { id:'actualites', label:'Accueil', render: renderActualites },
   { id:'vie-scolaire', label:'Vie scolaire', render: renderVieScolaire },
   { id:'messagerie', label:'Messagerie', render: renderMessagerie },
+  { id:'parametres', label:'Paramètres', render: renderParametres },
 ];
 
 const PAGE_TITLES = {
@@ -1679,9 +1682,13 @@ function selectMenu(menuId){
   document.getElementById('page-title').textContent = t('title_' + menuId.replace(/-/g,'_'));
   const content = document.getElementById('content');
   content.innerHTML = '<div class="empty-state">Chargement…</div>';
-  if(itemActif) itemActif.render().catch(err => {
-    content.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`;
-  });
+  if(itemActif){
+    itemActif.render().catch(err => {
+      content.innerHTML = `<div class="card"><div class="empty-state">${escapeHtml(err.message)}</div></div>`;
+    });
+  } else {
+    content.innerHTML = `<div class="card"><div class="empty-state">Cette page n'est pas disponible pour votre rôle.</div></div>`;
+  }
 }
 
 /* ============================================================
