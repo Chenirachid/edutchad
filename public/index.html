@@ -726,9 +726,6 @@
           <span>Parent</span>
         </button>
       </div>
-      <p style="text-align:center;margin:18px 0 0;">
-        <a href="#" id="lien-espace-administration" style="font-size:12px;color:var(--text-muted);text-decoration:none;">Connexion administration →</a>
-      </p>
       <p style="text-align:center;font-size:11px;color:var(--text-muted);margin:16px 0 0;line-height:1.5;border-top:1px solid var(--border);padding-top:14px;">
         🔒 Vos données personnelles sont protégées et ne sont utilisées que dans le cadre de la gestion scolaire de votre établissement. Elles ne sont ni partagées ni vendues à des tiers.
       </p>
@@ -1331,12 +1328,6 @@ document.querySelectorAll('.espace-carte').forEach(carte => {
     document.getElementById('espace-choisi-titre').textContent = etablissementDetecteNom ? `${etablissementDetecteNom} — ${carte.dataset.label}` : carte.dataset.label;
     document.getElementById('login-email').focus();
   });
-});
-
-document.getElementById('lien-espace-administration').addEventListener('click', (e) => {
-  e.preventDefault();
-  document.getElementById('espace-selection-card').classList.add('hidden');
-  document.getElementById('espace-administration-card').classList.remove('hidden');
 });
 
 document.getElementById('lien-retour-espaces-normaux').addEventListener('click', (e) => {
@@ -6488,6 +6479,13 @@ initReductionTableaux();
 if(restoreSession()){
   enterApp();
 } else {
+  if(window.location.pathname === '/direction'){
+    document.getElementById('presentation-screen').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('espace-selection-card').classList.add('hidden');
+    document.getElementById('espace-administration-card').classList.remove('hidden');
+  }
+
   const correspondanceEspace = window.location.pathname.match(/^\/e\/([a-z0-9-]+)\/?$/i);
   if(correspondanceEspace){
     document.getElementById('presentation-screen').classList.add('hidden');

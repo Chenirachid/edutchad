@@ -87,6 +87,12 @@ async function bootstrap() {
     res.sendFile(join(process.cwd(), 'public', 'rejoindre.html'));
   });
 
+  // Accès direct et discret à l'espace administrateur/chef de projet — aucun lien
+  // visible ne mène ici, il faut connaître cette adresse précise.
+  app.getHttpAdapter().getInstance().get('/direction', (req, res) => {
+    res.sendFile(join(process.cwd(), 'public', 'index.html'));
+  });
+
   const config = new DocumentBuilder()
     .setTitle('EduCheni API')
     .setDescription(
