@@ -565,6 +565,7 @@
       position:relative;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.14);
       color:#fff;display:flex;align-items:center;justify-content:center;border:none;
     }
+    .entete-mobile-langue-wrap{position:relative;}
     .entete-mobile-badge{
       position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
       background:#F5A623;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
@@ -650,6 +651,9 @@
 
   /* ---------- CORRECTIFS MOBILE GÉNÉRAUX (téléphone) ---------- */
   @media (max-width:600px){
+    /* Messagerie et langue sont désormais dans l'en-tête mobile vert : on les cache ici */
+    .topnav-raccourcis, .lang-dropdown-wrap-app{display:none;}
+
     /* Tableaux : au lieu de déborder de l'écran, ils deviennent défilables horizontalement */
     table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;max-width:100%;}
     table thead, table tbody, table tr{display:table;width:100%;table-layout:auto;}
@@ -942,6 +946,20 @@
       <div class="entete-mobile-page" id="entete-mobile-page">Page d'accueil</div>
     </div>
     <div class="entete-mobile-icones">
+      <div class="entete-mobile-langue-wrap">
+        <button class="entete-mobile-icone" id="entete-mobile-langue-btn" title="Langue" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
+        </button>
+        <div class="lang-dropdown-menu hidden" id="lang-dropdown-menu-mobile">
+          <button class="lang-dropdown-item" data-lang-btn="fr">Français</button>
+          <button class="lang-dropdown-item" data-lang-btn="en">English</button>
+          <button class="lang-dropdown-item" data-lang-btn="ar">العربية</button>
+        </div>
+      </div>
+      <button class="entete-mobile-icone" id="entete-mobile-messagerie-btn" title="Messagerie" type="button">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+        <span class="entete-mobile-badge hidden" id="entete-mobile-badge-messagerie">0</span>
+      </button>
       <button class="entete-mobile-icone" id="entete-mobile-accueil-btn" title="Accueil" type="button">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
       </button>
@@ -1391,6 +1409,7 @@ function toggleLangDropdown(btnId, menuId){
 }
 toggleLangDropdown('lang-dropdown-btn', 'lang-dropdown-menu');
 toggleLangDropdown('lang-dropdown-btn-app', 'lang-dropdown-menu-app');
+toggleLangDropdown('entete-mobile-langue-btn', 'lang-dropdown-menu-mobile');
 document.addEventListener('click', () => {
   document.querySelectorAll('.lang-dropdown-menu').forEach(m => m.classList.add('hidden'));
 });
@@ -1480,6 +1499,7 @@ document.getElementById('changer-espace-link').addEventListener('click', (e) => 
 document.getElementById('raccourci-messagerie').addEventListener('click', () => selectMenu('messagerie'));
 document.getElementById('raccourci-rendezvous').addEventListener('click', () => selectMenu('rendez-vous'));
 document.getElementById('entete-mobile-accueil-btn').addEventListener('click', () => selectMenu('actualites'));
+document.getElementById('entete-mobile-messagerie-btn').addEventListener('click', () => selectMenu('messagerie'));
 document.getElementById('entete-mobile-menu-btn').addEventListener('click', toggleMenuMobile);
 document.getElementById('bandeau-qrcode-btn').addEventListener('click', () => selectMenu('parametres'));
 document.getElementById('bandeau-deconnexion-btn').addEventListener('click', deconnecterUtilisateur);
@@ -1495,6 +1515,11 @@ async function actualiserBadgesRaccourcis(){
     if(badgeMobile){
       badgeMobile.textContent = nonLus > 9 ? '9+' : nonLus;
       badgeMobile.classList.toggle('hidden', nonLus === 0);
+    }
+    const badgeMobileMsg = document.getElementById('entete-mobile-badge-messagerie');
+    if(badgeMobileMsg){
+      badgeMobileMsg.textContent = nonLus > 9 ? '9+' : nonLus;
+      badgeMobileMsg.classList.toggle('hidden', nonLus === 0);
     }
   }catch(err){ /* silencieux, juste un badge indicatif */ }
 }
@@ -2100,8 +2125,10 @@ function lundiDeLaSemaineISO(annee, semaine){
 
 async function renderEmploiDuTemps(){
   const estProf = state.user.role === 'PROFESSEUR';
-  const [creneaux, reunions, parametres, epreuvesTous] = await Promise.all([
+  const estEtudiant = state.user.role === 'ETUDIANT';
+  const [creneaux, reunions, parametres, epreuvesTous, cahiersTous] = await Promise.all([
     api('/creneaux'), api('/reunions').catch(() => []), api('/parametres').catch(() => ({ heureDebutPause: '12:00' })), api('/epreuves').catch(() => []),
+    estEtudiant ? api('/cahiers-texte').catch(() => []) : Promise.resolve([]),
   ]);
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
@@ -2137,6 +2164,13 @@ async function renderEmploiDuTemps(){
       .map(ep => { const d = new Date(ep.date); return ep.enseignement.id + '|' + joursNoms[d.getDay()]; })
   );
 
+  // Pour les élèves : le contenu du cahier de texte (devoirs) de la semaine affichée,
+  // par enseignement + jour, pour l'afficher directement dans la case du cours.
+  const devoirsParJour = new Map();
+  cahiersTous
+    .filter(ct => { const d = new Date(ct.date); return d >= lundi && d <= samedi && ct.devoirs; })
+    .forEach(ct => { const d = new Date(ct.date); devoirsParJour.set(ct.enseignement.id + '|' + joursNoms[d.getDay()], ct.devoirs); });
+
   // Grille horaire FIXE de 8h à 00h (une ligne par heure), même s'il n'y a aucun cours
   // à cette heure-là — un cours est affiché dans toutes les lignes qu'il chevauche.
   const plages = [];
@@ -2164,7 +2198,9 @@ async function renderEmploiDuTemps(){
           <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${joursAvecEpreuve.has(c.enseignement.id + '|' + jour) ? ' 🔴' : ''}</div>
           <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
           ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
-          <div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;" data-cahier-enseignement="${c.enseignement.id}">📖 Cahier de texte →</div>
+          ${estEtudiant
+            ? (devoirsParJour.has(c.enseignement.id + '|' + jour) ? `<div style="font-size:10px;color:var(--teal-700);margin-top:3px;text-align:left;">📖 ${escapeHtml(devoirsParJour.get(c.enseignement.id + '|' + jour))}</div>` : '')
+            : `<div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;" data-cahier-enseignement="${c.enseignement.id}">📖 Cahier de texte →</div>`}
           ${estMonCours(c) && estCoursEnCours(c) ? `<div style="font-size:10px;color:var(--success);font-weight:700;margin-top:3px;cursor:pointer;" data-appel-enseignement="${c.enseignement.id}">✅ Faire l'appel →</div>` : ''}
         </div>`).join('');
       const contenuReunions = reunionsCellule.map(r => `
@@ -6452,7 +6488,7 @@ async function construireBlocAccueilEtudiant(){
           ${blocsDevoirs}
         </div>
         <div class="dashboard-colonne">
-          <h3>Dernières évaluations</h3>
+          <h3>Dernières notes</h3>
           ${blocsNotes}
         </div>
         <div class="dashboard-colonne">
