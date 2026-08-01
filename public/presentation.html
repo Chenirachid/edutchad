@@ -23,7 +23,7 @@
     --radius:14px; --shadow:0 1px 2px rgba(11,79,82,.06), 0 8px 24px rgba(11,79,82,.08);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;overflow-x:hidden;max-width:100%;}
   body{
     font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color:var(--text); background:var(--surface); line-height:1.5;
@@ -109,11 +109,17 @@
   footer{padding:30px 0;border-top:1px solid var(--border);text-align:center;font-size:12.5px;color:var(--text-muted);}
 
   @media (max-width:640px){
+    .conteneur{padding:0 18px;}
     .hero .conteneur{grid-template-columns:1fr;}
     .hero-visuel{display:none;}
-    .hero h1{font-size:30px;}
-    .hero{padding:48px 0 40px;}
-    section{padding:46px 0;}
+    .hero h1{font-size:28px;}
+    .hero p{max-width:100%;}
+    .hero{padding:44px 0 36px;}
+    section{padding:40px 0;}
+    .titre-section{font-size:24px;}
+    .bandeau-cta h2{font-size:21px;}
+    .bandeau-cta{padding:40px 18px;}
+    .logo span{font-size:17px;}
   }
 </style>
 <link rel="canonical" href="https://educheni.com/presentation" />

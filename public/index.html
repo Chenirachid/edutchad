@@ -206,6 +206,7 @@
   .brand span{font-size:17px;font-weight:700;color:#fff;}
   .nav-accueil-fixe{flex-shrink:0;display:flex;align-items:center;}
   .nav-item-accueil{padding:8px 12px !important;}
+  .nav-mobile-fermer{display:none;}
   .topnav-items{
     flex:1;display:flex;align-items:center;gap:4px;
     overflow-x:auto;min-width:0;
@@ -309,14 +310,18 @@
   @media (max-width:768px){
     .hamburger-btn{display:flex;}
     .topnav-items{
-      display:none;position:fixed;top:64px;left:0;right:0;bottom:0;
+      display:none;position:fixed;top:0;left:0;right:0;bottom:0;
       background:var(--teal-900);flex-direction:column;align-items:stretch;
-      gap:2px;overflow-y:auto;z-index:500;padding:10px;
+      gap:2px;overflow-y:auto;z-index:500;padding:10px;padding-top:20px;
     }
     .topnav-items.mobile-open{display:flex;}
     .topnav-items .nav-item{
       width:100%;padding:15px 16px;font-size:15px;border-radius:10px;
       justify-content:flex-start;
+    }
+    .nav-mobile-fermer{
+      display:block;width:100%;text-align:right;background:transparent;border:none;
+      color:#fff;font-size:14px;font-weight:600;padding:6px 10px 16px;
     }
     .topnav-items .nav-item .nav-icon svg{width:20px;height:20px;}
     .mobile-nav-backdrop.mobile-open{
@@ -570,7 +575,11 @@
       position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
       background:#F5A623;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
     }
-    .topnav{border-radius:0;}
+    .topnav{
+      border-radius:0;height:0;min-height:0;padding:0;background:transparent;
+      overflow:visible;gap:0;
+    }
+    .topnav > *:not(#nav-list){display:none;}
   }
 
   /* ---------- MESSAGERIE ---------- */
@@ -1732,7 +1741,8 @@ async function enterApp(){
   actualiserBadgesRaccourcis();
 
   const nav = document.getElementById('nav-list');
-  nav.innerHTML = '';
+  nav.innerHTML = '<button class="nav-mobile-fermer" id="nav-mobile-fermer-btn" type="button">✕ Fermer</button>';
+  document.getElementById('nav-mobile-fermer-btn').addEventListener('click', fermerMenuMobile);
   document.querySelectorAll('.nav-dropdown').forEach(d => d.remove());
   const items = MENUS[u.role] || [];
   if(u.role === 'ETUDIANT'){
@@ -6313,7 +6323,7 @@ async function construireBlocAccueilParent(){
       </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun travail à faire pour l\'instant.</div>';
 
     // Dernières notes
-    const dernieresNotes = notesEnfant.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 6);
+    const dernieresNotes = notesEnfant.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
     const blocsNotes = dernieresNotes.map(n => `
       <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;">
         <div>
@@ -6447,7 +6457,7 @@ async function construireBlocAccueilEtudiant(){
       if(dernieresNotesParMatiere[nom].length < 8) dernieresNotesParMatiere[nom].push(n);
     });
     const puceCouleur = (valeur) => valeur >= 14 ? 'var(--success)' : valeur >= 10 ? '#EAB308' : 'var(--danger)';
-    const blocsNotes = Object.entries(dernieresNotesParMatiere).slice(0, 6).map(([matiere, liste]) => `
+    const blocsNotes = Object.entries(dernieresNotesParMatiere).slice(0, 8).map(([matiere, liste]) => `
       <div style="margin-bottom:10px;">
         <div style="font-size:12.5px;font-weight:700;">${escapeHtml(matiere)}</div>
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">le ${new Date(liste[0].createdAt).toLocaleDateString('fr-FR')}</div>
