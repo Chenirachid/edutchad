@@ -375,7 +375,13 @@
     padding:14px 16px;margin-bottom:12px;
   }
   .emploi-grille td.case-cours{background:#FDF8D6;}
-  .dashboard-etudiant{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+  .dashboard-etudiant{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+  .dashboard-emploi-carte{margin-bottom:16px;}
+  .dashboard-emploi-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .dashboard-emploi-scroll .emploi-grille{width:100%;min-width:640px;}
+  .dashboard-emploi-carte:fullscreen{background:var(--surface);padding:24px;overflow-y:auto;}
+  .dashboard-emploi-carte:fullscreen .dashboard-emploi-scroll .emploi-grille{min-width:0;}
+  #emploi-du-temps-carte:fullscreen{background:var(--surface);padding:30px;overflow-y:auto;}
   .dashboard-colonne{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;max-height:420px;overflow-y:auto;overflow-x:auto;}
   .dashboard-colonne h3{font-size:13.5px;color:var(--teal-900);margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid var(--teal-100);}
   @media (max-width:900px){.dashboard-etudiant{grid-template-columns:1fr;}}
@@ -1342,6 +1348,18 @@ document.addEventListener('click', () => {
   document.querySelectorAll('.lang-dropdown-menu').forEach(m => m.classList.add('hidden'));
 });
 
+document.addEventListener('click', (e) => {
+  const bouton = e.target.closest('[data-plein-ecran]');
+  if(!bouton) return;
+  const cible = document.getElementById(bouton.dataset.pleinEcran);
+  if(!cible) return;
+  if(document.fullscreenElement){
+    document.exitFullscreen();
+  } else if(cible.requestFullscreen){
+    cible.requestFullscreen();
+  }
+});
+
 document.getElementById('forgot-password-link').addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('login-form').classList.add('hidden');
@@ -2088,7 +2106,12 @@ async function renderEmploiDuTemps(){
   const formatCourt = (d) => d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' });
 
   content.innerHTML = `
-    <div class="card" style="text-align:center;">
+    <div class="card" style="text-align:center;" id="emploi-du-temps-carte">
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="btn-icone" data-plein-ecran="emploi-du-temps-carte" title="Afficher en plein écran">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+        </button>
+      </div>
       <h2 style="color:var(--teal-700);margin-bottom:14px;">Emploi du temps (semaine ${semaine})</h2>
       <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px;">
         <button class="rond-nav" id="semaine-precedente-btn" title="Semaine précédente">‹</button>
@@ -6193,11 +6216,16 @@ async function construireBlocAccueilParent(){
       <div class="card" style="margin-bottom:12px;">
         <p style="margin:0;font-size:13px;font-weight:600;color:var(--teal-900);">Suivi de ${escapeHtml(enfant.prenom)} ${escapeHtml(enfant.nom)}${enfants.length > 1 ? ` <span style="font-weight:400;color:var(--text-muted);">(premier enfant affiché — ${enfants.length} enfants au total)</span>` : ''}</p>
       </div>
-      <div class="dashboard-etudiant">
-        <div class="dashboard-colonne">
-          <h3>Emploi du temps — cette semaine</h3>
-          ${grilleSemaine}
+      <div class="card dashboard-emploi-carte" id="dashboard-emploi-parent">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="margin:0;">Emploi du temps — cette semaine</h3>
+          <button class="btn-icone" data-plein-ecran="dashboard-emploi-parent" title="Afficher en plein écran">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+          </button>
         </div>
+        <div class="dashboard-emploi-scroll">${grilleSemaine}</div>
+      </div>
+      <div class="dashboard-etudiant">
         <div class="dashboard-colonne">
           <h3>Travail à faire</h3>
           ${blocsDevoirs}
@@ -6298,11 +6326,16 @@ async function construireBlocAccueilEtudiant(){
       </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun évènement pour l\'instant.</div>';
 
     return `
-      <div class="dashboard-etudiant">
-        <div class="dashboard-colonne">
-          <h3>Emploi du temps — cette semaine</h3>
-          ${blocsHoraires}
+      <div class="card dashboard-emploi-carte" id="dashboard-emploi-etudiant">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="margin:0;">Emploi du temps — cette semaine</h3>
+          <button class="btn-icone" data-plein-ecran="dashboard-emploi-etudiant" title="Afficher en plein écran">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+          </button>
         </div>
+        <div class="dashboard-emploi-scroll">${blocsHoraires}</div>
+      </div>
+      <div class="dashboard-etudiant">
         <div class="dashboard-colonne">
           <h3>Travail à faire</h3>
           ${blocsDevoirs}
