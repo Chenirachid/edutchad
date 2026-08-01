@@ -56,4 +56,7 @@ export class UpdateParametresDto {
   @IsOptional()
   @IsIn(['TRIMESTRE', 'SEMESTRE'])
   systemePeriode?: string;
+
+  @IsOptional()
+  emploiVisibleEleves?: boolean;
 }
