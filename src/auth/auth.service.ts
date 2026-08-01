@@ -195,9 +195,25 @@ export class AuthService {
     return { message: 'Adresse email personnelle enregistrée' };
   }
 
+  async updateInformationsPersonnelles(userId: number, dateNaissance?: string, telephone?: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        dateNaissance: dateNaissance ? new Date(dateNaissance) : null,
+        telephone: telephone || null,
+      },
+    });
+    return { message: 'Informations personnelles mises à jour' };
+  }
+
   async getMe(jwtUser: JwtPayload) {
     const user = await this.prisma.user.findUnique({ where: { id: jwtUser.sub } });
-    return { ...jwtUser, emailPersonnel: user?.emailPersonnel ?? null };
+    return {
+      ...jwtUser,
+      emailPersonnel: user?.emailPersonnel ?? null,
+      dateNaissance: user?.dateNaissance ?? null,
+      telephone: user?.telephone ?? null,
+    };
   }
 
   async demanderReinitialisation(emailPersonnel: string, urlBase: string) {

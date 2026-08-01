@@ -1039,7 +1039,7 @@
 <!-- ================= APP ================= -->
 <div id="app-screen" class="hidden">
   <div class="entete-mobile">
-    <div class="entete-mobile-avatar" id="entete-mobile-avatar"></div>
+    <div class="entete-mobile-avatar" id="entete-mobile-avatar" style="cursor:pointer;" title="Informations personnelles"></div>
     <div class="entete-mobile-textes">
       <div class="entete-mobile-nom" id="entete-mobile-nom"></div>
       <div class="entete-mobile-page" id="entete-mobile-page">Page d'accueil</div>
@@ -1612,6 +1612,13 @@ document.getElementById('raccourci-messagerie').addEventListener('click', () => 
 document.getElementById('raccourci-rendezvous').addEventListener('click', () => selectMenu('rendez-vous'));
 document.getElementById('entete-mobile-accueil-btn').addEventListener('click', () => selectMenu('actualites'));
 document.getElementById('entete-mobile-messagerie-btn').addEventListener('click', () => selectMenu('messagerie'));
+document.getElementById('entete-mobile-avatar').addEventListener('click', () => {
+  selectMenu('parametres');
+  setTimeout(() => {
+    const carte = document.getElementById('infos-personnelles-carte');
+    if(carte) carte.scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 200);
+});
 document.getElementById('entete-mobile-deconnexion-btn').addEventListener('click', deconnecterUtilisateur);
 document.getElementById('entete-mobile-menu-btn').addEventListener('click', toggleMenuMobile);
 document.getElementById('bandeau-qrcode-btn').addEventListener('click', () => selectMenu('parametres'));
@@ -7201,6 +7208,19 @@ async function renderParametres(){
   const moi = await api('/auth/me');
 
   content.innerHTML = `
+    <div class="card" id="infos-personnelles-carte">
+      <h2>Informations personnelles</h2>
+      <div class="inline-form" style="margin-bottom:14px;">
+        <div class="f"><label>Nom</label><input type="text" value="${escapeHtml(state.user.nom)}" disabled /></div>
+        <div class="f"><label>Prénom</label><input type="text" value="${escapeHtml(state.user.prenom)}" disabled /></div>
+      </div>
+      <p style="font-size:11.5px;color:var(--text-muted);margin:-8px 0 14px;">Le nom et le prénom sont gérés par l'administration de l'établissement.</p>
+      <form class="inline-form" id="infos-personnelles-form">
+        <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" value="${moi.dateNaissance ? new Date(moi.dateNaissance).toISOString().slice(0,10) : ''}" /></div>
+        <div class="f"><label>Numéro de téléphone</label><input type="tel" name="telephone" value="${escapeHtml(moi.telephone || '')}" placeholder="Ex : 06 12 34 56 78" /></div>
+        <button class="btn-submit" type="submit">Enregistrer</button>
+      </form>
+    </div>
     <div class="card">
       <h2>Mon compte</h2>
       <div class="stat" style="margin-bottom:16px;">
@@ -7221,6 +7241,18 @@ async function renderParametres(){
       </form>
     </div>
     ${plateformeCard}`;
+
+  document.getElementById('infos-personnelles-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try{
+      await api('/auth/informations-personnelles', { method:'PATCH', body: JSON.stringify({
+        dateNaissance: fd.get('dateNaissance') || undefined,
+        telephone: fd.get('telephone') || undefined,
+      })});
+      toast('Informations personnelles enregistrées.');
+    }catch(err){ toast(err.message, 'error'); }
+  });
 
   document.getElementById('email-personnel-form').addEventListener('submit', async (e) => {
     e.preventDefault();

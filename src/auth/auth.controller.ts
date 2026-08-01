@@ -77,4 +77,15 @@ export class AuthController {
   ) {
     return this.authService.updateEmailPersonnel(user.sub, emailPersonnel);
   }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @Patch('informations-personnelles')
+  updateInformationsPersonnelles(
+    @Body('dateNaissance') dateNaissance: string,
+    @Body('telephone') telephone: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.authService.updateInformationsPersonnelles(user.sub, dateNaissance, telephone);
+  }
 }

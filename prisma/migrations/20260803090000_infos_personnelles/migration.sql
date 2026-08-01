@@ -1,0 +1,2 @@
+ALTER TABLE "User" ADD COLUMN "dateNaissance" TIMESTAMP(3);
+ALTER TABLE "User" ADD COLUMN "telephone" TEXT;
