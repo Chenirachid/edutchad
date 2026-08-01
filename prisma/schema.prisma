@@ -73,6 +73,8 @@ model User {
   inscriptionsAdministratives InscriptionAdministrative[]
   mentionsBulletin            MentionBulletin[]
   bulletinMatieres            BulletinMatiere[]
+  declarationsAbsenceEnfant   DeclarationAbsenceParent[] @relation("DeclarationsAbsenceEtudiant")
+  declarationsAbsenceFaites   DeclarationAbsenceParent[] @relation("DeclarationsAbsenceDeclarant")
 
   demandesSuppressionCible     DemandeSuppressionAdmin[] @relation("DemandeCible")
   demandesSuppressionEmises    DemandeSuppressionAdmin[] @relation("DemandeDemandeur")
@@ -207,6 +209,30 @@ model Epreuve {
 enum TypeAbsence {
   ABSENCE
   RETARD
+}
+
+enum StatutDeclarationAbsence {
+  EN_ATTENTE
+  VALIDEE
+  REFUSEE
+}
+
+model DeclarationAbsenceParent {
+  id                 Int                      @id @default(autoincrement())
+  dateDebut          DateTime
+  dateFin            DateTime
+  raison             String
+  commentaire        String?                  @db.Text
+  justificatifNom    String?
+  justificatifType   String?
+  justificatifData   String?                  @db.Text
+  statut             StatutDeclarationAbsence @default(EN_ATTENTE)
+  createdAt          DateTime                 @default(now())
+
+  etudiant   User @relation("DeclarationsAbsenceEtudiant", fields: [etudiantId], references: [id])
+  etudiantId Int
+  declarant  User @relation("DeclarationsAbsenceDeclarant", fields: [declarantId], references: [id])
+  declarantId Int
 }
 
 model AppelFait {

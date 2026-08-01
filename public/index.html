@@ -2756,6 +2756,77 @@ async function renderProfDeclarerAbsence(){
 /* ============================================================
    PARENT
    ============================================================ */
+function afficherFormulairePrevenirAbsence(target, etudiantId){
+  const aujourdhui = new Date().toISOString().slice(0, 10);
+  target.innerHTML = `
+    <div style="margin-top:14px;padding:16px;background:var(--bg);border-radius:10px;">
+      <h3 style="font-size:14.5px;color:var(--teal-900);margin:0 0 12px;">Prévenir d'une absence</h3>
+      <form id="prevenir-absence-form">
+        <div class="inline-form">
+          <div class="f"><label>Début</label><input type="date" name="dateDebut" value="${aujourdhui}" required /></div>
+          <div class="f"><label>Heure</label><input type="time" name="heureDebut" value="08:00" required /></div>
+          <div class="f"><label>Fin</label><input type="date" name="dateFin" value="${aujourdhui}" required /></div>
+          <div class="f"><label>Heure</label><input type="time" name="heureFin" value="18:00" required /></div>
+        </div>
+        <div class="inline-form">
+          <div class="f" style="min-width:220px;">
+            <label>Raison</label>
+            <select name="raison" required>
+              <option value="MALADIE">Maladie</option>
+              <option value="MALADIE_AVEC_CERTIFICAT">Maladie avec certificat</option>
+              <option value="RENDEZ_VOUS_MEDICAL">Rendez-vous médical</option>
+              <option value="EVENEMENT_FAMILIAL">Évènement familial</option>
+              <option value="TRANSPORT">Problème de transport</option>
+              <option value="AUTRE">Autre</option>
+            </select>
+          </div>
+          <div class="f" style="min-width:220px;"><label>Ajouter un justificatif (facultatif)</label><input type="file" name="justificatif" id="prevenir-absence-justificatif" /></div>
+        </div>
+        <div class="f" style="width:100%;margin-top:10px;">
+          <label>Commentaire</label>
+          <textarea name="commentaire" rows="2" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;" placeholder="Ex : Hospitalisation"></textarea>
+        </div>
+        <button class="btn-submit" type="submit" style="margin-top:12px;">Envoyer la déclaration</button>
+      </form>
+      <div id="prevenir-absence-statut" style="margin-top:8px;font-size:12.5px;"></div>
+    </div>`;
+
+  document.getElementById('prevenir-absence-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const fichier = document.getElementById('prevenir-absence-justificatif').files[0];
+    const statutEl = document.getElementById('prevenir-absence-statut');
+    try{
+      let justificatifNom, justificatifType, justificatifData;
+      if(fichier){
+        if(fichier.size > 3 * 1024 * 1024){ toast('Le justificatif dépasse 3 Mo.', 'error'); return; }
+        justificatifData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(fichier);
+        });
+        justificatifNom = fichier.name;
+        justificatifType = fichier.type;
+      }
+      await api('/declarations-absence', { method:'POST', body: JSON.stringify({
+        etudiantId: Number(etudiantId),
+        dateDebut: new Date(fd.get('dateDebut') + 'T' + fd.get('heureDebut')).toISOString(),
+        dateFin: new Date(fd.get('dateFin') + 'T' + fd.get('heureFin')).toISOString(),
+        raison: fd.get('raison'),
+        commentaire: fd.get('commentaire') || undefined,
+        justificatifNom, justificatifType, justificatifData,
+      })});
+      statutEl.textContent = "Déclaration envoyée à l'administration — vous serez informé de son traitement.";
+      statutEl.style.color = 'var(--success)';
+      e.target.reset();
+    }catch(err){
+      statutEl.textContent = err.message;
+      statutEl.style.color = 'var(--danger)';
+    }
+  });
+}
+
 async function renderParentEnfants(){
   const enfants = await api('/parents/mes-enfants');
   document.getElementById('page-subtitle').textContent = '';
@@ -2774,6 +2845,7 @@ async function renderParentEnfants(){
           <button class="btn-secondary" data-action="bulletin" data-id="${c.id}">Voir le bulletin</button>
           <button class="btn-secondary" data-action="absences" data-id="${c.id}">Voir les absences</button>
           <button class="btn-secondary" data-action="paiement" data-id="${c.id}">Voir le paiement</button>
+          <button class="btn-secondary" data-action="prevenir-absence" data-id="${c.id}" style="border-color:var(--warning);color:var(--warning);">Prévenir d'une absence</button>
         </div>
       </div>
       <div id="child-detail-${c.id}"></div>
@@ -2793,7 +2865,7 @@ async function renderParentEnfants(){
           const rows = mine.map(a => `
             <tr><td>${new Date(a.date).toLocaleDateString('fr-FR')}</td><td><span class="chip" style="background:${stringToColor(a.enseignement.matiere.nom)}">${escapeHtml(a.enseignement.matiere.nom)}</span></td><td>${a.justifiee ? '<span class="badge-justifiee">Justifiée</span>' : '<span class="badge-non-justifiee">Non justifiée</span>'}</td></tr>`).join('');
           target.innerHTML = `<div style="margin-top:14px;">${mine.length ? `<table><thead><tr><th>Date</th><th>Matière</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune absence.</div>'}</div>`;
-        } else {
+        } else if(btn.dataset.action === 'paiement'){
           try{
             const frais = await api('/frais-scolarite/mon-enfant/' + id);
             if(!frais){
@@ -2807,6 +2879,8 @@ async function renderParentEnfants(){
                 </div>`;
             }
           }catch(err){ target.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`; }
+        } else if(btn.dataset.action === 'prevenir-absence'){
+          afficherFormulairePrevenirAbsence(target, id);
         }
       }catch(err){ target.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`; }
     });
@@ -6357,8 +6431,9 @@ async function renderSondages(){
 async function renderVieScolaire(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const [absences, punitions, observations, classes] = await Promise.all([
+  const [absences, punitions, observations, classes, declarations] = await Promise.all([
     api('/absences'), api('/punitions'), api('/observations'), api('/classes'),
+    api('/declarations-absence').catch(() => []),
   ]);
 
   const nbAbsences = absences.filter(a => a.type === 'ABSENCE').length;
@@ -6433,7 +6508,28 @@ async function renderVieScolaire(){
         </tr>`).join('')}</tbody></table>
     </div>`).join('');
 
+  const declarationsEnAttente = declarations.filter(d => d.statut === 'EN_ATTENTE');
+  const carteDeclarations = declarationsEnAttente.length ? `
+    <div class="card" style="border-left:4px solid var(--warning);">
+      <h2>📋 Déclarations d'absence des parents en attente (${declarationsEnAttente.length})</h2>
+      <table><thead><tr><th>Élève</th><th>Période</th><th>Raison</th><th>Commentaire</th><th>Justificatif</th><th></th></tr></thead><tbody>
+        ${declarationsEnAttente.map(d => `
+          <tr>
+            <td>${escapeHtml(d.etudiant.prenom)} ${escapeHtml(d.etudiant.nom)}</td>
+            <td>${new Date(d.dateDebut).toLocaleString('fr-FR', { dateStyle:'short', timeStyle:'short' })} → ${new Date(d.dateFin).toLocaleString('fr-FR', { dateStyle:'short', timeStyle:'short' })}</td>
+            <td>${escapeHtml(d.raison)}</td>
+            <td>${d.commentaire ? escapeHtml(d.commentaire) : '—'}</td>
+            <td>${d.justificatifNom ? `<a href="#" data-telecharger-justificatif="${d.id}" style="color:var(--teal-700);font-weight:600;">📎 ${escapeHtml(d.justificatifNom)}</a>` : '—'}</td>
+            <td>
+              <button class="btn-secondary" data-valider-declaration="${d.id}" style="border-color:var(--success);color:var(--success);">✅ Valider</button>
+              <button class="btn-secondary" data-refuser-declaration="${d.id}" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">❌ Refuser</button>
+            </td>
+          </tr>`).join('')}
+      </tbody></table>
+    </div>` : '';
+
   content.innerHTML = `
+    ${carteDeclarations}
     <div class="grid-3">
       <div class="card"><h2 style="margin-bottom:4px;">${nbAbsences}</h2><p style="font-size:12.5px;color:var(--text-muted);">Absences (${nbNonJustifiees} non justifiées)</p></div>
       <div class="card"><h2 style="margin-bottom:4px;">${nbRetards}</h2><p style="font-size:12.5px;color:var(--text-muted);">Retards</p></div>
@@ -6564,6 +6660,33 @@ async function renderVieScolaire(){
         toast('Observation modifiée.');
         renderVieScolaire();
       }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-valider-declaration]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try{
+        await api('/declarations-absence/' + btn.dataset.validerDeclaration + '/statut', { method:'PATCH', body: JSON.stringify({ statut: 'VALIDEE' })});
+        toast('Déclaration validée.');
+        renderVieScolaire();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+  content.querySelectorAll('[data-refuser-declaration]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try{
+        await api('/declarations-absence/' + btn.dataset.refuserDeclaration + '/statut', { method:'PATCH', body: JSON.stringify({ statut: 'REFUSEE' })});
+        toast('Déclaration refusée.');
+        renderVieScolaire();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+  content.querySelectorAll('[data-telecharger-justificatif]').forEach(lien => {
+    lien.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const d = declarations.find(dec => String(dec.id) === lien.dataset.telechargerJustificatif);
+      if(!d || !d.justificatifData) return;
+      telechargerFichier(d.justificatifNom, d.justificatifType, d.justificatifData);
     });
   });
 }

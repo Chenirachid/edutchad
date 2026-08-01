@@ -36,6 +36,7 @@ import { BibliothequeModule } from './bibliotheque/bibliotheque.module';
 import { AppelFaitModule } from './appel-fait/appel-fait.module';
 import { BulletinMatiereModule } from './bulletin-matiere/bulletin-matiere.module';
 import { DemandeEtablissementModule } from './demande-etablissement/demande-etablissement.module';
+import { DeclarationsAbsenceModule } from './declarations-absence/declarations-absence.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { DemandeEtablissementModule } from './demande-etablissement/demande-etab
     AppelFaitModule,
     BulletinMatiereModule,
     DemandeEtablissementModule,
+    DeclarationsAbsenceModule,
   ],
   controllers: [],
   providers: [
