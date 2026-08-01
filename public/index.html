@@ -19,16 +19,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
   :root{
-    --teal-900:#0B4F52;
-    --teal-700:#0F8B8D;
-    --teal-600:#17A2A5;
-    --teal-500:#2EC4C6;
-    --teal-100:#E0F5F5;
-    --bg:#F2F7F7;
+    --teal-900:#123A3D;
+    --teal-700:#1D6E68;
+    --teal-600:#2B8C82;
+    --teal-500:#4FAE9C;
+    --teal-100:#E7F1EC;
+    --accent:#D9713C;
+    --accent-light:#FBE7D8;
+    --bg:#F7F5EF;
     --surface:#FFFFFF;
-    --text:#1F2937;
+    --text:#20241F;
     --text-muted:#6B7280;
-    --border:#E5E7EB;
+    --border:#E4E0D4;
     --danger:#EF4444;
     --danger-bg:#FEE2E2;
     --success:#16A34A;
@@ -380,6 +382,7 @@
     padding:14px 16px;margin-bottom:12px;
   }
   .emploi-grille td.case-cours{background:#FDF8D6;}
+  .puce-evaluation{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);vertical-align:middle;}
   .emploi-grille td.case-epreuve{background:#FDE4E4 !important;}
   .creneau-epreuve{border:1.5px solid var(--danger);border-radius:6px;padding:4px;}
   .dashboard-etudiant{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
@@ -2226,13 +2229,13 @@ async function renderEmploiDuTemps(){
       const aUneEpreuve = cours.some(c => joursAvecEpreuve.has(c.enseignement.id + '|' + jour));
       const contenuCours = cours.map(c => `
         <div class="creneau-case${joursAvecEpreuve.has(c.enseignement.id + '|' + jour) ? ' creneau-epreuve' : ''}">
-          <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${joursAvecEpreuve.has(c.enseignement.id + '|' + jour) ? ' 🔴' : ''}</div>
+          <div style="font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${joursAvecEpreuve.has(c.enseignement.id + '|' + jour) ? ' <span class="puce-evaluation"></span>' : ''}</div>
           <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.enseignement.classe.nom)}</div>
           ${c.salle ? `<div style="font-size:10.5px;color:var(--text-muted);">Salle ${escapeHtml(c.salle)}</div>` : ''}
           ${estEtudiant
-            ? (devoirsParJour.has(c.enseignement.id + '|' + jour) ? `<div style="font-size:10px;color:var(--teal-700);margin-top:3px;text-align:left;">📖 ${escapeHtml(devoirsParJour.get(c.enseignement.id + '|' + jour))}</div>` : '')
-            : `<div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;" data-cahier-enseignement="${c.enseignement.id}">📖 Cahier de texte →</div>`}
-          ${estMonCours(c) && estCoursEnCours(c) ? `<div style="font-size:10px;color:var(--success);font-weight:700;margin-top:3px;cursor:pointer;" data-appel-enseignement="${c.enseignement.id}">✅ Faire l'appel →</div>` : ''}
+            ? (devoirsParJour.has(c.enseignement.id + '|' + jour) ? `<div style="font-size:10px;color:var(--teal-700);margin-top:3px;text-align:left;">${escapeHtml(devoirsParJour.get(c.enseignement.id + '|' + jour))}</div>` : '')
+            : `<div style="font-size:10px;color:var(--teal-700);font-weight:600;margin-top:3px;cursor:pointer;display:flex;align-items:center;gap:4px;" data-cahier-enseignement="${c.enseignement.id}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg> Cahier de texte →</div>`}
+          ${estMonCours(c) && estCoursEnCours(c) ? `<div style="font-size:10px;color:var(--success);font-weight:700;margin-top:3px;cursor:pointer;display:flex;align-items:center;gap:4px;" data-appel-enseignement="${c.enseignement.id}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Faire l'appel →</div>` : ''}
         </div>`).join('');
       const contenuReunions = reunionsCellule.map(r => `
         <div class="creneau-case reunion-case">
@@ -6322,7 +6325,7 @@ async function construireBlocAccueilParent(){
       return `
       <div style="background:${aUneEpreuve ? '#FDE4E4' : stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
         <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
-        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' 🔴 Évaluation' : ''}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' <span class="puce-evaluation"></span> Évaluation' : ''}</div>
         <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
       </div>`;
     }).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
@@ -6440,7 +6443,7 @@ async function construireBlocAccueilEtudiant(){
       return `
       <div style="background:${aUneEpreuve ? '#FDE4E4' : stringToColor(c.enseignement.matiere.nom)};border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
         <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
-        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' 🔴 Évaluation' : ''}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' <span class="puce-evaluation"></span> Évaluation' : ''}</div>
         <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
       </div>`;
     }).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
