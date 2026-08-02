@@ -15,6 +15,8 @@ type MatiereMoyenne = {
   coefficient: number;
   professeur: string | null;
   moyenne: number | null;
+  moyenneDevoirs: number | null;
+  moyenneCompositions: number | null;
   enseignementId?: number;
   elementsProgramme?: string | null;
   appreciationTravail?: string | null;
@@ -51,11 +53,22 @@ export class BulletinsService {
       await this.assertParentDe(etudiantId, currentUser.sub);
     }
 
-    return this.computeBulletin(
-      etudiant,
-      currentUser.role === Role.ETUDIANT || currentUser.role === Role.PARENT,
-      trimestre,
-    );
+    const respecterPublication = currentUser.role === Role.ETUDIANT || currentUser.role === Role.PARENT;
+    const bulletin: any = await this.computeBulletin(etudiant, respecterPublication, trimestre);
+
+    if (etudiant.classeId) {
+      const { rang, total } = await this.computerRangDansClasse(
+        etudiant.classeId,
+        etudiant.id,
+        respecterPublication,
+        trimestre,
+      );
+      bulletin.rang = rang;
+      bulletin.totalClasse = total;
+    }
+    bulletin.absencesRetards = await this.compterAbsencesRetards(etudiant.id, trimestre);
+
+    return bulletin;
   }
 
   async getBulletinClasse(classeId: number, currentUser: JwtPayload, trimestre?: number) {
@@ -80,9 +93,23 @@ export class BulletinsService {
       await this.assertProfesseurEnseigneA(classeId, currentUser.sub);
     }
 
-    const bulletins = await Promise.all(
+    const bulletins: any[] = await Promise.all(
       classe.etudiants.map((etudiant) => this.computeBulletin(etudiant, false, trimestre)),
     );
+
+    // Classement : tri décroissant par moyenne générale (les non-notés en dernier).
+    const ordonnes = bulletins
+      .slice()
+      .sort((x, y) => (y.moyenneGenerale ?? -1) - (x.moyenneGenerale ?? -1));
+    bulletins.forEach((b) => {
+      const position = ordonnes.findIndex((o) => o.etudiant.id === b.etudiant.id);
+      b.rang = b.moyenneGenerale !== null ? position + 1 : null;
+      b.totalClasse = bulletins.length;
+    });
+
+    for (const b of bulletins) {
+      b.absencesRetards = await this.compterAbsencesRetards(b.etudiant.id, trimestre);
+    }
 
     return {
       classe: { id: classe.id, nom: classe.nom, anneeScolaire: classe.anneeScolaire },
@@ -137,6 +164,54 @@ export class BulletinsService {
     }));
 
     return { classeId, moyennesParMatiere };
+  }
+
+  private async computerRangDansClasse(
+    classeId: number,
+    etudiantId: number,
+    respecterPublication: boolean,
+    trimestre?: number,
+  ) {
+    const classe = await this.prisma.classe.findUnique({
+      where: { id: classeId },
+      include: {
+        etudiants: { select: { id: true, nom: true, prenom: true, numeroEtudiant: true, classeId: true, etablissementId: true } },
+      },
+    });
+    if (!classe) return { rang: null, total: 0 };
+
+    const bulletins = await Promise.all(
+      classe.etudiants.map((e) => this.computeBulletin(e, respecterPublication, trimestre)),
+    );
+    const ordonnes = bulletins
+      .slice()
+      .sort((x, y) => (y.moyenneGenerale ?? -1) - (x.moyenneGenerale ?? -1));
+    const moi = bulletins.find((b) => b.etudiant.id === etudiantId);
+    if (!moi || moi.moyenneGenerale === null) return { rang: null, total: bulletins.length };
+    const position = ordonnes.findIndex((b) => b.etudiant.id === etudiantId);
+    return { rang: position + 1, total: bulletins.length };
+  }
+
+  private async compterAbsencesRetards(etudiantId: number, trimestre?: number) {
+    const etudiant = await this.prisma.user.findUnique({ where: { id: etudiantId } });
+    const parametres = await this.prisma.parametrePlateforme.findFirst({
+      where: { etablissementId: etudiant?.etablissementId ?? null },
+    });
+    const periodeDe = (date: Date): number => {
+      if (parametres?.debutTrimestre3 && date >= parametres.debutTrimestre3) return 3;
+      if (parametres?.debutTrimestre2 && date >= parametres.debutTrimestre2) return 2;
+      return 1;
+    };
+
+    const absences = await this.prisma.absence.findMany({ where: { etudiantId } });
+    const filtrees = trimestre
+      ? absences.filter((a) => periodeDe(a.date) === trimestre)
+      : absences;
+
+    return {
+      absences: filtrees.filter((a) => a.type === 'ABSENCE').length,
+      retards: filtrees.filter((a) => a.type === 'RETARD').length,
+    };
   }
 
   private async assertParentDe(enfantId: number, parentId: number) {
@@ -212,7 +287,18 @@ export class BulletinsService {
 
     const parMatiere = new Map<
       number,
-      { nom: string; coefficient: number; sommePonderee: number; sommeCoef: number; professeur: string | null; enseignementId: number }
+      {
+        nom: string;
+        coefficient: number;
+        sommePonderee: number;
+        sommeCoef: number;
+        sommeDevoirs: number;
+        coefDevoirs: number;
+        sommeCompositions: number;
+        coefCompositions: number;
+        professeur: string | null;
+        enseignementId: number;
+      }
     >();
 
     for (const note of notes) {
@@ -222,6 +308,10 @@ export class BulletinsService {
         coefficient: matiere.coefficient,
         sommePonderee: 0,
         sommeCoef: 0,
+        sommeDevoirs: 0,
+        coefDevoirs: 0,
+        sommeCompositions: 0,
+        coefCompositions: 0,
         professeur: note.enseignement.professeur
           ? `${note.enseignement.professeur.prenom} ${note.enseignement.professeur.nom}`
           : null,
@@ -229,6 +319,14 @@ export class BulletinsService {
       };
       entry.sommePonderee += note.valeur * note.coefficient;
       entry.sommeCoef += note.coefficient;
+      // M.DEV = devoirs et contrôles ; M.COMP = examens (compositions)
+      if (note.type === 'EXAMEN') {
+        entry.sommeCompositions += note.valeur * note.coefficient;
+        entry.coefCompositions += note.coefficient;
+      } else {
+        entry.sommeDevoirs += note.valeur * note.coefficient;
+        entry.coefDevoirs += note.coefficient;
+      }
       parMatiere.set(matiere.id, entry);
     }
 
@@ -246,6 +344,8 @@ export class BulletinsService {
           coefficient: e.coefficient,
           professeur: e.professeur,
           moyenne: e.sommeCoef > 0 ? arrondi(e.sommePonderee / e.sommeCoef) : null,
+          moyenneDevoirs: e.coefDevoirs > 0 ? arrondi(e.sommeDevoirs / e.coefDevoirs) : null,
+          moyenneCompositions: e.coefCompositions > 0 ? arrondi(e.sommeCompositions / e.coefCompositions) : null,
           enseignementId: e.enseignementId,
           elementsProgramme: bm?.elementsProgramme ?? null,
           appreciationTravail: bm?.appreciationTravail ?? null,

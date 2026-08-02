@@ -658,6 +658,7 @@
   .bulletin-impression h1{font-size:15px;text-align:center;margin:0 0 3px;text-transform:uppercase;letter-spacing:.03em;font-family:'Fraunces',Georgia,serif;font-weight:600;}
   .bulletin-impression .sous-titre{text-align:center;font-size:10.5px;color:#333;margin:0 0 3px;}
   .bulletin-impression .infos-generales{display:flex;justify-content:space-between;margin:8px 0;font-size:10.5px;}
+  .bulletin-entete-officiel{text-align:center;font-size:9.5px;line-height:1.5;color:#000;margin-bottom:8px;white-space:pre-line;}
   .table-bulletin-impression{border-collapse:collapse;width:100%;font-size:9.5px;table-layout:fixed;}
   .table-bulletin-impression th, .table-bulletin-impression td{border:1px solid #000;padding:2.5px 5px;vertical-align:top;color:#000;overflow-wrap:break-word;word-break:break-word;line-height:1.25;}
   .table-bulletin-impression thead{display:table-header-group;}
@@ -2176,48 +2177,97 @@ function mentionBulletin(moyenne, bareme){
   return null;
 }
 
+function arrondi2(v){ return Math.round(v * 100) / 100; }
+
+function decisionConseilBulletin(moyenne, bareme){
+  if(moyenne === null || moyenne === undefined) return { fr: 'En attente de notes', ar: 'بانتظار النقاط' };
+  const b = bareme || 20;
+  if(moyenne >= b * 0.9) return { fr: 'Excellent travail, continuez ainsi', ar: 'عمل ممتاز، واصل على هذا النهج' };
+  if(moyenne >= b * 0.8) return { fr: 'Très bon travail', ar: 'عمل جيد جداً' };
+  if(moyenne >= b * 0.7) return { fr: 'Bon travail', ar: 'عمل جيد' };
+  if(moyenne >= b * 0.6) return { fr: 'Assez bon travail', ar: 'عمل مقبول إلى حد ما' };
+  if(moyenne >= b * 0.5) return { fr: 'Travail passable, peut mieux faire', ar: 'عمل مقبول، بإمكانه بذل جهد أكبر' };
+  return { fr: 'Travail insuffisant, effort nécessaire', ar: 'عمل غير كافٍ، يتطلب مجهوداً أكبر' };
+}
+
 function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
   const libellePeriodeTexte = libellePeriode(parametres.systemePeriode, trimestre);
   const seuilAdmission = (parametres.bareme || 20) / 2;
   const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
+  const decision = decisionConseilBulletin(b.moyenneGenerale, parametres.bareme);
+  const ar = (n) => n !== null && n !== undefined ? n.toFixed(2) : '—';
 
   const lignes = b.matieres.map(m => {
     const moyClasse = moyennesClasse[m.matiereId];
+    const moyPonderee = m.moyenne !== null ? arrondi2(m.moyenne * m.coefficient) : null;
     return `
       <tr>
         <td class="matiere-cell">
           <strong>${escapeHtml(m.nom.toUpperCase())}</strong>
-          ${m.professeur ? `<div style="font-size:10.5px;color:#333;">${escapeHtml(m.professeur)}</div>` : ''}
+          ${m.professeur ? `<div style="font-size:9.5px;color:#333;">${escapeHtml(m.professeur)}</div>` : ''}
         </td>
-        <td class="moy-cell">${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'}</td>
-        <td class="moy-cell">${moyClasse !== undefined ? moyClasse.toFixed(2) : '—'}</td>
-        <td>${m.appreciationTravail ? escapeHtml(m.appreciationTravail) : '—'}</td>
-        <td>${m.appreciationAvis ? escapeHtml(m.appreciationAvis) : '—'}</td>
+        <td class="moy-cell">${ar(m.moyenneDevoirs)}</td>
+        <td class="moy-cell">${ar(m.moyenneCompositions)}</td>
+        <td class="moy-cell"><strong>${ar(m.moyenne)}</strong></td>
+        <td class="moy-cell">${m.coefficient}</td>
+        <td class="moy-cell">${ar(moyPonderee)}</td>
+        <td>${m.appreciationAvis ? escapeHtml(m.appreciationAvis) : (mentionBulletin(m.moyenne, parametres.bareme) || '—')}</td>
       </tr>`;
   }).join('');
+
+  const matieresNotees = b.matieres.filter(m => m.moyenne !== null);
+  const sommeCoef = matieresNotees.reduce((acc, m) => acc + m.coefficient, 0);
+  const sommePonderee = matieresNotees.reduce((acc, m) => acc + arrondi2(m.moyenne * m.coefficient), 0);
 
   return `
     <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;justify-content:center;min-height:100vh;box-sizing:border-box;">
       <div>
+      ${parametres.enTeteOfficiel ? `<div class="bulletin-entete-officiel">${escapeHtml(parametres.enTeteOfficiel).replace(/\n/g,'<br>')}</div>` : ''}
       <h1>${escapeHtml(parametres.nomEtablissement || 'Établissement')}</h1>
-      <p class="sous-titre">Bulletin de scolarité — ${escapeHtml(libellePeriodeTexte)} — Année ${escapeHtml(parametres.anneeScolaire || '')}</p>
-      <div class="infos-generales">
-        <div><strong>${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)}</strong>${b.etudiant.numeroEtudiant ? ` — N° ${escapeHtml(b.etudiant.numeroEtudiant)}` : ''}</div>
-        <div><strong>Moyenne générale : ${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme || 20}</strong> — ${b.moyenneGenerale === null ? '' : (estAdmis ? 'Admis(e)' : 'Ajourné(e)')}${mentionBulletin(b.moyenneGenerale, parametres.bareme) ? ' — Mention ' + mentionBulletin(b.moyenneGenerale, parametres.bareme) : ''}</div>
+      <p class="sous-titre">BULLETIN DE NOTES / كشف الدرجات — ${escapeHtml(libellePeriodeTexte)} / الفترة — Année scolaire / السنة الدراسية ${escapeHtml(parametres.anneeScolaire || '')}</p>
+      <div class="infos-generales" style="display:block;">
+        <div><strong>Nom et prénoms / الاسم :</strong> ${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)}</div>
+        <div><strong>Matricule / رقم التسجيل :</strong> ${b.etudiant.numeroEtudiant ? escapeHtml(b.etudiant.numeroEtudiant) : '—'}</div>
       </div>
       <table class="table-bulletin-impression">
         <thead>
           <tr>
-            <th rowspan="2" style="vertical-align:bottom;">Matière</th>
-            <th colspan="2">Moyennes</th>
-            <th rowspan="2" style="vertical-align:bottom;">App. A : Travail</th>
-            <th rowspan="2" style="vertical-align:bottom;">App. B : Avis global</th>
+            <th rowspan="2" style="vertical-align:bottom;">Discipline<br/>المادة</th>
+            <th rowspan="2" style="vertical-align:bottom;">M.DEV<br/>الاختبارات</th>
+            <th rowspan="2" style="vertical-align:bottom;">M.COMP<br/>الامتحانات</th>
+            <th rowspan="2" style="vertical-align:bottom;">M.GEN<br/>المعدل</th>
+            <th rowspan="2" style="vertical-align:bottom;">COEF<br/>المعامل</th>
+            <th rowspan="2" style="vertical-align:bottom;">M.GxCOEF</th>
+            <th rowspan="2" style="vertical-align:bottom;">Appréciations<br/>التقدير</th>
           </tr>
-          <tr><th>Élève</th><th>Classe</th></tr>
         </thead>
-        <tbody>${lignes || '<tr><td colspan="5" style="text-align:center;">Aucune note pour cette période.</td></tr>'}</tbody>
+        <tbody>${lignes || '<tr><td colspan="7" style="text-align:center;">Aucune note pour cette période.</td></tr>'}</tbody>
+        ${matieresNotees.length ? `<tfoot><tr style="font-weight:700;background:#f2f2f2;">
+          <td>TOTAL / المجموع</td><td></td><td></td>
+          <td>${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'}</td>
+          <td>${sommeCoef}</td>
+          <td>${sommePonderee.toFixed(2)}</td>
+          <td></td>
+        </tr></tfoot>` : ''}
       </table>
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;">
+      <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:11px;">
+        <div>
+          <div><strong>Moyenne ${escapeHtml(libellePeriodeTexte)} / المعدل :</strong> ${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme || 20}</div>
+          <div>${b.moyenneGenerale === null ? '' : (estAdmis ? 'Admis(e)' : 'Ajourné(e)')}${mentionBulletin(b.moyenneGenerale, parametres.bareme) ? ' — Mention ' + mentionBulletin(b.moyenneGenerale, parametres.bareme) : ''}</div>
+        </div>
+        <div>
+          <div><strong>Absences / الغيابات :</strong> ${b.absencesRetards ? b.absencesRetards.absences : 0}</div>
+          <div><strong>Retards / التأخرات :</strong> ${b.absencesRetards ? b.absencesRetards.retards : 0}</div>
+        </div>
+        <div>
+          ${b.rang !== undefined && b.rang !== null ? `<div><strong>Rang / الترتيب :</strong> ${b.rang}${b.totalClasse ? 'e sur ' + b.totalClasse : ''}</div>` : ''}
+        </div>
+      </div>
+      <div style="margin-top:16px;border-top:1px solid #000;padding-top:8px;">
+        <div style="font-size:11px;font-weight:700;text-decoration:underline;">DÉCISION DU CONSEIL DES PROFESSEURS</div>
+        <div style="font-size:12px;font-style:italic;margin-top:2px;">${escapeHtml(decision.fr)} — ${decision.ar}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:26px;">
         <div>
           <p style="font-size:10.5px;color:#333;margin:0 0 3px;">Document généré le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}.</p>
           ${parametres.siteWeb ? `<p style="font-size:10.5px;color:#333;margin:0;">${escapeHtml(parametres.siteWeb)}</p>` : ''}
@@ -7676,6 +7726,7 @@ async function renderParametres(){
           <div class="f"><label>Site internet de l'établissement</label><input type="text" name="siteWeb" value="${escapeHtml(params.siteWeb || '')}" placeholder="https://..." /></div>
           <div class="f"><label>Adresse email de contact (publique)</label><input type="email" name="emailPublic" value="${escapeHtml(params.emailPublic || '')}" placeholder="contact@ecole.com" /></div>
           <div class="f" style="width:100%;"><label>Texte d'accueil (affiché sur la page de connexion de l'établissement)</label><textarea name="texteAccueil" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;" placeholder="Ex : Bienvenue à l'école Al Amal, un établissement à taille humaine...">${escapeHtml(params.texteAccueil || '')}</textarea></div>
+          <div class="f" style="width:100%;"><label>En-tête officiel du bulletin (facultatif — ministère, arrêté d'autorisation, etc.)</label><textarea name="enTeteOfficiel" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12.5px;" placeholder="Ex : République du Tchad — Ministère de l'Éducation... — Autorisé à fonctionner par Arrêté N°...">${escapeHtml(params.enTeteOfficiel || '')}</textarea></div>
           <div class="f"><label>Photo de l'établissement</label>
             ${params.photoData ? `<img src="data:${params.photoType};base64,${params.photoData}" alt="Photo établissement" style="max-width:160px;max-height:100px;border-radius:8px;display:block;margin-bottom:8px;object-fit:cover;" />` : ''}
             <input type="file" name="photo" id="parametres-photo-input" accept="image/*" />
@@ -7809,6 +7860,7 @@ async function renderParametres(){
           siteWeb: fd.get('siteWeb') || undefined,
           emailPublic: fd.get('emailPublic') || undefined,
           texteAccueil: fd.get('texteAccueil') || undefined,
+          enTeteOfficiel: fd.get('enTeteOfficiel') || undefined,
           photoData, photoType,
           debutTrimestre2: fd.get('debutTrimestre2') || undefined,
           debutTrimestre3: fd.get('debutTrimestre3') || undefined,

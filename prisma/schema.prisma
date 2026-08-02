@@ -327,6 +327,7 @@ model ParametrePlateforme {
   siteWeb          String?
   emailPublic      String?
   texteAccueil     String?  @db.Text
+  enTeteOfficiel   String?  @db.Text
   photoData        String?  @db.Text
   photoType        String?
   debutTrimestre2  DateTime?

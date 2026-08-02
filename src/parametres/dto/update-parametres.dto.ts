@@ -55,6 +55,10 @@ export class UpdateParametresDto {
 
   @IsOptional()
   @IsString()
+  enTeteOfficiel?: string;
+
+  @IsOptional()
+  @IsString()
   photoData?: string;
 
   @IsOptional()
