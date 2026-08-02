@@ -6779,12 +6779,12 @@ async function renderActualites(){
   const canvasStats = document.getElementById('dashboard-stats-canvas');
   if(canvasStats && dashboardStatsData && dashboardStatsData.labels.length){
     new window.Chart(canvasStats, {
-      type: 'bar',
+      type: 'radar',
       data: {
         labels: dashboardStatsData.labels,
-        datasets: [{ label: 'Moyenne /20', data: dashboardStatsData.moyennes, backgroundColor: '#1D6E68', borderRadius: 5, maxBarThickness: 40 }],
+        datasets: [{ label: 'Moyenne /20', data: dashboardStatsData.moyennes, borderColor: '#1D6E68', backgroundColor: 'rgba(29,110,104,0.22)', pointBackgroundColor: '#1D6E68' }],
       },
-      options: { scales: { y: { min: 0, max: 20 } }, plugins: { legend: { display: false } } },
+      options: { scales: { r: { min: 0, max: 20, ticks: { stepSize: 5 } } }, plugins: { legend: { display: false } } },
     });
   }
 
@@ -7125,7 +7125,7 @@ async function construireBlocStatistiquesAdmin(){
     return `
       <div class="card">
         <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyenne générale par classe</h2>
-        <canvas id="dashboard-stats-canvas" height="90"></canvas>
+        <div style="max-width:420px;margin:0 auto;"><canvas id="dashboard-stats-canvas"></canvas></div>
       </div>`;
   }catch(err){ return ''; }
 }
@@ -7158,7 +7158,7 @@ async function construireBlocAccueilProf(){
     const blocStats = dashboardStatsData.labels.length ? `
       <div class="card">
         <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Mes moyennes par classe</h2>
-        <canvas id="dashboard-stats-canvas" height="90"></canvas>
+        <div style="max-width:420px;margin:0 auto;"><canvas id="dashboard-stats-canvas"></canvas></div>
       </div>` : '';
 
     const maintenant = new Date();
