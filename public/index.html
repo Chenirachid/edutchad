@@ -1251,6 +1251,8 @@ const I18N = {
     el_col_contenu: 'Contenu', el_col_devoirs: 'Devoirs', el_col_piece_jointe: 'Pièce jointe', el_voir_tout_cahier: 'voir tout le cahier de texte',
     el_observations: 'Observations', el_punitions: 'Punitions', el_col_auteur: 'Auteur', el_col_duree: 'Durée',
     el_aucune_observation: 'Aucune observation.', el_aucune_punition: 'Aucune punition.',
+    el_bibliotheque_commune: 'Bibliothèque commune', el_col_titre: 'Titre', el_col_ajoute_par: 'Ajouté par', el_col_fichier: 'Fichier',
+    el_aucune_ressource: "Aucune ressource pour l'instant.", el_col_description: 'Description',
   },
   en: {
     landing_titre: 'The all-in-one school platform',
@@ -1302,6 +1304,8 @@ const I18N = {
     el_col_contenu: 'Content', el_col_devoirs: 'Homework', el_col_piece_jointe: 'Attachment', el_voir_tout_cahier: 'see the whole class notebook',
     el_observations: 'Observations', el_punitions: 'Sanctions', el_col_auteur: 'Author', el_col_duree: 'Duration',
     el_aucune_observation: 'No observations.', el_aucune_punition: 'No sanctions.',
+    el_bibliotheque_commune: 'Shared library', el_col_titre: 'Title', el_col_ajoute_par: 'Added by', el_col_fichier: 'File',
+    el_aucune_ressource: 'No resources yet.', el_col_description: 'Description',
   },
   ar: {
     landing_titre: 'منصة مدرسية شاملة',
@@ -1353,6 +1357,8 @@ const I18N = {
     el_col_contenu: 'المحتوى', el_col_devoirs: 'الواجبات', el_col_piece_jointe: 'مرفق', el_voir_tout_cahier: 'عرض كل دفتر النصوص',
     el_observations: 'الملاحظات', el_punitions: 'العقوبات', el_col_auteur: 'الكاتب', el_col_duree: 'المدة',
     el_aucune_observation: 'لا توجد ملاحظات.', el_aucune_punition: 'لا توجد عقوبات.',
+    el_bibliotheque_commune: 'المكتبة المشتركة', el_col_titre: 'العنوان', el_col_ajoute_par: 'أضافها', el_col_fichier: 'الملف',
+    el_aucune_ressource: 'لا توجد موارد حالياً.', el_col_description: 'الوصف',
   },
 };
 
@@ -1821,6 +1827,7 @@ const MENUS = {
     { id:'actualites', label:'Accueil', render: renderActualites },
     { id:'enfants', label:'Mes enfants', render: renderParentEnfants },
     { id:'notes-liste', label:'Notes', render: renderNotesListeParent },
+    { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTempsParent },
     { id:'rendez-vous', label:'Rendez-vous administration', render: renderParentRendezVous },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
@@ -2158,6 +2165,54 @@ function imprimerBulletin(b, parametres, moyennesClasse, trimestre){
     .replace('page-break-after:always;', '');
 
   window.print();
+}
+
+async function renderEmploiDuTempsParent(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const enfants = await api('/parents/mes-enfants');
+
+  if(!enfants.length){
+    content.innerHTML = `<div class="card"><div class="empty-state">Aucun enfant n'est encore relié à ce compte.</div></div>`;
+    return;
+  }
+
+  const chargerEmploiEnfant = async (etudiantId) => {
+    const zone = document.getElementById('emploi-parent-zone');
+    zone.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
+    const enfant = enfants.find(e => e.id === Number(etudiantId));
+    const creneaux = enfant.classeId ? await api('/creneaux/classe/' + enfant.classeId).catch(() => []) : [];
+    zone.innerHTML = `
+      <div class="card" id="emploi-parent-carte">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h2 style="margin:0;">Emploi du temps — ${escapeHtml(enfant.prenom)} ${escapeHtml(enfant.nom)}</h2>
+          <button class="btn-icone" data-plein-ecran="emploi-parent-carte" title="Afficher en plein écran">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+          </button>
+        </div>
+        <div style="overflow-x:auto;">${genererGrilleSimple(creneaux, c => escapeHtml(c.enseignement.professeur.prenom) + ' ' + escapeHtml(c.enseignement.professeur.nom))}</div>
+      </div>`;
+  };
+
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+      <h1 style="font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--teal-900);margin:0;">Emploi du temps</h1>
+      ${enfants.length > 1
+        ? `<div class="selecteur-enfants">${enfants.map((e, i) => `<button class="pilule-enfant ${i === 0 ? 'active' : ''}" data-choix-enfant-emploi="${e.id}">${escapeHtml(e.prenom)} ${escapeHtml(e.nom)}</button>`).join('')}</div>`
+        : `<div style="font-size:13px;color:var(--text-muted);">${escapeHtml(enfants[0].prenom)} ${escapeHtml(enfants[0].nom)}</div>`}
+    </div>
+    <div id="emploi-parent-zone"></div>`;
+
+  if(enfants.length > 1){
+    content.querySelectorAll('[data-choix-enfant-emploi]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        content.querySelectorAll('[data-choix-enfant-emploi]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        chargerEmploiEnfant(btn.dataset.choixEnfantEmploi);
+      });
+    });
+  }
+  await chargerEmploiEnfant(enfants[0].id);
 }
 
 async function renderNotesListeParent(){
@@ -6146,8 +6201,8 @@ async function renderBibliotheque(){
       </form>
     </div>` : ''}
     <div class="card">
-      <h2>Bibliothèque commune (${communes.length})</h2>
-      ${communes.length ? `<table><thead><tr><th>Titre</th><th>Matière</th><th>Description</th><th>Ajouté par</th><th>Fichier</th></tr></thead><tbody>${communes.map(ligne).join('')}</tbody></table>` : '<div class="empty-state">Aucune ressource pour l\'instant.</div>'}
+      <h2>${t('el_bibliotheque_commune')} (${communes.length})</h2>
+      ${communes.length ? `<table><thead><tr><th>${t('el_col_titre')}</th><th>${t('el_col_matiere')}</th><th>${t('el_col_description')}</th><th>${t('el_col_ajoute_par')}</th><th>${t('el_col_fichier')}</th></tr></thead><tbody>${communes.map(ligne).join('')}</tbody></table>` : `<div class="empty-state">${t('el_aucune_ressource')}</div>`}
     </div>
     ${peutGerer ? `
     <div class="card">

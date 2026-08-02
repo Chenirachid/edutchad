@@ -42,7 +42,7 @@ export class CreneauxController {
   // précis — utile pour qu'un professeur puisse voir l'emploi du temps d'un collègue
   // ou d'une classe qui n'est pas la sienne, sans pouvoir le modifier.
   @Get('classe/:classeId')
-  @Roles(Role.PROFESSEUR, Role.ADMIN, Role.CHEF_ETABLISSEMENT, Role.VIE_SCOLAIRE)
+  @Roles(Role.PROFESSEUR, Role.ADMIN, Role.CHEF_ETABLISSEMENT, Role.VIE_SCOLAIRE, Role.PARENT)
   findParClasse(@Param('classeId', ParseIntPipe) classeId: number) {
     return this.creneauxService.findParClasse(classeId);
   }
