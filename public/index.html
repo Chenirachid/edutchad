@@ -547,10 +547,10 @@
   .bloc-nouvelle-epreuve-titre{font-size:12px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;}
   .bloc-nouvelle-epreuve form.inline-form{margin-bottom:0;}
   .panneau-cahier-texte{border-left:4px solid var(--teal-700);animation:toastIn .2s ease-out;}
-  .cartes-classe-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+  .cartes-classe-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;}
   .carte-classe-prof{
-    position:relative;background:var(--surface);border:1px solid var(--border);border-radius:12px;
-    padding:24px 22px 20px;cursor:pointer;transition:border-color .15s,transform .15s;overflow:hidden;
+    position:relative;background:var(--surface);border:1px solid var(--border);border-radius:9px;
+    padding:12px 12px 10px;cursor:pointer;transition:border-color .15s,transform .15s;overflow:hidden;
   }
   .carte-classe-prof::before{
     content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--teal-700);
@@ -558,10 +558,10 @@
   }
   .carte-classe-prof:hover{border-color:var(--teal-700);transform:translateY(-2px);}
   .carte-classe-prof:hover::before{width:5px;background:var(--accent);}
-  .carte-classe-numero{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:12px;}
-  .carte-classe-matiere{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:5px;}
-  .carte-classe-nom{font-size:25px;font-weight:600;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;margin-bottom:18px;line-height:1.15;}
-  .carte-classe-pied{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:14px;}
+  .carte-classe-numero{font-size:9.5px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:6px;}
+  .carte-classe-matiere{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:3px;}
+  .carte-classe-nom{font-size:15px;font-weight:600;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;margin-bottom:8px;line-height:1.15;}
+  .carte-classe-pied{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:8px;}
   .carte-classe-fleche{color:var(--teal-700);font-weight:700;transition:transform .15s;}
   .carte-classe-prof:hover .carte-classe-fleche{transform:translateX(3px);}
   .dossier-classe{
@@ -2187,18 +2187,18 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
       <tr>
         <td class="matiere-cell">
           <strong>${escapeHtml(m.nom.toUpperCase())}</strong>
-          ${m.professeur ? `<div style="font-size:10px;color:#333;">${escapeHtml(m.professeur)}</div>` : ''}
+          ${m.professeur ? `<div style="font-size:10.5px;color:#333;">${escapeHtml(m.professeur)}</div>` : ''}
         </td>
         <td class="moy-cell">${m.moyenne !== null ? m.moyenne.toFixed(2) : '—'}</td>
         <td class="moy-cell">${moyClasse !== undefined ? moyClasse.toFixed(2) : '—'}</td>
-        <td>${m.elementsProgramme ? escapeHtml(m.elementsProgramme).replace(/\n/g,'<br>') : '—'}</td>
         <td>${m.appreciationTravail ? escapeHtml(m.appreciationTravail) : '—'}</td>
         <td>${m.appreciationAvis ? escapeHtml(m.appreciationAvis) : '—'}</td>
       </tr>`;
   }).join('');
 
   return `
-    <div class="bulletin-impression" style="page-break-after:always;">
+    <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;justify-content:center;min-height:100vh;box-sizing:border-box;">
+      <div>
       <h1>${escapeHtml(parametres.nomEtablissement || 'Établissement')}</h1>
       <p class="sous-titre">Bulletin de scolarité — ${escapeHtml(libellePeriodeTexte)} — Année ${escapeHtml(parametres.anneeScolaire || '')}</p>
       <div class="infos-generales">
@@ -2210,17 +2210,20 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
           <tr>
             <th rowspan="2" style="vertical-align:bottom;">Matière</th>
             <th colspan="2">Moyennes</th>
-            <th rowspan="2" style="vertical-align:bottom;">Éléments du programme travaillés</th>
             <th rowspan="2" style="vertical-align:bottom;">App. A : Travail</th>
             <th rowspan="2" style="vertical-align:bottom;">App. B : Avis global</th>
           </tr>
           <tr><th>Élève</th><th>Classe</th></tr>
         </thead>
-        <tbody>${lignes || '<tr><td colspan="6" style="text-align:center;">Aucune note pour cette période.</td></tr>'}</tbody>
+        <tbody>${lignes || '<tr><td colspan="5" style="text-align:center;">Aucune note pour cette période.</td></tr>'}</tbody>
       </table>
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;">
-        <p style="font-size:10px;color:#333;margin:0;">Document généré le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}.</p>
-        ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:100px;max-height:100px;" />` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;">
+        <div>
+          <p style="font-size:10.5px;color:#333;margin:0 0 3px;">Document généré le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}.</p>
+          ${parametres.siteWeb ? `<p style="font-size:10.5px;color:#333;margin:0;">${escapeHtml(parametres.siteWeb)}</p>` : ''}
+        </div>
+        ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:110px;max-height:110px;" />` : ''}
+      </div>
       </div>
     </div>`;
 }
@@ -4127,11 +4130,11 @@ async function renderAdminClasses(){
       <div class="carte-classe-numero">${String(i + 1).padStart(2, '0')}</div>
       <div class="carte-classe-matiere">${escapeHtml(c.anneeScolaire)}</div>
       <div class="carte-classe-nom">${escapeHtml(c.nom)}</div>
-      <div class="carte-classe-pied" style="flex-direction:column;align-items:stretch;gap:8px;">
+      <div class="carte-classe-pied" style="flex-direction:column;align-items:stretch;gap:6px;">
         <span>${c.etudiants ? c.etudiants.length : 0} élève${(c.etudiants ? c.etudiants.length : 0) > 1 ? 's' : ''}</span>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn-secondary" data-voir-eleves-classe="${c.id}" style="font-size:12px;padding:6px 10px;">Voir les élèves</button>
-          <button class="btn-secondary" data-delete-classe="${c.id}" style="font-size:12px;padding:6px 10px;border-color:var(--danger);color:var(--danger);">Supprimer</button>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn-secondary" data-voir-eleves-classe="${c.id}" style="font-size:10.5px;padding:4px 8px;">Voir les élèves</button>
+          <button class="btn-secondary" data-delete-classe="${c.id}" style="font-size:10.5px;padding:4px 8px;border-color:var(--danger);color:var(--danger);">Supprimer</button>
         </div>
       </div>
     </div>`).join('');
