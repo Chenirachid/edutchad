@@ -1217,6 +1217,8 @@ const I18N = {
     el_col_matiere: 'Matière', el_col_moyennes: 'Moyennes', el_col_eleve: 'Élève', el_col_classe: 'Classe',
     el_col_programme: 'Éléments du programme travaillés durant la période', el_col_app_a: 'App. A : Travail', el_col_app_b: 'App. B : Avis global',
     el_aucune_note_periode: 'Aucune note pour cette période.', el_imprimer: 'Imprimer / Enregistrer en PDF',
+    el_evenement: 'évènement', el_evenements: 'évènements', el_col_etudiant: 'Étudiant', el_col_statut: 'Statut', el_col_motif: 'Motif',
+    el_retard: 'Retard', el_absence: 'Absence', el_justifiee: 'Justifiée', el_non_justifiee: 'Non justifiée', el_aucune_absence: 'Aucune absence ou retard enregistré.',
   },
   en: {
     landing_titre: 'The all-in-one school platform',
@@ -1261,6 +1263,8 @@ const I18N = {
     el_col_matiere: 'Subject', el_col_moyennes: 'Averages', el_col_eleve: 'Student', el_col_classe: 'Class',
     el_col_programme: 'Topics covered during the period', el_col_app_a: 'Assessment A: Effort', el_col_app_b: 'Assessment B: Overall',
     el_aucune_note_periode: 'No grades for this period.', el_imprimer: 'Print / Save as PDF',
+    el_evenement: 'event', el_evenements: 'events', el_col_etudiant: 'Student', el_col_statut: 'Status', el_col_motif: 'Reason',
+    el_retard: 'Late', el_absence: 'Absence', el_justifiee: 'Justified', el_non_justifiee: 'Not justified', el_aucune_absence: 'No absence or lateness recorded.',
   },
   ar: {
     landing_titre: 'منصة مدرسية شاملة',
@@ -1305,6 +1309,8 @@ const I18N = {
     el_col_matiere: 'المادة', el_col_moyennes: 'المعدلات', el_col_eleve: 'التلميذ', el_col_classe: 'القسم',
     el_col_programme: 'عناصر البرنامج المدروسة خلال الفترة', el_col_app_a: 'تقييم أ: العمل', el_col_app_b: 'تقييم ب: الرأي العام',
     el_aucune_note_periode: 'لا توجد نقاط لهذه الفترة.', el_imprimer: 'طباعة / حفظ كـ PDF',
+    el_evenement: 'حدث', el_evenements: 'أحداث', el_col_etudiant: 'التلميذ', el_col_statut: 'الحالة', el_col_motif: 'السبب',
+    el_retard: 'تأخر', el_absence: 'غياب', el_justifiee: 'مبرر', el_non_justifiee: 'غير مبرر', el_aucune_absence: 'لا يوجد غياب أو تأخر مسجل.',
   },
 };
 
@@ -2333,18 +2339,18 @@ function renderAbsencesTable(absences, showEtudiant){
   const content = document.getElementById('content');
   const rows = absences.map(a => `
     <tr>
-      <td>${new Date(a.date).toLocaleDateString('fr-FR')}</td>
+      <td>${new Date(a.date).toLocaleDateString(localeCourante())}</td>
       ${showEtudiant ? `<td>${escapeHtml(a.etudiant.prenom)} ${escapeHtml(a.etudiant.nom)}</td>` : ''}
-      <td>${a.type === 'RETARD' ? `<span class="badge-non-justifiee" style="background:var(--warning-bg);color:var(--warning);">Retard${a.dureeMinutes ? ' (' + a.dureeMinutes + ' min)' : ''}</span>` : '<span class="chip" style="background:var(--teal-700);">Absence</span>'}</td>
+      <td>${a.type === 'RETARD' ? `<span class="badge-non-justifiee" style="background:var(--warning-bg);color:var(--warning);">${t('el_retard')}${a.dureeMinutes ? ' (' + a.dureeMinutes + ' min)' : ''}</span>` : `<span class="chip" style="background:var(--teal-700);">${t('el_absence')}</span>`}</td>
       <td><span class="chip" style="background:${stringToColor(a.enseignement.matiere.nom)}">${escapeHtml(a.enseignement.matiere.nom)}</span></td>
       <td>${escapeHtml(a.enseignement.classe.nom)}</td>
-      <td>${a.justifiee ? '<span class="badge-justifiee">Justifiée</span>' : '<span class="badge-non-justifiee">Non justifiée</span>'}</td>
+      <td>${a.justifiee ? `<span class="badge-justifiee">${t('el_justifiee')}</span>` : `<span class="badge-non-justifiee">${t('el_non_justifiee')}</span>`}</td>
       <td>${escapeHtml(a.motif || '—')}</td>
     </tr>`).join('');
   content.innerHTML = `
     <div class="card">
-      <h2>${absences.length} évènement${absences.length > 1 ? 's' : ''}</h2>
-      ${absences.length ? `<table><thead><tr><th>Date</th>${showEtudiant ? '<th>Étudiant</th>' : ''}<th>Type</th><th>Matière</th><th>Classe</th><th>Statut</th><th>Motif</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">Aucune absence ou retard enregistré.</div>`}
+      <h2>${absences.length} ${absences.length > 1 ? t('el_evenements') : t('el_evenement')}</h2>
+      ${absences.length ? `<table><thead><tr><th>${t('el_col_date')}</th>${showEtudiant ? `<th>${t('el_col_etudiant')}</th>` : ''}<th>${t('el_col_type')}</th><th>${t('el_col_matiere')}</th><th>${t('el_col_classe')}</th><th>${t('el_col_statut')}</th><th>${t('el_col_motif')}</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">${t('el_aucune_absence')}</div>`}
     </div>`;
 }
 
@@ -6583,7 +6589,7 @@ async function renderActualites(){
       </form>
     </div>` : '';
 
-  content.innerHTML = `${blocMessages}${blocEmploiProf}${blocEtudiant}${blocParent}${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
+  content.innerHTML = `${blocMessages}${blocEmploiProf}${blocEtudiant}<div id="dashboard-parent-conteneur">${blocParent}</div>${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
 
   if(peutPublier){
     document.getElementById('actualite-form').addEventListener('submit', async (e) => {
@@ -6606,6 +6612,19 @@ async function renderActualites(){
   const btnAllerMessagerie = document.getElementById('accueil-aller-messagerie-btn');
   if(btnAllerMessagerie){
     btnAllerMessagerie.addEventListener('click', () => selectMenu('messagerie'));
+  }
+  const gererChangementEnfantDashboard = async (enfantId) => {
+    const conteneur = document.getElementById('dashboard-parent-conteneur');
+    conteneur.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
+    conteneur.innerHTML = await construireBlocAccueilParent(enfantId);
+    const nouveauSelect = document.getElementById('dashboard-parent-enfant-select');
+    if(nouveauSelect) nouveauSelect.addEventListener('change', (ev) => gererChangementEnfantDashboard(ev.target.value));
+    const btn = document.getElementById('accueil-aller-appel-btn');
+    if(btn) btn.addEventListener('click', () => selectMenu('appel'));
+  };
+  const selectEnfantDashboard = document.getElementById('dashboard-parent-enfant-select');
+  if(selectEnfantDashboard){
+    selectEnfantDashboard.addEventListener('change', (e) => gererChangementEnfantDashboard(e.target.value));
   }
 }
 
@@ -6632,11 +6651,11 @@ async function construireBlocMessagesAccueil(){
   }
 }
 
-async function construireBlocAccueilParent(){
+async function construireBlocAccueilParent(enfantIdChoisi){
   try{
     const enfants = await api('/parents/mes-enfants');
     if(!enfants.length) return '<div class="card"><div class="empty-state">Aucun enfant n\'est encore relié à ce compte parent — contactez l\'administration de l\'établissement.</div></div>';
-    const enfant = enfants[0];
+    const enfant = enfantIdChoisi ? (enfants.find(e => e.id === Number(enfantIdChoisi)) || enfants[0]) : enfants[0];
 
     const [creneaux, notes, absences, cahiers, recus, actualites, epreuves] = await Promise.all([
       api('/creneaux').catch(() => []),
@@ -6647,6 +6666,7 @@ async function construireBlocAccueilParent(){
       api('/actualites').catch(() => []),
       api('/epreuves').catch(() => []),
     ]);
+
 
     const creneauxEnfant = creneaux.filter(c => c.enseignement?.classe?.id === enfant.classeId);
     const notesEnfant = notes.filter(n => n.etudiant?.id === enfant.id);
@@ -6723,8 +6743,12 @@ async function construireBlocAccueilParent(){
       </div>`).join('') || `<div class="empty-state" style="padding:10px;">${t('el_aucun_evenement')}</div>`;
 
     return `
-      <div class="card" style="margin-bottom:12px;">
-        <p style="margin:0;font-size:13px;font-weight:600;color:var(--teal-900);">Suivi de ${escapeHtml(enfant.prenom)} ${escapeHtml(enfant.nom)}${enfants.length > 1 ? ` <span style="font-weight:400;color:var(--text-muted);">(premier enfant affiché — ${enfants.length} enfants au total)</span>` : ''}</p>
+      <div class="card" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <p style="margin:0;font-size:13px;font-weight:600;color:var(--teal-900);">Suivi de ${escapeHtml(enfant.prenom)} ${escapeHtml(enfant.nom)}</p>
+        ${enfants.length > 1 ? `
+          <div class="f" style="margin:0;max-width:220px;">
+            <select id="dashboard-parent-enfant-select">${enfants.map(e => `<option value="${e.id}" ${e.id === enfant.id ? 'selected' : ''}>${escapeHtml(e.prenom)} ${escapeHtml(e.nom)}</option>`).join('')}</select>
+          </div>` : ''}
       </div>
       <div class="card dashboard-emploi-carte" id="dashboard-emploi-parent">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
