@@ -2227,7 +2227,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
   const sommePonderee = matieresNotees.reduce((acc, m) => acc + arrondi2(m.moyenne * m.coefficient), 0);
 
   return `
-    <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;min-height:100vh;box-sizing:border-box;">
+    <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;height:281mm;box-sizing:border-box;overflow:hidden;">
       <div style="flex:1;display:flex;flex-direction:column;">
       <div>
       <div class="bulletin-entete-gouv">
