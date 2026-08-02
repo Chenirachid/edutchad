@@ -2228,7 +2228,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
 
   return `
     <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;min-height:100vh;box-sizing:border-box;">
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+      <div style="flex:1;display:flex;flex-direction:column;">
       <div>
       <div class="bulletin-entete-gouv">
         <div class="bulletin-entete-fr">
@@ -2292,12 +2292,12 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
         <div style="font-size:11px;font-weight:700;text-decoration:underline;">DÉCISION DU CONSEIL DES PROFESSEURS</div>
         <div style="font-size:12px;font-style:italic;margin-top:2px;">${escapeHtml(decision.fr)} — ${decision.ar}</div>
       </div>
-      <div style="display:flex;justify-content:flex-end;align-items:flex-end;margin-top:26px;gap:20px;">
+      </div>
+      <div style="display:flex;justify-content:flex-end;align-items:flex-end;margin-top:auto;gap:20px;">
         <div style="text-align:center;">
           <div style="font-size:11px;font-weight:700;">Le Directeur / المدير</div>
           ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:110px;max-height:110px;margin-top:6px;" />` : ''}
         </div>
-      </div>
       </div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:9.5px;color:#333;border-top:1px solid #999;padding-top:6px;">
