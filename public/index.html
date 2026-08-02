@@ -2227,7 +2227,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
   const sommePonderee = matieresNotees.reduce((acc, m) => acc + arrondi2(m.moyenne * m.coefficient), 0);
 
   return `
-    <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;min-height:281mm;box-sizing:border-box;">
+    <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;height:281mm;box-sizing:border-box;overflow:hidden;">
       <div style="flex:1;display:flex;flex-direction:column;">
       <div>
       <div class="bulletin-entete-gouv">
@@ -2288,7 +2288,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
       <div style="margin-top:10px;font-size:12px;">
         ${b.rang !== undefined && b.rang !== null ? `<strong>Rang / الترتيب :</strong> ${b.rang}${b.totalClasse ? 'ème sur ' + b.totalClasse + ' élèves' : ''}` : ''}
       </div>
-      <div style="margin-top:16px;border-top:1px solid #000;padding-top:8px;">
+      <div style="margin-top:10px;border-top:1px solid #000;padding-top:5px;">
         <div style="font-size:11px;font-weight:700;text-decoration:underline;">DÉCISION DU CONSEIL DES PROFESSEURS</div>
         <div style="font-size:12px;font-style:italic;margin-top:2px;">${escapeHtml(decision.fr)} — ${decision.ar}</div>
       </div>
@@ -2296,7 +2296,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
       <div style="display:flex;justify-content:flex-end;align-items:flex-end;margin-top:auto;gap:20px;">
         <div style="text-align:center;">
           <div style="font-size:11px;font-weight:700;">Le Directeur / المدير</div>
-          ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:110px;max-height:110px;margin-top:6px;" />` : ''}
+          ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:85px;max-height:85px;margin-top:4px;" />` : ''}
         </div>
       </div>
       </div>
