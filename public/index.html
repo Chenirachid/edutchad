@@ -5717,12 +5717,8 @@ async function renderAdminInscriptions(){
       <td><span class="moy-pill" style="background:transparent;border:1.5px solid ${STATUT_INSCRIPTION_COLORS[i.statut]};color:${STATUT_INSCRIPTION_COLORS[i.statut]};">${STATUT_INSCRIPTION_LABELS[i.statut]}</span></td>
       <td><span class="moy-pill" style="background:transparent;border:1.5px solid ${STATUT_INSCRIPTION_COLORS[i.statutPedagogique]};color:${STATUT_INSCRIPTION_COLORS[i.statutPedagogique]};">${STATUT_INSCRIPTION_LABELS[i.statutPedagogique]}</span></td>
       <td>
-        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Administrative :</div>
         <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="VALIDEE" style="border-color:var(--success);color:var(--success);">Valider</button>
         <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>
-        <div style="font-size:10px;color:var(--text-muted);margin:8px 0 3px;">Pédagogique (affectation aux enseignements) :</div>
-        <button class="btn-secondary" data-statut-pedagogique="${i.id}" data-valeur="VALIDEE" style="border-color:var(--success);color:var(--success);">Valider</button>
-        <button class="btn-secondary" data-statut-pedagogique="${i.id}" data-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>
       </td>
     </tr>`;
 
@@ -5930,16 +5926,6 @@ async function renderAdminInscriptions(){
       try{
         await api('/inscriptions-administratives/' + btn.dataset.statutInscription + '/statut', { method:'PATCH', body: JSON.stringify({ statut: btn.dataset.valeur })});
         toast('Statut administratif mis à jour.');
-        renderAdminInscriptions();
-      }catch(err){ toast(err.message, 'error'); }
-    });
-  });
-
-  content.querySelectorAll('[data-statut-pedagogique]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      try{
-        await api('/inscriptions-administratives/' + btn.dataset.statutPedagogique + '/statut-pedagogique', { method:'PATCH', body: JSON.stringify({ statut: btn.dataset.valeur })});
-        toast('Affectation pédagogique mise à jour.');
         renderAdminInscriptions();
       }catch(err){ toast(err.message, 'error'); }
     });

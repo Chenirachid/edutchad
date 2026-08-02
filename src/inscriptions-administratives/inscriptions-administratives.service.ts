@@ -12,6 +12,17 @@ const etudiantSelect = {
   classeId: true,
 } as const;
 
+// L'inscription pédagogique n'est jamais validée à la main : elle reflète simplement
+// le fait qu'un administrateur a affecté l'élève à une classe (classeId renseigné).
+function avecStatutPedagogiqueCalcule<T extends { etudiant: { classeId: number | null } }>(inscription: T) {
+  return {
+    ...inscription,
+    statutPedagogique: inscription.etudiant.classeId
+      ? StatutInscriptionAdmin.VALIDEE
+      : StatutInscriptionAdmin.EN_ATTENTE,
+  };
+}
+
 @Injectable()
 export class InscriptionsAdministrativesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -24,7 +35,12 @@ export class InscriptionsAdministrativesService {
       throw new NotFoundException(`Aucun étudiant avec le numéro ${dto.numeroEtudiant}`);
     }
 
-    return this.prisma.inscriptionAdministrative.upsert({
+    const statutPedagogique = etudiant.classeId
+      ? StatutInscriptionAdmin.VALIDEE
+      : StatutInscriptionAdmin.EN_ATTENTE;
+    const dateValidationPedagogique = etudiant.classeId ? new Date() : null;
+
+    const inscription = await this.prisma.inscriptionAdministrative.upsert({
       where: {
         etudiantId_anneeScolaire: { etudiantId: etudiant.id, anneeScolaire: dto.anneeScolaire },
       },
@@ -34,6 +50,8 @@ export class InscriptionsAdministrativesService {
         dateNaissance: new Date(dto.dateNaissance),
         emailContact: dto.emailContact,
         telephoneContact: dto.telephoneContact,
+        statutPedagogique,
+        dateValidationPedagogique,
         typeJustificatif: dto.typeJustificatif,
         justificatifNom: dto.justificatifNom,
         justificatifType: dto.justificatifType,
@@ -47,6 +65,8 @@ export class InscriptionsAdministrativesService {
         dateNaissance: new Date(dto.dateNaissance),
         emailContact: dto.emailContact,
         telephoneContact: dto.telephoneContact,
+        statutPedagogique,
+        dateValidationPedagogique,
         typeJustificatif: dto.typeJustificatif,
         justificatifNom: dto.justificatifNom,
         justificatifType: dto.justificatifType,
@@ -58,30 +78,36 @@ export class InscriptionsAdministrativesService {
       },
       include: { etudiant: { select: etudiantSelect } },
     });
+    return avecStatutPedagogiqueCalcule(inscription);
   }
 
-  findAll() {
-    return this.prisma.inscriptionAdministrative.findMany({
+  async findAll() {
+    const inscriptions = await this.prisma.inscriptionAdministrative.findMany({
       include: { etudiant: { select: etudiantSelect } },
       orderBy: { createdAt: 'desc' },
     });
+    return inscriptions.map(avecStatutPedagogiqueCalcule);
   }
 
   async findByEtudiant(etudiantId: number) {
-    return this.prisma.inscriptionAdministrative.findMany({
+    const inscriptions = await this.prisma.inscriptionAdministrative.findMany({
       where: { etudiantId },
       include: { etudiant: { select: etudiantSelect } },
       orderBy: { createdAt: 'desc' },
     });
+    return inscriptions.map(avecStatutPedagogiqueCalcule);
   }
 
   async updateStatut(id: number, dto: UpdateStatutInscriptionDto) {
-    const inscription = await this.prisma.inscriptionAdministrative.findUnique({ where: { id } });
+    const inscription = await this.prisma.inscriptionAdministrative.findUnique({
+      where: { id },
+      include: { etudiant: { select: etudiantSelect } },
+    });
     if (!inscription) {
       throw new NotFoundException(`Inscription administrative ${id} introuvable`);
     }
 
-    return this.prisma.inscriptionAdministrative.update({
+    const misAJour = await this.prisma.inscriptionAdministrative.update({
       where: { id },
       data: {
         statut: dto.statut,
@@ -89,21 +115,6 @@ export class InscriptionsAdministrativesService {
       },
       include: { etudiant: { select: etudiantSelect } },
     });
-  }
-
-  async updateStatutPedagogique(id: number, dto: UpdateStatutInscriptionDto) {
-    const inscription = await this.prisma.inscriptionAdministrative.findUnique({ where: { id } });
-    if (!inscription) {
-      throw new NotFoundException(`Inscription administrative ${id} introuvable`);
-    }
-
-    return this.prisma.inscriptionAdministrative.update({
-      where: { id },
-      data: {
-        statutPedagogique: dto.statut,
-        dateValidationPedagogique: dto.statut === StatutInscriptionAdmin.VALIDEE ? new Date() : null,
-      },
-      include: { etudiant: { select: etudiantSelect } },
-    });
+    return avecStatutPedagogiqueCalcule(misAJour);
   }
 }
