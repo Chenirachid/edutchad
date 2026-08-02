@@ -491,6 +491,21 @@
     display:flex;align-items:center;justify-content:center;flex-shrink:0;
   }
   .rond-nav:hover{background:var(--teal-100);}
+  .barre-nav-semaine{
+    display:inline-flex;align-items:stretch;border:1.5px solid var(--border);border-radius:10px;
+    overflow:hidden;margin-bottom:18px;background:#fff;
+  }
+  .barre-nav-semaine-btn{
+    background:transparent;border:none;color:var(--teal-700);padding:0 14px;
+    display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);
+  }
+  .barre-nav-semaine-btn:first-child{border-left:none;}
+  .barre-nav-semaine-btn:hover{background:var(--teal-100);}
+  .barre-nav-semaine-btn-accent{color:var(--accent);}
+  .barre-nav-semaine-select{
+    border:none;background:transparent;font-size:13px;font-weight:600;color:var(--teal-900);
+    text-align:center;cursor:pointer;padding:10px 14px;font-family:'Fraunces',Georgia,serif;
+  }
   .pilule-date{
     padding:6px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);
   }
@@ -1219,6 +1234,9 @@ const I18N = {
     el_aucune_note_periode: 'Aucune note pour cette période.', el_imprimer: 'Imprimer / Enregistrer en PDF',
     el_evenement: 'évènement', el_evenements: 'évènements', el_col_etudiant: 'Étudiant', el_col_statut: 'Statut', el_col_motif: 'Motif',
     el_retard: 'Retard', el_absence: 'Absence', el_justifiee: 'Justifiée', el_non_justifiee: 'Non justifiée', el_aucune_absence: 'Aucune absence ou retard enregistré.',
+    el_cahier_par_classe: 'Cahier de texte — par classe', el_entree: 'entrée', el_entrees: 'entrées', el_aucune_entree: "Aucune entrée pour l'instant.",
+    el_toutes_classes: 'Toutes les classes', el_par_matiere: 'par matière', el_par_date: 'par date',
+    el_col_contenu: 'Contenu', el_col_devoirs: 'Devoirs', el_col_piece_jointe: 'Pièce jointe', el_voir_tout_cahier: 'voir tout le cahier de texte',
   },
   en: {
     landing_titre: 'The all-in-one school platform',
@@ -1265,6 +1283,9 @@ const I18N = {
     el_aucune_note_periode: 'No grades for this period.', el_imprimer: 'Print / Save as PDF',
     el_evenement: 'event', el_evenements: 'events', el_col_etudiant: 'Student', el_col_statut: 'Status', el_col_motif: 'Reason',
     el_retard: 'Late', el_absence: 'Absence', el_justifiee: 'Justified', el_non_justifiee: 'Not justified', el_aucune_absence: 'No absence or lateness recorded.',
+    el_cahier_par_classe: 'Class notebook — by class', el_entree: 'entry', el_entrees: 'entries', el_aucune_entree: 'No entries yet.',
+    el_toutes_classes: 'All classes', el_par_matiere: 'by subject', el_par_date: 'by date',
+    el_col_contenu: 'Content', el_col_devoirs: 'Homework', el_col_piece_jointe: 'Attachment', el_voir_tout_cahier: 'see the whole class notebook',
   },
   ar: {
     landing_titre: 'منصة مدرسية شاملة',
@@ -1311,6 +1332,9 @@ const I18N = {
     el_aucune_note_periode: 'لا توجد نقاط لهذه الفترة.', el_imprimer: 'طباعة / حفظ كـ PDF',
     el_evenement: 'حدث', el_evenements: 'أحداث', el_col_etudiant: 'التلميذ', el_col_statut: 'الحالة', el_col_motif: 'السبب',
     el_retard: 'تأخر', el_absence: 'غياب', el_justifiee: 'مبرر', el_non_justifiee: 'غير مبرر', el_aucune_absence: 'لا يوجد غياب أو تأخر مسجل.',
+    el_cahier_par_classe: 'دفتر النصوص — حسب القسم', el_entree: 'مدخل', el_entrees: 'مداخل', el_aucune_entree: 'لا توجد مداخل حالياً.',
+    el_toutes_classes: 'كل الأقسام', el_par_matiere: 'حسب المادة', el_par_date: 'حسب التاريخ',
+    el_col_contenu: 'المحتوى', el_col_devoirs: 'الواجبات', el_col_piece_jointe: 'مرفق', el_voir_tout_cahier: 'عرض كل دفتر النصوص',
   },
 };
 
@@ -2580,17 +2604,20 @@ async function renderEmploiDuTemps(){
         </button>
       </div>
       <h2 style="color:var(--teal-700);margin-bottom:14px;">Emploi du temps (semaine ${semaine} — <span style="text-transform:lowercase;">${semaineEstPaire ? 'paire' : 'impaire'}</span>)</h2>
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px;">
-        <button class="rond-nav" id="semaine-precedente-btn" title="Semaine précédente">‹</button>
-        <div class="pilule-date">
-          <select id="semaine-input" style="border:none;background:transparent;font-size:13px;font-weight:600;color:var(--teal-900);text-align:center;cursor:pointer;">
-            ${Array.from({length:53}, (_, i) => i+1).map(n => `<option value="${n}" ${n===semaine?'selected':''}>du ${formatCourt(lundi)} au ${formatCourt(finSemaineAffichee)}</option>`).join('')}
-          </select>
-        </div>
-        <button class="rond-nav" id="semaine-suivante-btn" title="Semaine suivante">›</button>
-        <button class="rond-nav" id="semaine-actuelle-btn" title="Aujourd'hui" style="background:var(--teal-700);color:#fff;">⌂</button>
+      <div class="barre-nav-semaine">
+        <button class="barre-nav-semaine-btn" id="semaine-precedente-btn" title="Semaine précédente">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <select id="semaine-input" class="barre-nav-semaine-select">
+          ${Array.from({length:53}, (_, i) => i+1).map(n => `<option value="${n}" ${n===semaine?'selected':''}>du ${formatCourt(lundi)} au ${formatCourt(finSemaineAffichee)}</option>`).join('')}
+        </select>
+        <button class="barre-nav-semaine-btn" id="semaine-suivante-btn" title="Semaine suivante">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button class="barre-nav-semaine-btn barre-nav-semaine-btn-accent" id="semaine-actuelle-btn" title="Aujourd'hui">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
+        </button>
       </div>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">= réunion prévue cette semaine-là.</p>
       <div style="overflow-x:auto;">
         ${plages.length ? `
         <table class="emploi-grille">
@@ -5430,7 +5457,7 @@ async function renderCahierTexte(){
   if(enseignementIdFiltre !== null){
     afficherEntreesCahier(arbo, entrees, isProf, {
       titre: entrees.length ? `${escapeHtml(entrees[0].enseignement.classe.nom)} — ${escapeHtml(entrees[0].enseignement.matiere.nom)}` : 'Cahier de texte',
-      lienRetour: { texte: 'voir tout le cahier de texte', action: () => renderCahierTexte() },
+      lienRetour: { texte: t('el_voir_tout_cahier'), action: () => renderCahierTexte() },
     });
     return;
   }
@@ -5449,13 +5476,13 @@ function afficherDossiersClasses(arbo, entrees, isProf){
 
   arbo.innerHTML = `
     <div class="card">
-      <h2>Cahier de texte — par classe</h2>
+      <h2>${t('el_cahier_par_classe')}</h2>
       ${nomsClasses.length ? `<div class="dossiers-grille">${nomsClasses.map(nom => `
         <div class="dossier-classe" data-dossier-classe-cahier="${escapeHtml(nom)}">
           <div class="dossier-icone" style="color:#333;">${ICONE_DOSSIER}</div>
           <div class="dossier-nom">${escapeHtml(nom)}</div>
-          <div class="dossier-matiere">${parClasse[nom].length} entrée${parClasse[nom].length > 1 ? 's' : ''}</div>
-        </div>`).join('')}</div>` : '<div class="empty-state">Aucune entrée pour l\'instant.</div>'}
+          <div class="dossier-matiere">${parClasse[nom].length} ${parClasse[nom].length > 1 ? t('el_entrees') : t('el_entree')}</div>
+        </div>`).join('')}</div>` : `<div class="empty-state">${t('el_aucune_entree')}</div>`}
     </div>`;
 
   arbo.querySelectorAll('[data-dossier-classe-cahier]').forEach(carte => {
@@ -5477,13 +5504,13 @@ function afficherDossiersMatieres(arbo, entreesDeLaClasse, isProf, nomClasse, en
 
   arbo.innerHTML = `
     <div class="card">
-      <p style="margin:0 0 14px;"><a href="#" id="cahier-retour-classes" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">← Toutes les classes</a></p>
-      <h2>${escapeHtml(nomClasse)} — par matière</h2>
+      <p style="margin:0 0 14px;"><a href="#" id="cahier-retour-classes" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">← ${t('el_toutes_classes')}</a></p>
+      <h2>${escapeHtml(nomClasse)} — ${t('el_par_matiere')}</h2>
       <div class="dossiers-grille">${nomsMatieres.map(nom => `
         <div class="dossier-classe" data-dossier-matiere-cahier="${escapeHtml(nom)}">
           <div class="dossier-icone" style="color:#333;">${ICONE_DOSSIER}</div>
           <div class="dossier-nom">${escapeHtml(nom)}</div>
-          <div class="dossier-matiere">${parMatiere[nom].length} entrée${parMatiere[nom].length > 1 ? 's' : ''}</div>
+          <div class="dossier-matiere">${parMatiere[nom].length} ${parMatiere[nom].length > 1 ? t('el_entrees') : t('el_entree')}</div>
         </div>`).join('')}</div>
     </div>`;
 
@@ -5507,7 +5534,7 @@ function afficherEntreesCahier(arbo, entrees, isProf, options){
   const triees = entrees.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
   const rows = triees.map(e => `
     <tr>
-      <td>${new Date(e.date).toLocaleDateString('fr-FR')}</td>
+      <td>${new Date(e.date).toLocaleDateString(localeCourante())}</td>
       <td>${escapeHtml(e.contenu)}</td>
       <td>${e.devoirs ? escapeHtml(e.devoirs) : '—'}</td>
       <td>${e.pieceJointeNom ? `<a href="#" data-telecharger-piece="${e.id}" style="color:var(--teal-700);font-weight:600;">${escapeHtml(e.pieceJointeNom)}</a>` : '—'}</td>
@@ -5517,8 +5544,8 @@ function afficherEntreesCahier(arbo, entrees, isProf, options){
   arbo.innerHTML = `
     <div class="card">
       ${options.lienRetour ? `<p style="margin:0 0 14px;"><a href="#" id="cahier-retour-niveau" style="font-size:12.5px;color:var(--text-muted);text-decoration:none;">${options.lienRetour.texte}</a></p>` : ''}
-      <h2>${options.titre} — par date (${triees.length})</h2>
-      ${triees.length ? `<table><thead><tr><th>Date</th><th>Contenu</th><th>Devoirs</th><th>Pièce jointe</th>${isProf ? '<th></th>' : ''}</tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">Aucune entrée pour l\'instant.</div>'}
+      <h2>${options.titre} — ${t('el_par_date')} (${triees.length})</h2>
+      ${triees.length ? `<table><thead><tr><th>${t('el_col_date')}</th><th>${t('el_col_contenu')}</th><th>${t('el_col_devoirs')}</th><th>${t('el_col_piece_jointe')}</th>${isProf ? '<th></th>' : ''}</tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty-state">${t('el_aucune_entree')}</div>`}
     </div>`;
 
   const lienRetourEl = document.getElementById('cahier-retour-niveau');
