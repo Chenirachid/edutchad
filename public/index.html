@@ -52,7 +52,7 @@
     zoom:1.15;
   }
   h1,h2,h3,.brand,.nav-item{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;}
-  @media (max-width:600px){
+  @media screen and (max-width:600px){
     body{zoom:1;}
   }
   .hidden{display:none !important;}
@@ -491,6 +491,13 @@
     display:flex;align-items:center;justify-content:center;flex-shrink:0;
   }
   .rond-nav:hover{background:var(--teal-100);}
+  .selecteur-enfants{display:flex;gap:8px;flex-wrap:wrap;}
+  .pilule-enfant{
+    padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;
+    font-size:13px;font-weight:600;color:var(--text-muted);transition:all .15s;
+  }
+  .pilule-enfant:hover{border-color:var(--teal-500);}
+  .pilule-enfant.active{background:var(--teal-700);border-color:var(--teal-700);color:#fff;}
   .barre-nav-semaine{
     display:inline-flex;align-items:stretch;border:1.5px solid var(--border);border-radius:10px;
     overflow:hidden;margin-bottom:18px;background:#fff;
@@ -639,6 +646,11 @@
     body *{visibility:hidden;}
     #print-root, #print-root *{visibility:visible;}
     #print-root{display:block;position:absolute;left:0;top:0;width:100%;}
+    #print-root table{display:table !important;width:100% !important;table-layout:fixed !important;white-space:normal !important;}
+    #print-root thead{display:table-header-group !important;}
+    #print-root tbody{display:table-row-group !important;}
+    #print-root tr{display:table-row !important;}
+    #print-root th, #print-root td{display:table-cell !important;}
   }
   .bulletin-impression{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;padding:20px;color:#000;}
   .bulletin-impression h1{font-size:17px;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.03em;font-family:'Fraunces',Georgia,serif;font-weight:600;}
@@ -654,7 +666,7 @@
 
   /* ---------- EN-TÊTE MOBILE (façon Pronote) ---------- */
   .entete-mobile{display:none;}
-  @media (max-width:600px){
+  @media screen and (max-width:600px){
     .entete-mobile{
       display:flex;align-items:center;gap:12px;padding:18px 16px 22px;
       background:linear-gradient(135deg,var(--teal-700),var(--teal-900));
@@ -767,7 +779,7 @@
   }
 
   /* ---------- CORRECTIFS MOBILE GÉNÉRAUX (téléphone) ---------- */
-  @media (max-width:600px){
+  @media screen and (max-width:600px){
     /* Messagerie et langue sont désormais dans l'en-tête mobile vert : on les cache ici */
     .topnav-raccourcis, .lang-dropdown-wrap-app{display:none;}
 
@@ -1237,6 +1249,8 @@ const I18N = {
     el_cahier_par_classe: 'Cahier de texte — par classe', el_entree: 'entrée', el_entrees: 'entrées', el_aucune_entree: "Aucune entrée pour l'instant.",
     el_toutes_classes: 'Toutes les classes', el_par_matiere: 'par matière', el_par_date: 'par date',
     el_col_contenu: 'Contenu', el_col_devoirs: 'Devoirs', el_col_piece_jointe: 'Pièce jointe', el_voir_tout_cahier: 'voir tout le cahier de texte',
+    el_observations: 'Observations', el_punitions: 'Punitions', el_col_auteur: 'Auteur', el_col_duree: 'Durée',
+    el_aucune_observation: 'Aucune observation.', el_aucune_punition: 'Aucune punition.',
   },
   en: {
     landing_titre: 'The all-in-one school platform',
@@ -1286,6 +1300,8 @@ const I18N = {
     el_cahier_par_classe: 'Class notebook — by class', el_entree: 'entry', el_entrees: 'entries', el_aucune_entree: 'No entries yet.',
     el_toutes_classes: 'All classes', el_par_matiere: 'by subject', el_par_date: 'by date',
     el_col_contenu: 'Content', el_col_devoirs: 'Homework', el_col_piece_jointe: 'Attachment', el_voir_tout_cahier: 'see the whole class notebook',
+    el_observations: 'Observations', el_punitions: 'Sanctions', el_col_auteur: 'Author', el_col_duree: 'Duration',
+    el_aucune_observation: 'No observations.', el_aucune_punition: 'No sanctions.',
   },
   ar: {
     landing_titre: 'منصة مدرسية شاملة',
@@ -1335,6 +1351,8 @@ const I18N = {
     el_cahier_par_classe: 'دفتر النصوص — حسب القسم', el_entree: 'مدخل', el_entrees: 'مداخل', el_aucune_entree: 'لا توجد مداخل حالياً.',
     el_toutes_classes: 'كل الأقسام', el_par_matiere: 'حسب المادة', el_par_date: 'حسب التاريخ',
     el_col_contenu: 'المحتوى', el_col_devoirs: 'الواجبات', el_col_piece_jointe: 'مرفق', el_voir_tout_cahier: 'عرض كل دفتر النصوص',
+    el_observations: 'الملاحظات', el_punitions: 'العقوبات', el_col_auteur: 'الكاتب', el_col_duree: 'المدة',
+    el_aucune_observation: 'لا توجد ملاحظات.', el_aucune_punition: 'لا توجد عقوبات.',
   },
 };
 
@@ -2197,15 +2215,20 @@ async function renderNotesListeParent(){
   content.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
       <h1 style="font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--teal-900);margin:0;">Notes</h1>
-      ${enfants.length > 1 ? `
-        <div class="f" style="margin:0;max-width:220px;">
-          <select id="notes-parent-enfant-select">${enfants.map(e => `<option value="${e.id}">${escapeHtml(e.prenom)} ${escapeHtml(e.nom)}</option>`).join('')}</select>
-        </div>` : `<div style="font-size:13px;color:var(--text-muted);">${escapeHtml(enfants[0].prenom)} ${escapeHtml(enfants[0].nom)}</div>`}
+      ${enfants.length > 1
+        ? `<div class="selecteur-enfants">${enfants.map((e, i) => `<button class="pilule-enfant ${i === 0 ? 'active' : ''}" data-choix-enfant-notes="${e.id}">${escapeHtml(e.prenom)} ${escapeHtml(e.nom)}</button>`).join('')}</div>`
+        : `<div style="font-size:13px;color:var(--text-muted);">${escapeHtml(enfants[0].prenom)} ${escapeHtml(enfants[0].nom)}</div>`}
     </div>
     <div id="notes-parent-zone"></div>`;
 
   if(enfants.length > 1){
-    document.getElementById('notes-parent-enfant-select').addEventListener('change', (e) => chargerNotesEnfant(e.target.value));
+    content.querySelectorAll('[data-choix-enfant-notes]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        content.querySelectorAll('[data-choix-enfant-notes]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        chargerNotesEnfant(btn.dataset.choixEnfantNotes);
+      });
+    });
   }
   await chargerNotesEnfant(enfants[0].id);
 }
@@ -4747,9 +4770,19 @@ const TYPE_EVALUATION_LABELS_PAR_LANGUE = {
 };
 const TYPE_EVALUATION_LABELS = new Proxy({}, { get: (_, type) => (TYPE_EVALUATION_LABELS_PAR_LANGUE[state.lang || 'fr'] || TYPE_EVALUATION_LABELS_PAR_LANGUE.fr)[type] });
 const TYPE_JUSTIFICATIF_LABELS = { ACTE_NAISSANCE:'Acte de naissance', PIECE_IDENTITE:"Pièce d'identité", PASSEPORT:'Passeport' };
-const TYPE_OBSERVATION_LABELS = { POSITIVE:'Positive', NEGATIVE:'Négative', NEUTRE:'Neutre' };
+const TYPE_OBSERVATION_LABELS_PAR_LANGUE = {
+  fr: { POSITIVE:'Positive', NEGATIVE:'Négative', NEUTRE:'Neutre' },
+  en: { POSITIVE:'Positive', NEGATIVE:'Negative', NEUTRE:'Neutral' },
+  ar: { POSITIVE:'إيجابية', NEGATIVE:'سلبية', NEUTRE:'محايدة' },
+};
+const TYPE_OBSERVATION_LABELS = new Proxy({}, { get: (_, type) => (TYPE_OBSERVATION_LABELS_PAR_LANGUE[state.lang || 'fr'] || TYPE_OBSERVATION_LABELS_PAR_LANGUE.fr)[type] });
 const TYPE_OBSERVATION_COLORS = { POSITIVE:'var(--success)', NEGATIVE:'var(--danger)', NEUTRE:'var(--text-muted)' };
-const TYPE_PUNITION_LABELS = { AVERTISSEMENT:'Avertissement', RETENUE:'Retenue', EXCLUSION_TEMPORAIRE:'Exclusion temporaire', EXCLUSION_DEFINITIVE:'Exclusion définitive' };
+const TYPE_PUNITION_LABELS_PAR_LANGUE = {
+  fr: { AVERTISSEMENT:'Avertissement', RETENUE:'Retenue', EXCLUSION_TEMPORAIRE:'Exclusion temporaire', EXCLUSION_DEFINITIVE:'Exclusion définitive' },
+  en: { AVERTISSEMENT:'Warning', RETENUE:'Detention', EXCLUSION_TEMPORAIRE:'Temporary exclusion', EXCLUSION_DEFINITIVE:'Permanent exclusion' },
+  ar: { AVERTISSEMENT:'إنذار', RETENUE:'احتجاز', EXCLUSION_TEMPORAIRE:'إقصاء مؤقت', EXCLUSION_DEFINITIVE:'إقصاء نهائي' },
+};
+const TYPE_PUNITION_LABELS = new Proxy({}, { get: (_, type) => (TYPE_PUNITION_LABELS_PAR_LANGUE[state.lang || 'fr'] || TYPE_PUNITION_LABELS_PAR_LANGUE.fr)[type] });
 
 async function renderProfObservations(){
   document.getElementById('page-subtitle').textContent = '';
@@ -4866,7 +4899,7 @@ async function renderComportement(){
 
   const obsRows = observations.map(o => `
     <tr>
-      <td>${new Date(o.date).toLocaleDateString('fr-FR')}</td>
+      <td>${new Date(o.date).toLocaleDateString(localeCourante())}</td>
       <td><span class="chip" style="background:${TYPE_OBSERVATION_COLORS[o.type]}">${TYPE_OBSERVATION_LABELS[o.type]}</span></td>
       <td>${escapeHtml(o.contenu)}</td>
       <td>${escapeHtml(o.auteur.prenom)} ${escapeHtml(o.auteur.nom)}</td>
@@ -4874,7 +4907,7 @@ async function renderComportement(){
 
   const punRows = punitions.map(p => `
     <tr>
-      <td>${new Date(p.date).toLocaleDateString('fr-FR')}</td>
+      <td>${new Date(p.date).toLocaleDateString(localeCourante())}</td>
       <td><span class="chip" style="background:var(--danger)">${TYPE_PUNITION_LABELS[p.type]}</span></td>
       <td>${escapeHtml(p.motif)}</td>
       <td>${p.dureeHeures ? p.dureeHeures + ' h' : '—'}</td>
@@ -4883,12 +4916,12 @@ async function renderComportement(){
 
   content.innerHTML = `
     <div class="card">
-      <h2>Observations (${observations.length})</h2>
-      ${observations.length ? `<table><thead><tr><th>Date</th><th>Type</th><th>Contenu</th><th>Auteur</th></tr></thead><tbody>${obsRows}</tbody></table>` : '<div class="empty-state">Aucune observation.</div>'}
+      <h2>${t('el_observations')} (${observations.length})</h2>
+      ${observations.length ? `<table><thead><tr><th>${t('el_col_date')}</th><th>${t('el_col_type')}</th><th>${t('el_col_contenu')}</th><th>${t('el_col_auteur')}</th></tr></thead><tbody>${obsRows}</tbody></table>` : `<div class="empty-state">${t('el_aucune_observation')}</div>`}
     </div>
     <div class="card">
-      <h2>Punitions (${punitions.length})</h2>
-      ${punitions.length ? `<table><thead><tr><th>Date</th><th>Type</th><th>Motif</th><th>Durée</th><th>Auteur</th></tr></thead><tbody>${punRows}</tbody></table>` : '<div class="empty-state">Aucune punition.</div>'}
+      <h2>${t('el_punitions')} (${punitions.length})</h2>
+      ${punitions.length ? `<table><thead><tr><th>${t('el_col_date')}</th><th>${t('el_col_type')}</th><th>${t('el_col_motif')}</th><th>${t('el_col_duree')}</th><th>${t('el_col_auteur')}</th></tr></thead><tbody>${punRows}</tbody></table>` : `<div class="empty-state">${t('el_aucune_punition')}</div>`}
     </div>`;
 }
 
@@ -6644,15 +6677,15 @@ async function renderActualites(){
     const conteneur = document.getElementById('dashboard-parent-conteneur');
     conteneur.innerHTML = '<div class="card"><div class="empty-state">Chargement…</div></div>';
     conteneur.innerHTML = await construireBlocAccueilParent(enfantId);
-    const nouveauSelect = document.getElementById('dashboard-parent-enfant-select');
-    if(nouveauSelect) nouveauSelect.addEventListener('change', (ev) => gererChangementEnfantDashboard(ev.target.value));
-    const btn = document.getElementById('accueil-aller-appel-btn');
-    if(btn) btn.addEventListener('click', () => selectMenu('appel'));
+    conteneur.querySelectorAll('[data-choix-enfant]').forEach(btn => {
+      btn.addEventListener('click', () => gererChangementEnfantDashboard(btn.dataset.choixEnfant));
+    });
+    const btnAppel = document.getElementById('accueil-aller-appel-btn');
+    if(btnAppel) btnAppel.addEventListener('click', () => selectMenu('appel'));
   };
-  const selectEnfantDashboard = document.getElementById('dashboard-parent-enfant-select');
-  if(selectEnfantDashboard){
-    selectEnfantDashboard.addEventListener('change', (e) => gererChangementEnfantDashboard(e.target.value));
-  }
+  content.querySelectorAll('[data-choix-enfant]').forEach(btn => {
+    btn.addEventListener('click', () => gererChangementEnfantDashboard(btn.dataset.choixEnfant));
+  });
 }
 
 async function construireBlocMessagesAccueil(){
@@ -6770,12 +6803,11 @@ async function construireBlocAccueilParent(enfantIdChoisi){
       </div>`).join('') || `<div class="empty-state" style="padding:10px;">${t('el_aucun_evenement')}</div>`;
 
     return `
-      <div class="card" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <p style="margin:0;font-size:13px;font-weight:600;color:var(--teal-900);">Suivi de ${escapeHtml(enfant.prenom)} ${escapeHtml(enfant.nom)}</p>
-        ${enfants.length > 1 ? `
-          <div class="f" style="margin:0;max-width:220px;">
-            <select id="dashboard-parent-enfant-select">${enfants.map(e => `<option value="${e.id}" ${e.id === enfant.id ? 'selected' : ''}>${escapeHtml(e.prenom)} ${escapeHtml(e.nom)}</option>`).join('')}</select>
-          </div>` : ''}
+      <div class="card" style="margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:8px;">Suivi de</div>
+        <div class="selecteur-enfants">
+          ${enfants.map(e => `<button class="pilule-enfant ${e.id === enfant.id ? 'active' : ''}" data-choix-enfant="${e.id}">${escapeHtml(e.prenom)} ${escapeHtml(e.nom)}</button>`).join('')}
+        </div>
       </div>
       <div class="card dashboard-emploi-carte" id="dashboard-emploi-parent">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
