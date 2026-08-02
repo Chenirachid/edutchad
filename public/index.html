@@ -7118,26 +7118,33 @@ async function construireBlocStatistiquesAdmin(){
       api('/epreuves').catch(() => []),
       api('/notes').catch(() => []),
     ]);
-    const enseignementParId = new Map();
-    epreuves.forEach(ep => enseignementParId.set(ep.enseignement.id, ep.enseignement));
+    if(!classes.length) return '';
+    const classeId = classes[0].id;
+    const nomClasse = classes[0].nom;
 
-    const parClasse = {};
-    notes.forEach(n => {
-      const ens = enseignementParId.get(n.enseignementId);
-      if(!ens) return;
-      const cle = ens.classe.nom;
-      if(!parClasse[cle]) parClasse[cle] = [];
-      parClasse[cle].push(n.valeur);
+    const enseignementsClasse = new Map();
+    epreuves.forEach(ep => {
+      if(ep.enseignement.classe.id === classeId){
+        enseignementsClasse.set(ep.enseignement.id, ep.enseignement.matiere);
+      }
     });
-    dashboardStatsData = { labels: Object.keys(parClasse).sort(), moyennes: [] };
-    dashboardStatsData.moyennes = dashboardStatsData.labels.map(cle => {
-      const vals = parClasse[cle];
+
+    const parMatiere = {};
+    notes.forEach(n => {
+      const matiereDeLEns = enseignementsClasse.get(n.enseignementId);
+      if(!matiereDeLEns) return;
+      if(!parMatiere[matiereDeLEns.nom]) parMatiere[matiereDeLEns.nom] = [];
+      parMatiere[matiereDeLEns.nom].push(n.valeur);
+    });
+    dashboardStatsData = { labels: Object.keys(parMatiere), moyennes: [] };
+    dashboardStatsData.moyennes = dashboardStatsData.labels.map(nom => {
+      const vals = parMatiere[nom];
       return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
     });
     if(!dashboardStatsData.labels.length) return '';
     return `
       <div class="card">
-        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyenne générale par classe</h2>
+        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyennes par matière — ${escapeHtml(nomClasse)}</h2>
         <div style="max-width:420px;margin:0 auto;"><canvas id="dashboard-stats-canvas"></canvas></div>
       </div>`;
   }catch(err){ return ''; }
@@ -7155,22 +7162,28 @@ async function construireBlocAccueilProf(){
     const mesCreneaux = creneaux.filter(c => idsAMoi.has(c.enseignement.id));
 
     dashboardStatsData = { labels: [], moyennes: [] };
-    const parMatiere = {};
-    notes.forEach(n => {
-      if(!idsAMoi.has(n.enseignementId)) return;
-      const enseignement = mine.find(e => e.id === n.enseignementId);
-      const cle = `${enseignement.matiere.nom} — ${enseignement.classe.nom}`;
-      if(!parMatiere[cle]) parMatiere[cle] = [];
-      parMatiere[cle].push(n.valeur);
-    });
-    dashboardStatsData.labels = Object.keys(parMatiere);
-    dashboardStatsData.moyennes = dashboardStatsData.labels.map(cle => {
-      const vals = parMatiere[cle];
-      return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
-    });
+    let nomClasseStats = '';
+    if(mine.length){
+      const classeId = mine[0].classe.id;
+      nomClasseStats = mine[0].classe.nom;
+      const idsClasse = new Set(mine.filter(e => e.classe.id === classeId).map(e => e.id));
+      const parMatiere = {};
+      notes.forEach(n => {
+        if(!idsClasse.has(n.enseignementId)) return;
+        const enseignement = mine.find(e => e.id === n.enseignementId);
+        const nomMatiere = enseignement.matiere.nom;
+        if(!parMatiere[nomMatiere]) parMatiere[nomMatiere] = [];
+        parMatiere[nomMatiere].push(n.valeur);
+      });
+      dashboardStatsData.labels = Object.keys(parMatiere);
+      dashboardStatsData.moyennes = dashboardStatsData.labels.map(nom => {
+        const vals = parMatiere[nom];
+        return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
+      });
+    }
     const blocStats = dashboardStatsData.labels.length ? `
       <div class="card">
-        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Mes moyennes par classe</h2>
+        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyennes par matière — ${escapeHtml(nomClasseStats)}</h2>
         <div style="max-width:420px;margin:0 auto;"><canvas id="dashboard-stats-canvas"></canvas></div>
       </div>` : '';
 
