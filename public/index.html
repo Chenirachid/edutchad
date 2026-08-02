@@ -1205,6 +1205,18 @@ const I18N = {
     title_bulletins_pdf: 'Bulletins PDF', title_certificats: 'Certificats de scolarité', title_frais: 'Frais scolaires',
     title_demandes_suppression: 'Demandes de suppression', title_etablissements: 'Établissements',
     title_messagerie: 'Messagerie', title_parametres: 'Paramètres',
+    el_emploi_aujourdhui: "Emploi du temps — aujourd'hui", el_aucun_cours: "Aucun cours aujourd'hui.",
+    el_travail_a_faire: 'Travail à faire', el_pour_le: 'Pour le', el_aucun_travail: "Aucun travail à faire pour l'instant.",
+    el_derniere_note_matiere: 'Dernière note par matière', el_aucune_note: "Aucune note pour l'instant.",
+    el_discussions: 'Discussions', el_aucune_discussion: "Aucune discussion pour l'instant.",
+    el_agenda: 'Agenda', el_aucun_evenement: "Aucun évènement pour l'instant.", el_evaluation: 'Évaluation',
+    el_toutes_mes_notes: 'Toutes mes notes', el_moyenne: 'Moyenne',
+    el_col_date: 'Date', el_col_type: 'Type', el_col_note: 'Note', el_col_coefficient: 'Coefficient', el_col_commentaire: 'Commentaire',
+    el_periode: 'Période', el_annee_scolaire: 'Année scolaire', el_annee_entiere: 'Année entière', el_moyenne_generale: 'Moyenne générale',
+    el_admis: 'Admis(e)', el_ajourne: 'Ajourné(e)', el_mention: 'Mention',
+    el_col_matiere: 'Matière', el_col_moyennes: 'Moyennes', el_col_eleve: 'Élève', el_col_classe: 'Classe',
+    el_col_programme: 'Éléments du programme travaillés durant la période', el_col_app_a: 'App. A : Travail', el_col_app_b: 'App. B : Avis global',
+    el_aucune_note_periode: 'Aucune note pour cette période.', el_imprimer: 'Imprimer / Enregistrer en PDF',
   },
   en: {
     landing_titre: 'The all-in-one school platform',
@@ -1237,6 +1249,18 @@ const I18N = {
     title_bulletins_pdf: 'Report cards (PDF)', title_certificats: 'School certificates', title_frais: 'School fees',
     title_demandes_suppression: 'Deletion requests', title_etablissements: 'Schools',
     title_messagerie: 'Messages', title_parametres: 'Settings',
+    el_emploi_aujourdhui: "Timetable — today", el_aucun_cours: "No classes today.",
+    el_travail_a_faire: 'Homework to do', el_pour_le: 'For', el_aucun_travail: "No homework for now.",
+    el_derniere_note_matiere: 'Latest grade per subject', el_aucune_note: "No grades yet.",
+    el_discussions: 'Discussions', el_aucune_discussion: "No discussions yet.",
+    el_agenda: 'Agenda', el_aucun_evenement: "No events for now.", el_evaluation: 'Assessment',
+    el_toutes_mes_notes: 'All my grades', el_moyenne: 'Average',
+    el_col_date: 'Date', el_col_type: 'Type', el_col_note: 'Grade', el_col_coefficient: 'Weight', el_col_commentaire: 'Comment',
+    el_periode: 'Period', el_annee_scolaire: 'School year', el_annee_entiere: 'Full year', el_moyenne_generale: 'Overall average',
+    el_admis: 'Passed', el_ajourne: 'Not passed', el_mention: 'Honours',
+    el_col_matiere: 'Subject', el_col_moyennes: 'Averages', el_col_eleve: 'Student', el_col_classe: 'Class',
+    el_col_programme: 'Topics covered during the period', el_col_app_a: 'Assessment A: Effort', el_col_app_b: 'Assessment B: Overall',
+    el_aucune_note_periode: 'No grades for this period.', el_imprimer: 'Print / Save as PDF',
   },
   ar: {
     landing_titre: 'منصة مدرسية شاملة',
@@ -1269,12 +1293,29 @@ const I18N = {
     title_bulletins_pdf: 'كشوف النقاط PDF', title_certificats: 'الشهادات المدرسية', title_frais: 'الرسوم المدرسية',
     title_demandes_suppression: 'طلبات الحذف', title_etablissements: 'المؤسسات',
     title_messagerie: 'الرسائل', title_parametres: 'الإعدادات',
+    el_emploi_aujourdhui: 'الجدول الزمني — اليوم', el_aucun_cours: 'لا توجد حصص اليوم.',
+    el_travail_a_faire: 'الواجبات المطلوبة', el_pour_le: 'ليوم', el_aucun_travail: 'لا توجد واجبات حالياً.',
+    el_derniere_note_matiere: 'آخر نقطة في كل مادة', el_aucune_note: 'لا توجد نقاط حالياً.',
+    el_discussions: 'المحادثات', el_aucune_discussion: 'لا توجد محادثات حالياً.',
+    el_agenda: 'الأجندة', el_aucun_evenement: 'لا توجد أحداث حالياً.', el_evaluation: 'تقييم',
+    el_toutes_mes_notes: 'جميع نقاطي', el_moyenne: 'المعدل',
+    el_col_date: 'التاريخ', el_col_type: 'النوع', el_col_note: 'النقطة', el_col_coefficient: 'المعامل', el_col_commentaire: 'ملاحظة',
+    el_periode: 'الفترة', el_annee_scolaire: 'السنة الدراسية', el_annee_entiere: 'السنة كاملة', el_moyenne_generale: 'المعدل العام',
+    el_admis: 'ناجح(ة)', el_ajourne: 'غير ناجح(ة)', el_mention: 'التقدير',
+    el_col_matiere: 'المادة', el_col_moyennes: 'المعدلات', el_col_eleve: 'التلميذ', el_col_classe: 'القسم',
+    el_col_programme: 'عناصر البرنامج المدروسة خلال الفترة', el_col_app_a: 'تقييم أ: العمل', el_col_app_b: 'تقييم ب: الرأي العام',
+    el_aucune_note_periode: 'لا توجد نقاط لهذه الفترة.', el_imprimer: 'طباعة / حفظ كـ PDF',
   },
 };
 
 function t(key){
   const lang = state.lang || 'fr';
   return (I18N[lang] && I18N[lang][key]) || I18N.fr[key] || key;
+}
+
+function localeCourante(){
+  const lang = state.lang || 'fr';
+  return lang === 'ar' ? 'ar' : lang === 'en' ? 'en-US' : 'fr-FR';
 }
 
 function setLangue(lang){
@@ -2158,10 +2199,10 @@ async function renderNotesListeEtudiant(){
     const moyenne = poids ? somme / poids : null;
     const rows = triees.map(n => `
       <tr>
-        <td>${new Date(n.createdAt).toLocaleDateString('fr-FR')}</td>
+        <td>${new Date(n.createdAt).toLocaleDateString(localeCourante())}</td>
         <td>${TYPE_EVALUATION_LABELS[n.type] || n.type}</td>
         <td class="bulletin-moy-cell" style="font-size:13px;">${n.valeur.toFixed(2)}</td>
-        <td>Coef. ${n.coefficient}</td>
+        <td>${t('el_col_coefficient')} ${n.coefficient}</td>
         <td>${n.commentaire ? escapeHtml(n.commentaire) : '—'}</td>
       </tr>`).join('');
     return `
@@ -2169,17 +2210,17 @@ async function renderNotesListeEtudiant(){
         <div class="section-matiere-entete">
           <h2>${escapeHtml(nom)}</h2>
           <div class="section-matiere-moyenne">
-            <span class="label">Moyenne</span>
+            <span class="label">${t('el_moyenne')}</span>
             <span class="moy-pill ${moyennePillClass(moyenne)}" style="font-size:15px;">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span>
           </div>
         </div>
-        <table class="table-notes-matiere"><thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Coefficient</th><th>Commentaire</th></tr></thead><tbody>${rows}</tbody></table>
+        <table class="table-notes-matiere"><thead><tr><th>${t('el_col_date')}</th><th>${t('el_col_type')}</th><th>${t('el_col_note')}</th><th>${t('el_col_coefficient')}</th><th>${t('el_col_commentaire')}</th></tr></thead><tbody>${rows}</tbody></table>
       </div>`;
   }).join('');
 
   content.innerHTML = `
-    <h1 style="font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--teal-900);margin:0 0 18px;">Toutes mes notes</h1>
-    ${sections || '<div class="card"><div class="empty-state">Aucune note pour l\'instant.</div></div>'}`;
+    <h1 style="font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--teal-900);margin:0 0 18px;">${t('el_toutes_mes_notes')}</h1>
+    ${sections || `<div class="card"><div class="empty-state">${t('el_aucune_note')}</div></div>`}`;
 }
 
 async function renderEtudiantBulletin(){
@@ -2234,41 +2275,41 @@ async function chargerEtAfficherBulletinEtudiant(etudiantId, trimestre, estMoiMe
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:10px;">
         <div style="display:flex;gap:12px;">
           <div class="f" style="margin:0;max-width:160px;">
-            <label>Année scolaire</label>
+            <label>${t('el_annee_scolaire')}</label>
             <select id="bulletin-annee-select">
               <option value="${escapeHtml(parametres.anneeScolaire || '')}" selected>${escapeHtml(parametres.anneeScolaire || '—')}</option>
             </select>
           </div>
           <div class="f" style="margin:0;max-width:200px;">
-            <label>Période</label>
+            <label>${t('el_periode')}</label>
             <select id="bulletin-trimestre-select">${optionsPeriode(parametres.systemePeriode, trimestre)}</select>
           </div>
         </div>
         <div style="display:flex;gap:18px;align-items:center;">
-          <button class="btn-icone" id="bulletin-imprimer-btn" title="Imprimer / Enregistrer en PDF">
+          <button class="btn-icone" id="bulletin-imprimer-btn" title="${t('el_imprimer')}">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h9l3 3v3M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           </button>
           <div class="stat" style="text-align:right;">
-            <div class="label">Moyenne générale</div>
+            <div class="label">${t('el_moyenne_generale')}</div>
             <div class="big">${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} <span style="font-size:14px;color:var(--text-muted);">/ ${parametres.bareme || 20}</span></div>
           </div>
-          <div>${b.moyenneGenerale === null ? '' : estAdmis ? '<span class="badge-justifiee">Admis(e)</span>' : '<span class="badge-non-justifiee">Ajourné(e)</span>'}</div>
-          ${mentionBulletin(b.moyenneGenerale, parametres.bareme) ? `<div class="stat" style="text-align:right;"><div class="label">Mention</div><div class="big" style="font-size:16px;">${mentionBulletin(b.moyenneGenerale, parametres.bareme)}</div></div>` : ''}
+          <div>${b.moyenneGenerale === null ? '' : estAdmis ? `<span class="badge-justifiee">${t('el_admis')}</span>` : `<span class="badge-non-justifiee">${t('el_ajourne')}</span>`}</div>
+          ${mentionBulletin(b.moyenneGenerale, parametres.bareme) ? `<div class="stat" style="text-align:right;"><div class="label">${t('el_mention')}</div><div class="big" style="font-size:16px;">${mentionBulletin(b.moyenneGenerale, parametres.bareme)}</div></div>` : ''}
         </div>
       </div>
       <div style="overflow-x:auto;">
         <table class="table-bulletin">
           <thead>
             <tr>
-              <th rowspan="2" style="vertical-align:bottom;">Matière</th>
-              <th colspan="2">Moyennes</th>
-              <th rowspan="2" style="vertical-align:bottom;">Éléments du programme travaillés durant la période</th>
-              <th rowspan="2" style="vertical-align:bottom;">App. A : Travail</th>
-              <th rowspan="2" style="vertical-align:bottom;">App. B : Avis global</th>
+              <th rowspan="2" style="vertical-align:bottom;">${t('el_col_matiere')}</th>
+              <th colspan="2">${t('el_col_moyennes')}</th>
+              <th rowspan="2" style="vertical-align:bottom;">${t('el_col_programme')}</th>
+              <th rowspan="2" style="vertical-align:bottom;">${t('el_col_app_a')}</th>
+              <th rowspan="2" style="vertical-align:bottom;">${t('el_col_app_b')}</th>
             </tr>
-            <tr><th>Élève</th><th>Classe</th></tr>
+            <tr><th>${t('el_col_eleve')}</th><th>${t('el_col_classe')}</th></tr>
           </thead>
-          <tbody>${lignesMatieres || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Aucune note pour cette période.</td></tr>'}</tbody>
+          <tbody>${lignesMatieres || `<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">${t('el_aucune_note_periode')}</td></tr>`}</tbody>
         </table>
       </div>
     </div>`;
@@ -4666,7 +4707,12 @@ async function loadGroupeMessages(groupeId){
 /* ============================================================
    OBSERVATIONS & PUNITIONS (PROF)
    ============================================================ */
-const TYPE_EVALUATION_LABELS = { DEVOIR:'Devoir', CONTROLE:'Contrôle', EXAMEN:'Examen' };
+const TYPE_EVALUATION_LABELS_PAR_LANGUE = {
+  fr: { DEVOIR:'Devoir', CONTROLE:'Contrôle', EXAMEN:'Examen' },
+  en: { DEVOIR:'Homework', CONTROLE:'Test', EXAMEN:'Exam' },
+  ar: { DEVOIR:'واجب', CONTROLE:'فرض', EXAMEN:'امتحان' },
+};
+const TYPE_EVALUATION_LABELS = new Proxy({}, { get: (_, type) => (TYPE_EVALUATION_LABELS_PAR_LANGUE[state.lang || 'fr'] || TYPE_EVALUATION_LABELS_PAR_LANGUE.fr)[type] });
 const TYPE_JUSTIFICATIF_LABELS = { ACTE_NAISSANCE:'Acte de naissance', PIECE_IDENTITE:"Pièce d'identité", PASSEPORT:'Passeport' };
 const TYPE_OBSERVATION_LABELS = { POSITIVE:'Positive', NEGATIVE:'Négative', NEUTRE:'Neutre' };
 const TYPE_OBSERVATION_COLORS = { POSITIVE:'var(--success)', NEGATIVE:'var(--danger)', NEUTRE:'var(--text-muted)' };
@@ -6620,7 +6666,7 @@ async function construireBlocAccueilParent(){
       return `
       <div style="background:${aUneEpreuve ? '#FDE4E4' : 'var(--bg)'};border-left:3px solid var(--teal-700);border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
         <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
-        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' <span class="puce-evaluation"></span> Évaluation' : ''}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' <span class="puce-evaluation"></span> ' + t('el_evaluation') : ''}</div>
         <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
       </div>`;
     }).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
@@ -6674,7 +6720,7 @@ async function construireBlocAccueilParent(){
       <div style="border-bottom:1px solid var(--border);padding:7px 0;">
         <div style="font-size:11px;color:var(--teal-700);font-weight:700;">${new Date(a.createdAt).toLocaleDateString('fr-FR', { day:'numeric', month:'short' })}</div>
         <div style="font-size:12.5px;">${escapeHtml(a.titre)}</div>
-      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun évènement pour l\'instant.</div>';
+      </div>`).join('') || `<div class="empty-state" style="padding:10px;">${t('el_aucun_evenement')}</div>`;
 
     return `
       <div class="card" style="margin-bottom:12px;">
@@ -6738,10 +6784,10 @@ async function construireBlocAccueilEtudiant(){
       return `
       <div style="background:${aUneEpreuve ? '#FDE4E4' : 'var(--bg)'};border-left:3px solid var(--teal-700);border-radius:8px;padding:8px 10px;margin-bottom:6px;${aUneEpreuve ? 'border:1.5px solid var(--danger);' : ''}">
         <div style="font-size:11px;font-weight:700;color:#04302F;">${c.heureDebut} – ${c.heureFin}</div>
-        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' <span class="puce-evaluation"></span> Évaluation' : ''}</div>
+        <div style="font-size:12.5px;font-weight:600;">${escapeHtml(c.enseignement.matiere.nom)}${aUneEpreuve ? ' <span class="puce-evaluation"></span> ' + t('el_evaluation') : ''}</div>
         <div style="font-size:11px;color:#04302F;">${escapeHtml(c.enseignement.professeur.prenom)} ${escapeHtml(c.enseignement.professeur.nom)}${c.salle ? ' — ' + escapeHtml(c.salle) : ''}</div>
       </div>`;
-    }).join('') || '<div class="empty-state" style="padding:10px;">Aucun cours aujourd\'hui.</div>';
+    }).join('') || `<div class="empty-state" style="padding:10px;">${t('el_aucun_cours')}</div>`;
 
     // Colonne 2 : devoirs à faire, groupés par jour (cahier de texte à venir avec un champ "devoirs")
     const devoirsAVenir = cahiers
@@ -6750,19 +6796,19 @@ async function construireBlocAccueilEtudiant(){
       .slice(0, 8);
     const parJourDevoirs = {};
     devoirsAVenir.forEach(c => {
-      const cle = new Date(c.date).toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+      const cle = new Date(c.date).toLocaleDateString(localeCourante(), { weekday:'long', day:'numeric', month:'long' });
       if(!parJourDevoirs[cle]) parJourDevoirs[cle] = [];
       parJourDevoirs[cle].push(c);
     });
     const blocsDevoirs = Object.entries(parJourDevoirs).map(([jour, items]) => `
       <div style="margin-bottom:12px;">
-        <div style="font-size:11.5px;font-weight:700;color:var(--teal-700);text-transform:capitalize;margin-bottom:4px;">Pour le ${jour}</div>
+        <div style="font-size:11.5px;font-weight:700;color:var(--teal-700);text-transform:capitalize;margin-bottom:4px;">${t('el_pour_le')} ${jour}</div>
         ${items.map(c => `
           <div style="border-bottom:1px solid var(--border);padding:6px 0;">
             <div style="font-size:12.5px;font-weight:700;">${escapeHtml(c.enseignement.matiere.nom)}</div>
             <div style="font-size:12px;color:var(--text-muted);">${escapeHtml(c.devoirs)}</div>
           </div>`).join('')}
-      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun travail à faire pour l\'instant.</div>';
+      </div>`).join('') || `<div class="empty-state" style="padding:10px;">${t('el_aucun_travail')}</div>`;
 
     // Colonne 3 : dernières notes, avec la valeur exacte affichée (ex: 8,00 / 20)
     const notesTriees = notes.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -6776,10 +6822,10 @@ async function construireBlocAccueilEtudiant(){
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding:6px 0;">
         <div style="min-width:0;flex:1;overflow:hidden;">
           <div style="font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(n.enseignement.matiere.nom)}</div>
-          <div style="font-size:11px;color:var(--text-muted);">le ${new Date(n.createdAt).toLocaleDateString('fr-FR')}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${new Date(n.createdAt).toLocaleDateString(localeCourante())}</div>
         </div>
         <span class="moy-pill ${moyennePillClass(n.valeur)}" style="flex-shrink:0;">${n.valeur.toFixed(2)} / 20</span>
-      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune note pour l\'instant.</div>';
+      </div>`).join('') || `<div class="empty-state" style="padding:10px;">${t('el_aucune_note')}</div>`;
 
     // Colonne 4a : discussions — regroupées par correspondant, les plus récentes d'abord
     const parCorrespondant = {};
@@ -6792,19 +6838,19 @@ async function construireBlocAccueilEtudiant(){
       <div style="border-bottom:1px solid var(--border);padding:7px 0;">
         <div style="font-size:12.5px;font-weight:700;">${escapeHtml(d.expediteur.prenom)} ${escapeHtml(d.expediteur.nom)}${d.nonLus ? ` <span style="background:var(--danger);color:#fff;border-radius:8px;font-size:10px;padding:1px 6px;margin-left:4px;">${d.nonLus}</span>` : ''}</div>
         <div style="font-size:11.5px;color:var(--text-muted);">${escapeHtml((d.dernier.contenu || '').slice(0, 50))}${(d.dernier.contenu || '').length > 50 ? '…' : ''}</div>
-      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucune discussion pour l\'instant.</div>';
+      </div>`).join('') || `<div class="empty-state" style="padding:10px;">${t('el_aucune_discussion')}</div>`;
 
     // Colonne 4b : agenda — les dernières actualités publiées, façon évènements à venir
     const blocsAgenda = actualites.slice(0, 6).map(a => `
       <div style="border-bottom:1px solid var(--border);padding:7px 0;">
         <div style="font-size:11px;color:var(--teal-700);font-weight:700;">${new Date(a.createdAt).toLocaleDateString('fr-FR', { day:'numeric', month:'short' })}</div>
         <div style="font-size:12.5px;">${escapeHtml(a.titre)}</div>
-      </div>`).join('') || '<div class="empty-state" style="padding:10px;">Aucun évènement pour l\'instant.</div>';
+      </div>`).join('') || `<div class="empty-state" style="padding:10px;">${t('el_aucun_evenement')}</div>`;
 
     return `
       <div class="card dashboard-emploi-carte" id="dashboard-emploi-etudiant">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <h3 style="margin:0;">Emploi du temps — aujourd'hui</h3>
+          <h3 style="margin:0;">${t('el_emploi_aujourdhui')}</h3>
           <button class="btn-icone" data-plein-ecran="dashboard-emploi-etudiant" title="Afficher en plein écran">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
           </button>
@@ -6813,17 +6859,17 @@ async function construireBlocAccueilEtudiant(){
       </div>
       <div class="dashboard-etudiant">
         <div class="dashboard-colonne">
-          <h3>Travail à faire</h3>
+          <h3>${t('el_travail_a_faire')}</h3>
           ${blocsDevoirs}
         </div>
         <div class="dashboard-colonne">
-          <h3>Dernière note par matière</h3>
+          <h3>${t('el_derniere_note_matiere')}</h3>
           ${blocsNotes}
         </div>
         <div class="dashboard-colonne">
-          <h3>Discussions</h3>
+          <h3>${t('el_discussions')}</h3>
           ${blocsDiscussions}
-          <h3 style="margin-top:14px;">Agenda</h3>
+          <h3 style="margin-top:14px;">${t('el_agenda')}</h3>
           ${blocsAgenda}
         </div>
       </div>`;
