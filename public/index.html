@@ -2223,7 +2223,8 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
   const sommePonderee = matieresNotees.reduce((acc, m) => acc + arrondi2(m.moyenne * m.coefficient), 0);
 
   return `
-    <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;justify-content:center;min-height:100vh;box-sizing:border-box;">
+    <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;min-height:100vh;box-sizing:border-box;">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
       <div>
       <div class="bulletin-entete-officiel">${(parametres.enTeteOfficiel ? escapeHtml(parametres.enTeteOfficiel) : ENTETE_OFFICIEL_DEFAUT).replace(/\n/g,'<br>')}</div>
       <h1>${escapeHtml(parametres.nomEtablissement || 'Établissement')}</h1>
@@ -2276,6 +2277,11 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
           ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:110px;max-height:110px;margin-top:6px;" />` : ''}
         </div>
       </div>
+      </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;color:#333;border-top:1px solid #999;padding-top:6px;">
+        <span>${parametres.siteWeb ? escapeHtml(parametres.siteWeb) : ''}</span>
+        <span>Page 1 sur 1</span>
       </div>
     </div>`;
 }
