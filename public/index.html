@@ -5836,6 +5836,17 @@ async function renderAdminInscriptions(){
 
   content.innerHTML = `
     <div class="card">
+      <h2>Import en masse d'élèves</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Colle une ligne par élève, au format <code>Nom;Prénom;Classe</code> (le nom de la classe doit correspondre exactement à une classe déjà créée). Chaque élève reçoit un compte, un numéro et un code d'activation, comme lors d'une création individuelle — mais sans le dossier administratif (justificatif), à compléter ensuite si besoin.</p>
+      <form id="import-eleves-form">
+        <textarea id="import-eleves-texte" rows="8" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:13px;" placeholder="Dupont;Amina;6e A
+Traoré;Moussa;6e A
+Ndiaye;Fatou;5e B"></textarea>
+        <button class="btn-submit" type="submit" style="margin-top:10px;">Importer</button>
+      </form>
+      <div id="import-eleves-resultat" style="margin-top:16px;"></div>
+    </div>
+    <div class="card">
       <h2>Nouvelle inscription — élève qui se présente pour la première fois</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Crée le compte, l'affecte à sa classe et enregistre son dossier de justificatifs — tout en une seule fois.</p>
       <form class="inline-form" id="nouvelle-inscription-form">
@@ -5920,6 +5931,39 @@ async function renderAdminInscriptions(){
     const estOui = e.target.value === 'oui';
     zone.classList.toggle('hidden', !estOui);
     champFichier.required = estOui;
+  });
+
+  document.getElementById('import-eleves-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const texte = document.getElementById('import-eleves-texte').value;
+    const zoneResultat = document.getElementById('import-eleves-resultat');
+    const lignes = texte.split('\n').map(l => l.trim()).filter(l => l.length)
+      .map(l => {
+        const parts = l.split(';').map(p => p.trim());
+        return { nom: parts[0] || '', prenom: parts[1] || '', classeNom: parts[2] || '' };
+      });
+    if(!lignes.length){ toast('Colle au moins une ligne.', 'error'); return; }
+    zoneResultat.innerHTML = '<div class="empty-state">Import en cours…</div>';
+    try{
+      const rep = await api('/users/import-eleves', { method:'POST', body: JSON.stringify({ lignes }) });
+      const lignesResultat = rep.resultats.map(r => `
+        <tr>
+          <td>${r.ligne}</td>
+          <td>${escapeHtml(r.prenom)} ${escapeHtml(r.nom)}</td>
+          <td>${escapeHtml(r.classeNom)}</td>
+          <td>${r.succes
+            ? `<span class="badge-justifiee">OK</span> ${escapeHtml(r.identifiant)} — code : <code>${escapeHtml(r.codeActivation)}</code>`
+            : `<span class="badge-non-justifiee">Échec</span> ${escapeHtml(r.erreur)}`}</td>
+        </tr>`).join('');
+      zoneResultat.innerHTML = `
+        <div class="card" style="background:var(--bg);">
+          <h3 style="margin-top:0;">${rep.reussis} réussi(s) sur ${rep.total}${rep.echecs ? `, ${rep.echecs} échec(s)` : ''}</h3>
+          <p style="font-size:12px;color:var(--text-muted);">Note bien les codes d'activation ci-dessous — ils ne seront plus jamais affichés ensuite. Communique-les aux élèves pour qu'ils activent leur compte.</p>
+          <table><thead><tr><th>#</th><th>Élève</th><th>Classe</th><th>Résultat</th></tr></thead><tbody>${lignesResultat}</tbody></table>
+        </div>`;
+      if(rep.reussis) document.getElementById('import-eleves-texte').value = '';
+      toast(`${rep.reussis} élève(s) importé(s).`);
+    }catch(err){ zoneResultat.innerHTML = ''; toast(err.message, 'error'); }
   });
 
   document.getElementById('nouvelle-inscription-form').addEventListener('submit', async (e) => {

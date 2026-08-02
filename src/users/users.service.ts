@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ImportElevesDto } from './dto/import-eleves.dto';
 import { buildBaseEmail, buildBaseIdentifiant, formatNumeroEtudiant, genererCodeActivation } from '../common/email-generator';
 import type { JwtPayload } from '../auth/types/jwt-payload.type';
 
@@ -150,6 +151,106 @@ export class UsersService {
     const cree = await this.prisma.user.findUnique({ where: { id: user.id }, select: userSelect });
     // Le code d'activation en clair n'est révélé qu'une seule fois, à la création
     return { ...cree, codeActivation };
+  }
+
+  async importEleves(dto: ImportElevesDto, currentUser: JwtPayload) {
+    if (currentUser.role !== Role.ADMIN && currentUser.role !== Role.CHEF_ETABLISSEMENT) {
+      throw new ForbiddenException(
+        "Seul un administrateur ou le chef d'établissement peut importer des élèves en masse",
+      );
+    }
+    const etablissementId = currentUser.etablissementId;
+    if (!etablissementId) {
+      throw new BadRequestException("Aucun établissement associé à ce compte");
+    }
+
+    const classes = await this.prisma.classe.findMany({ where: { etablissementId } });
+    const classeParNomNormalise = new Map(
+      classes.map((c) => [c.nom.trim().toLowerCase(), c]),
+    );
+
+    const resultats: Array<{
+      ligne: number;
+      nom: string;
+      prenom: string;
+      classeNom: string;
+      succes: boolean;
+      identifiant?: string;
+      codeActivation?: string;
+      erreur?: string;
+    }> = [];
+
+    for (let i = 0; i < dto.lignes.length; i++) {
+      const ligne = dto.lignes[i];
+      const classe = classeParNomNormalise.get(ligne.classeNom.trim().toLowerCase());
+
+      if (!classe) {
+        resultats.push({
+          ligne: i + 1,
+          nom: ligne.nom,
+          prenom: ligne.prenom,
+          classeNom: ligne.classeNom,
+          succes: false,
+          erreur: `Classe "${ligne.classeNom}" introuvable dans cet établissement`,
+        });
+        continue;
+      }
+
+      try {
+        const email = await this.generateUniqueEmail(ligne.prenom, ligne.nom, Role.ETUDIANT);
+        const identifiant = await this.generateUniqueIdentifiant(ligne.prenom, ligne.nom);
+        const codeActivation = genererCodeActivation();
+        const motDePasseTemporaire = await bcrypt.hash(
+          genererCodeActivation() + genererCodeActivation(),
+          SALT_ROUNDS,
+        );
+
+        const user = await this.prisma.user.create({
+          data: {
+            nom: ligne.nom,
+            prenom: ligne.prenom,
+            email,
+            identifiant,
+            codeActivation,
+            password: motDePasseTemporaire,
+            role: Role.ETUDIANT,
+            classeId: classe.id,
+            etablissementId,
+          },
+        });
+
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { numeroEtudiant: formatNumeroEtudiant(user.id) },
+        });
+
+        resultats.push({
+          ligne: i + 1,
+          nom: ligne.nom,
+          prenom: ligne.prenom,
+          classeNom: classe.nom,
+          succes: true,
+          identifiant,
+          codeActivation,
+        });
+      } catch (err) {
+        resultats.push({
+          ligne: i + 1,
+          nom: ligne.nom,
+          prenom: ligne.prenom,
+          classeNom: ligne.classeNom,
+          succes: false,
+          erreur: "Erreur lors de la création du compte",
+        });
+      }
+    }
+
+    return {
+      total: dto.lignes.length,
+      reussis: resultats.filter((r) => r.succes).length,
+      echecs: resultats.filter((r) => !r.succes).length,
+      resultats,
+    };
   }
 
   findAll(currentUser: JwtPayload) {
