@@ -2206,7 +2206,6 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
 
   const lignes = b.matieres.map(m => {
     const moyClasse = moyennesClasse[m.matiereId];
-    const moyPonderee = m.moyenne !== null ? arrondi2(m.moyenne * m.coefficient) : null;
     return `
       <tr>
         <td class="matiere-cell">
@@ -2217,14 +2216,12 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
         <td class="moy-cell">${ar(m.moyenneCompositions)}</td>
         <td class="moy-cell"><strong>${ar(m.moyenne)}</strong></td>
         <td class="moy-cell">${m.coefficient}</td>
-        <td class="moy-cell">${ar(moyPonderee)}</td>
         <td>${m.appreciationAvis ? escapeHtml(m.appreciationAvis) : (mentionBulletin(m.moyenne, parametres.bareme) || '—')}</td>
       </tr>`;
   }).join('');
 
   const matieresNotees = b.matieres.filter(m => m.moyenne !== null);
   const sommeCoef = matieresNotees.reduce((acc, m) => acc + m.coefficient, 0);
-  const sommePonderee = matieresNotees.reduce((acc, m) => acc + arrondi2(m.moyenne * m.coefficient), 0);
 
   return `
     <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;height:281mm;box-sizing:border-box;overflow:hidden;">
@@ -2250,16 +2247,14 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
             <th rowspan="2" style="vertical-align:bottom;">M.COMP<br/>الامتحانات</th>
             <th rowspan="2" style="vertical-align:bottom;">M.GEN<br/>المعدل</th>
             <th rowspan="2" style="vertical-align:bottom;">COEF<br/>المعامل</th>
-            <th rowspan="2" style="vertical-align:bottom;">M.GxCOEF</th>
             <th rowspan="2" style="vertical-align:bottom;">Appréciations<br/>التقدير</th>
           </tr>
         </thead>
-        <tbody>${lignes || '<tr><td colspan="7" style="text-align:center;">Aucune note pour cette période.</td></tr>'}</tbody>
+        <tbody>${lignes || '<tr><td colspan="6" style="text-align:center;">Aucune note pour cette période.</td></tr>'}</tbody>
         ${matieresNotees.length ? `<tfoot><tr style="font-weight:700;background:#f2f2f2;">
           <td>TOTAL / المجموع</td><td></td><td></td>
           <td>${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) + ' / ' + (parametres.bareme || 20) : '—'}</td>
           <td>${sommeCoef}</td>
-          <td>${sommePonderee.toFixed(2)}</td>
           <td></td>
         </tr></tfoot>` : ''}
       </table>
@@ -2285,12 +2280,9 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
           <div><strong>Retards / التأخرات :</strong> ${b.absencesRetards ? b.absencesRetards.retards : 0}</div>
         </div>
       </div>
-      <div style="margin-top:10px;font-size:12px;">
-        ${b.rang !== undefined && b.rang !== null ? `<strong>Rang / الترتيب :</strong> ${b.rang}${b.totalClasse ? 'ème sur ' + b.totalClasse + ' élèves' : ''}` : ''}
-      </div>
-      <div style="margin-top:10px;border-top:1px solid #000;padding-top:5px;">
-        <div style="font-size:11px;font-weight:700;text-decoration:underline;">DÉCISION DU CONSEIL DES PROFESSEURS</div>
-        <div style="font-size:12px;font-style:italic;margin-top:2px;">${escapeHtml(decision.fr)} — ${decision.ar}</div>
+      <div style="margin-top:8px;font-size:11px;display:flex;justify-content:space-between;">
+        <span>${b.rang !== undefined && b.rang !== null ? `<strong>Rang / الترتيب :</strong> ${b.rang}${b.totalClasse ? 'ème sur ' + b.totalClasse + ' élèves' : ''}` : ''}</span>
+        <span><strong>Décision :</strong> ${escapeHtml(decision.fr)} — ${decision.ar}</span>
       </div>
       </div>
       <div style="display:flex;justify-content:flex-end;align-items:flex-end;margin-top:auto;gap:20px;">
