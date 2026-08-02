@@ -659,6 +659,8 @@
   .bulletin-impression .sous-titre{text-align:center;font-size:10.5px;color:#333;margin:0 0 3px;}
   .bulletin-impression .infos-generales{display:flex;justify-content:space-between;margin:8px 0;font-size:10.5px;}
   .bulletin-entete-officiel{text-align:center;font-size:9.5px;line-height:1.5;color:#000;margin-bottom:8px;white-space:pre-line;}
+  .bulletin-cases-periode{display:flex;justify-content:center;gap:18px;font-size:11px;font-weight:600;margin:0 0 10px;}
+  .bulletin-case-periode{white-space:nowrap;}
   .table-bulletin-impression{border-collapse:collapse;width:100%;font-size:9.5px;table-layout:fixed;}
   .table-bulletin-impression th, .table-bulletin-impression td{border:1px solid #000;padding:2.5px 5px;vertical-align:top;color:#000;overflow-wrap:break-word;word-break:break-word;line-height:1.25;}
   .table-bulletin-impression thead{display:table-header-group;}
@@ -2166,6 +2168,17 @@ function libellePeriode(systemePeriode, numero){
   return (systemePeriode === 'SEMESTRE' ? 'Semestre' : 'Trimestre') + ' ' + numero;
 }
 
+function casesPeriodeBulletin(systemePeriode, numeroActuel){
+  const nbPeriodes = systemePeriode === 'SEMESTRE' ? 2 : 3;
+  const motPeriode = systemePeriode === 'SEMESTRE' ? 'Semestre' : 'Trimestre';
+  const cases = [];
+  for(let i = 1; i <= nbPeriodes; i++){
+    cases.push(`<span class="bulletin-case-periode">${(numeroActuel || 0) === i ? '☒' : '☐'} ${motPeriode} ${i}</span>`);
+  }
+  cases.push(`<span class="bulletin-case-periode">${(numeroActuel || 0) === 0 ? '☒' : '☐'} Année complète</span>`);
+  return cases.join('');
+}
+
 function mentionBulletin(moyenne, bareme){
   if(moyenne === null || moyenne === undefined) return null;
   const b = bareme || 20;
@@ -2228,7 +2241,8 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
       <div>
       <div class="bulletin-entete-officiel">${(parametres.enTeteOfficiel ? escapeHtml(parametres.enTeteOfficiel) : ENTETE_OFFICIEL_DEFAUT).replace(/\n/g,'<br>')}</div>
       <h1>${escapeHtml(parametres.nomEtablissement || 'Établissement')}</h1>
-      <p class="sous-titre">BULLETIN DE NOTES / كشف الدرجات — ${escapeHtml(libellePeriodeTexte)} / الفترة — Année scolaire / السنة الدراسية ${escapeHtml(parametres.anneeScolaire || '')}</p>
+      <p class="sous-titre">BULLETIN DE NOTES / كشف الدرجات — Année scolaire / السنة الدراسية ${escapeHtml(parametres.anneeScolaire || '')}</p>
+      <div class="bulletin-cases-periode">${casesPeriodeBulletin(parametres.systemePeriode, trimestre)}</div>
       <div class="infos-generales" style="display:block;">
         <div><strong>Nom et prénoms / الاسم :</strong> ${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)}</div>
         <div><strong>Matricule / رقم التسجيل :</strong> ${b.etudiant.numeroEtudiant ? escapeHtml(b.etudiant.numeroEtudiant) : '—'}</div>
@@ -3064,7 +3078,7 @@ async function renderProfEnseignements(){
                   <select name="type">
                     <option value="CONTROLE">Contrôle</option>
                     <option value="DEVOIR">Devoir</option>
-                    <option value="EXAMEN">Examen</option>
+                    <option value="EXAMEN">Composition</option>
                   </select>
                 </div>
                 <div class="f"><label>Date</label><input type="date" name="date" required value="${new Date().toISOString().slice(0,10)}" /></div>
@@ -3246,7 +3260,7 @@ async function renderProfSaisirNote(){
           <select name="type">
             <option value="CONTROLE">Contrôle</option>
             <option value="DEVOIR">Devoir</option>
-            <option value="EXAMEN">Examen</option>
+            <option value="EXAMEN">Composition</option>
           </select>
         </div>
         <div class="f">
@@ -4958,9 +4972,9 @@ async function loadGroupeMessages(groupeId){
    OBSERVATIONS & PUNITIONS (PROF)
    ============================================================ */
 const TYPE_EVALUATION_LABELS_PAR_LANGUE = {
-  fr: { DEVOIR:'Devoir', CONTROLE:'Contrôle', EXAMEN:'Examen' },
-  en: { DEVOIR:'Homework', CONTROLE:'Test', EXAMEN:'Exam' },
-  ar: { DEVOIR:'واجب', CONTROLE:'فرض', EXAMEN:'امتحان' },
+  fr: { DEVOIR:'Devoir', CONTROLE:'Contrôle', EXAMEN:'Composition' },
+  en: { DEVOIR:'Homework', CONTROLE:'Test', EXAMEN:'Composition exam' },
+  ar: { DEVOIR:'واجب', CONTROLE:'فرض', EXAMEN:'تأليف' },
 };
 const TYPE_EVALUATION_LABELS = new Proxy({}, { get: (_, type) => (TYPE_EVALUATION_LABELS_PAR_LANGUE[state.lang || 'fr'] || TYPE_EVALUATION_LABELS_PAR_LANGUE.fr)[type] });
 const TYPE_JUSTIFICATIF_LABELS = { ACTE_NAISSANCE:'Acte de naissance', PIECE_IDENTITE:"Pièce d'identité", PASSEPORT:'Passeport' };
@@ -6713,7 +6727,7 @@ async function renderProfEpreuves(){
           <select name="type">
             <option value="CONTROLE">Contrôle</option>
             <option value="DEVOIR">Devoir</option>
-            <option value="EXAMEN">Examen</option>
+            <option value="EXAMEN">Composition</option>
           </select>
         </div>
         <div class="f"><label>Date</label><input type="date" name="date" required /></div>
