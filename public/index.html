@@ -2224,9 +2224,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
   const sommeCoef = matieresNotees.reduce((acc, m) => acc + m.coefficient, 0);
 
   return `
-    <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;height:281mm;box-sizing:border-box;overflow:hidden;">
-      <div style="flex:1;display:flex;flex-direction:column;">
-      <div>
+    <div class="bulletin-impression" style="page-break-after:always;box-sizing:border-box;">
       <div class="bulletin-entete-gouv">
         <div class="bulletin-entete-fr">
           ${parametres.enTeteOfficiel ? escapeHtml(parametres.enTeteOfficiel).replace(/\n/g,'<br>') : ENTETE_OFFICIEL_FR_DEFAUT}
@@ -2284,15 +2282,13 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyenn
         <span>${b.rang !== undefined && b.rang !== null ? `<strong>Rang / الترتيب :</strong> ${b.rang}${b.totalClasse ? 'ème sur ' + b.totalClasse + ' élèves' : ''}` : ''}</span>
         <span><strong>Décision :</strong> ${escapeHtml(decision.fr)} — ${decision.ar}</span>
       </div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;align-items:flex-end;margin-top:auto;gap:20px;">
+      <div style="display:flex;justify-content:flex-end;align-items:flex-end;margin-top:22px;gap:20px;">
         <div style="text-align:center;">
           <div style="font-size:11px;font-weight:700;">Le Directeur / المدير</div>
           ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:85px;max-height:85px;margin-top:4px;" />` : ''}
         </div>
       </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:9.5px;color:#333;border-top:1px solid #999;padding-top:6px;">
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;color:#333;border-top:1px solid #999;padding-top:6px;margin-top:16px;">
         <span>${parametres.siteWeb ? escapeHtml(parametres.siteWeb) : ''}</span>
         <span>Page 1 sur 1</span>
       </div>
