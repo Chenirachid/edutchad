@@ -658,9 +658,9 @@
   .bulletin-impression h1{font-size:15px;text-align:center;margin:0 0 3px;text-transform:uppercase;letter-spacing:.03em;font-family:'Fraunces',Georgia,serif;font-weight:600;}
   .bulletin-impression .sous-titre{text-align:center;font-size:10.5px;color:#333;margin:0 0 3px;}
   .bulletin-impression .infos-generales{display:flex;justify-content:space-between;margin:8px 0;font-size:10.5px;}
-  .bulletin-entete-officiel{text-align:center;font-size:9.5px;line-height:1.5;color:#000;margin-bottom:8px;white-space:pre-line;}
-  .bulletin-cases-periode{display:flex;justify-content:center;gap:18px;font-size:11px;font-weight:600;margin:0 0 10px;}
-  .bulletin-case-periode{white-space:nowrap;}
+  .bulletin-entete-gouv{display:flex;justify-content:space-between;gap:10px;font-size:9px;line-height:1.45;color:#000;margin-bottom:6px;}
+  .bulletin-entete-fr{flex:1;text-align:left;}
+  .bulletin-entete-ar{flex:1;text-align:right;direction:rtl;}
   .table-bulletin-impression{border-collapse:collapse;width:100%;font-size:9.5px;table-layout:fixed;}
   .table-bulletin-impression th, .table-bulletin-impression td{border:1px solid #000;padding:2.5px 5px;vertical-align:top;color:#000;overflow-wrap:break-word;word-break:break-word;line-height:1.25;}
   .table-bulletin-impression thead{display:table-header-group;}
@@ -2168,17 +2168,6 @@ function libellePeriode(systemePeriode, numero){
   return (systemePeriode === 'SEMESTRE' ? 'Semestre' : 'Trimestre') + ' ' + numero;
 }
 
-function casesPeriodeBulletin(systemePeriode, numeroActuel){
-  const nbPeriodes = systemePeriode === 'SEMESTRE' ? 2 : 3;
-  const motPeriode = systemePeriode === 'SEMESTRE' ? 'Semestre' : 'Trimestre';
-  const cases = [];
-  for(let i = 1; i <= nbPeriodes; i++){
-    cases.push(`<span class="bulletin-case-periode">${(numeroActuel || 0) === i ? '☒' : '☐'} ${motPeriode} ${i}</span>`);
-  }
-  cases.push(`<span class="bulletin-case-periode">${(numeroActuel || 0) === 0 ? '☒' : '☐'} Année complète</span>`);
-  return cases.join('');
-}
-
 function mentionBulletin(moyenne, bareme){
   if(moyenne === null || moyenne === undefined) return null;
   const b = bareme || 20;
@@ -2192,8 +2181,10 @@ function mentionBulletin(moyenne, bareme){
 
 function arrondi2(v){ return Math.round(v * 100) / 100; }
 
-const ENTETE_OFFICIEL_DEFAUT =
-  'RÉPUBLIQUE DU TCHAD<br>UNITÉ-TRAVAIL-PROGRÈS<br>MINISTÈRE DE L\'ÉDUCATION NATIONALE ET DE LA PROMOTION CIVIQUE<br>جمهورية تشاد — وحدة عمل تقدم — وزارة التربية الوطنية وترقية المواطنة';
+const ENTETE_OFFICIEL_FR_DEFAUT =
+  'RÉPUBLIQUE DU TCHAD<br>UNITÉ-TRAVAIL-PROGRÈS<br>MINISTÈRE DE L\'ÉDUCATION NATIONALE<br>ET DE LA PROMOTION CIVIQUE';
+const ENTETE_OFFICIEL_AR_DEFAUT =
+  'جمهورية تشاد<br>وحدة – عمل – تقدم<br>وزارة التربية الوطنية<br>وترقية المواطنة';
 
 function decisionConseilBulletin(moyenne, bareme){
   if(moyenne === null || moyenne === undefined) return { fr: 'En attente de notes', ar: 'بانتظار النقاط' };
@@ -2206,7 +2197,7 @@ function decisionConseilBulletin(moyenne, bareme){
   return { fr: 'Travail insuffisant, effort nécessaire', ar: 'عمل غير كافٍ، يتطلب مجهوداً أكبر' };
 }
 
-function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
+function construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyennesToutesPeriodes){
   const libellePeriodeTexte = libellePeriode(parametres.systemePeriode, trimestre);
   const seuilAdmission = (parametres.bareme || 20) / 2;
   const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
@@ -2239,12 +2230,16 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
     <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;min-height:100vh;box-sizing:border-box;">
       <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
       <div>
-      <div class="bulletin-entete-officiel">${(parametres.enTeteOfficiel ? escapeHtml(parametres.enTeteOfficiel) : ENTETE_OFFICIEL_DEFAUT).replace(/\n/g,'<br>')}</div>
+      <div class="bulletin-entete-gouv">
+        <div class="bulletin-entete-fr">
+          ${parametres.enTeteOfficiel ? escapeHtml(parametres.enTeteOfficiel).replace(/\n/g,'<br>') : ENTETE_OFFICIEL_FR_DEFAUT}
+        </div>
+        <div class="bulletin-entete-ar">${ENTETE_OFFICIEL_AR_DEFAUT}</div>
+      </div>
       <h1>${escapeHtml(parametres.nomEtablissement || 'Établissement')}</h1>
-      <p class="sous-titre">BULLETIN DE NOTES / كشف الدرجات — Année scolaire / السنة الدراسية ${escapeHtml(parametres.anneeScolaire || '')}</p>
-      <div class="bulletin-cases-periode">${casesPeriodeBulletin(parametres.systemePeriode, trimestre)}</div>
+      <p class="sous-titre">BULLETIN DE NOTES / كشف الدرجات — ${escapeHtml(libellePeriodeTexte)} / الفترة</p>
       <div class="infos-generales" style="display:block;">
-        <div><strong>Nom et prénoms / الاسم :</strong> ${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)}</div>
+        <div><strong>Nom et prénoms / الاسم :</strong> ${escapeHtml(b.etudiant.prenom)} ${escapeHtml(b.etudiant.nom)} — <strong>Année scolaire / السنة الدراسية :</strong> ${escapeHtml(parametres.anneeScolaire || '')}</div>
         <div><strong>Matricule / رقم التسجيل :</strong> ${b.etudiant.numeroEtudiant ? escapeHtml(b.etudiant.numeroEtudiant) : '—'}</div>
       </div>
       <table class="table-bulletin-impression">
@@ -2270,16 +2265,28 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
       </table>
       <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:11px;">
         <div>
-          <div><strong>Moyenne ${escapeHtml(libellePeriodeTexte)} / المعدل :</strong> ${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme || 20}</div>
-          <div>${b.moyenneGenerale === null ? '' : (estAdmis ? 'Admis(e)' : 'Ajourné(e)')}${mentionBulletin(b.moyenneGenerale, parametres.bareme) ? ' — Mention ' + mentionBulletin(b.moyenneGenerale, parametres.bareme) : ''}</div>
+          ${(() => {
+            const nbPeriodes = parametres.systemePeriode === 'SEMESTRE' ? 2 : 3;
+            const motPeriode = parametres.systemePeriode === 'SEMESTRE' ? 'Semestre' : 'Trimestre';
+            const ordinaux = ['1er','2ème','3ème'];
+            let lignes = '';
+            for(let i = 1; i <= nbPeriodes; i++){
+              const val = moyennesToutesPeriodes ? moyennesToutesPeriodes[i] : (i === trimestre ? b.moyenneGenerale : undefined);
+              lignes += `<div>Moy. ${ordinaux[i-1]} ${motPeriode} : <strong>${val !== null && val !== undefined ? val.toFixed(2) : ''}</strong>/${parametres.bareme || 20}</div>`;
+            }
+            const valAnnee = moyennesToutesPeriodes ? moyennesToutesPeriodes[0] : (trimestre === 0 ? b.moyenneGenerale : undefined);
+            lignes += `<div>Moy. Annuelle : <strong>${valAnnee !== null && valAnnee !== undefined ? valAnnee.toFixed(2) : ''}</strong>/${parametres.bareme || 20}</div>`;
+            return lignes;
+          })()}
+          <div style="margin-top:6px;">${b.moyenneGenerale === null ? '' : (estAdmis ? 'Admis(e)' : 'Ajourné(e)')}${mentionBulletin(b.moyenneGenerale, parametres.bareme) ? ' — Mention ' + mentionBulletin(b.moyenneGenerale, parametres.bareme) : ''}</div>
         </div>
         <div>
           <div><strong>Absences / الغيابات :</strong> ${b.absencesRetards ? b.absencesRetards.absences : 0}</div>
           <div><strong>Retards / التأخرات :</strong> ${b.absencesRetards ? b.absencesRetards.retards : 0}</div>
         </div>
-        <div>
-          ${b.rang !== undefined && b.rang !== null ? `<div><strong>Rang / الترتيب :</strong> ${b.rang}${b.totalClasse ? 'e sur ' + b.totalClasse : ''}</div>` : ''}
-        </div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;">
+        ${b.rang !== undefined && b.rang !== null ? `<strong>Rang / الترتيب :</strong> ${b.rang}${b.totalClasse ? 'ème sur ' + b.totalClasse + ' élèves' : ''}` : ''}
       </div>
       <div style="margin-top:16px;border-top:1px solid #000;padding-top:8px;">
         <div style="font-size:11px;font-weight:700;text-decoration:underline;">DÉCISION DU CONSEIL DES PROFESSEURS</div>
@@ -2300,8 +2307,8 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
     </div>`;
 }
 
-function imprimerBulletin(b, parametres, moyennesClasse, trimestre){
-  document.getElementById('print-root').innerHTML = construireBulletinHTML(b, parametres, moyennesClasse, trimestre)
+function imprimerBulletin(b, parametres, moyennesClasse, trimestre, moyennesToutesPeriodes){
+  document.getElementById('print-root').innerHTML = construireBulletinHTML(b, parametres, moyennesClasse, trimestre, moyennesToutesPeriodes)
     .replace('page-break-after:always;', '');
 
   window.print();
@@ -2488,6 +2495,19 @@ async function chargerEtAfficherBulletinEtudiant(etudiantId, trimestre, estMoiMe
   ]);
   if(estMoiMeme) document.getElementById('page-subtitle').textContent = b.etudiant.prenom + ' ' + b.etudiant.nom;
 
+  // Moyenne de chaque période (pour la liste "Moy. 1er/2e/3e Trimestre + Annuelle" du bulletin imprimé)
+  const nbPeriodes = parametres.systemePeriode === 'SEMESTRE' ? 2 : 3;
+  const numerosAChercher = [0, ...Array.from({length: nbPeriodes}, (_, i) => i + 1)];
+  const moyennesToutesPeriodes = {};
+  await Promise.all(numerosAChercher.map(async (n) => {
+    try{
+      if(n === trimestre){ moyennesToutesPeriodes[n] = b.moyenneGenerale; return; }
+      const suffixe = n ? '?trimestre=' + n : '';
+      const rep = await api('/bulletins/etudiant/' + etudiantId + suffixe);
+      moyennesToutesPeriodes[n] = rep.moyenneGenerale;
+    }catch(err){ moyennesToutesPeriodes[n] = null; }
+  }));
+
   const seuilAdmission = (parametres.bareme || 20) / 2;
   const estAdmis = b.moyenneGenerale !== null && b.moyenneGenerale >= seuilAdmission;
 
@@ -2562,7 +2582,7 @@ async function chargerEtAfficherBulletinEtudiant(etudiantId, trimestre, estMoiMe
       </div>
     </div>`;
 
-  document.getElementById('bulletin-imprimer-btn').addEventListener('click', () => imprimerBulletin(b, parametres, moyennesClasse, trimestre));
+  document.getElementById('bulletin-imprimer-btn').addEventListener('click', () => imprimerBulletin(b, parametres, moyennesClasse, trimestre, moyennesToutesPeriodes));
 
   document.getElementById('bulletin-trimestre-select').addEventListener('change', (e) => {
     const nouveauTrimestre = Number(e.target.value);
