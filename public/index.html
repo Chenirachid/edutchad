@@ -547,10 +547,10 @@
   .bloc-nouvelle-epreuve-titre{font-size:12px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;}
   .bloc-nouvelle-epreuve form.inline-form{margin-bottom:0;}
   .panneau-cahier-texte{border-left:4px solid var(--teal-700);animation:toastIn .2s ease-out;}
-  .cartes-classe-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
+  .cartes-classe-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
   .carte-classe-prof{
-    position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;
-    padding:20px 18px 16px;cursor:pointer;transition:border-color .15s,transform .15s;overflow:hidden;
+    position:relative;background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:24px 22px 20px;cursor:pointer;transition:border-color .15s,transform .15s;overflow:hidden;
   }
   .carte-classe-prof::before{
     content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--teal-700);
@@ -558,10 +558,10 @@
   }
   .carte-classe-prof:hover{border-color:var(--teal-700);transform:translateY(-2px);}
   .carte-classe-prof:hover::before{width:5px;background:var(--accent);}
-  .carte-classe-numero{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:10px;}
-  .carte-classe-matiere{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:4px;}
-  .carte-classe-nom{font-size:22px;font-weight:600;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;margin-bottom:16px;line-height:1.15;}
-  .carte-classe-pied{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:10px;}
+  .carte-classe-numero{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:12px;}
+  .carte-classe-matiere{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:5px;}
+  .carte-classe-nom{font-size:25px;font-weight:600;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;margin-bottom:18px;line-height:1.15;}
+  .carte-classe-pied{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:14px;}
   .carte-classe-fleche{color:var(--teal-700);font-weight:700;transition:transform .15s;}
   .carte-classe-prof:hover .carte-classe-fleche{transform:translateX(3px);}
   .dossier-classe{
@@ -5063,6 +5063,8 @@ async function renderComportement(){
    ============================================================ */
 let bulletinsPdfData = null; // { classe, bulletins, parametres }
 let dashboardStatsData = null; // { labels, moyennes } pour le graphique du tableau de bord
+let dashboardStatsToutesClasses = {}; // { classeId: { nom, labels, moyennes } }
+let dashboardStatsChart = null;
 
 async function renderAdminBulletinsPdf(){
   document.getElementById('page-subtitle').textContent = '';
@@ -6789,15 +6791,30 @@ async function renderActualites(){
 
   content.innerHTML = `${blocMessages}${blocEmploiProf}${blocStatsAdmin}${blocEtudiant}<div id="dashboard-parent-conteneur">${blocParent}</div>${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
 
-  const canvasStats = document.getElementById('dashboard-stats-canvas');
-  if(canvasStats && dashboardStatsData && dashboardStatsData.labels.length){
-    new window.Chart(canvasStats, {
+  function dessinerGraphiqueDashboard(){
+    const canvasStats = document.getElementById('dashboard-stats-canvas');
+    if(!canvasStats || !dashboardStatsData || !dashboardStatsData.labels.length) return;
+    if(dashboardStatsChart) dashboardStatsChart.destroy();
+    dashboardStatsChart = new window.Chart(canvasStats, {
       type: 'radar',
       data: {
         labels: dashboardStatsData.labels,
         datasets: [{ label: 'Moyenne /20', data: dashboardStatsData.moyennes, borderColor: '#1D6E68', backgroundColor: 'rgba(29,110,104,0.22)', pointBackgroundColor: '#1D6E68' }],
       },
       options: { scales: { r: { min: 0, max: 20, ticks: { stepSize: 5 } } }, plugins: { legend: { display: false } } },
+    });
+  }
+  dessinerGraphiqueDashboard();
+
+  const pilulesStatsClasse = document.getElementById('dashboard-stats-classe-pilules');
+  if(pilulesStatsClasse){
+    pilulesStatsClasse.querySelectorAll('[data-dashboard-stats-classe]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pilulesStatsClasse.querySelectorAll('[data-dashboard-stats-classe]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        dashboardStatsData = dashboardStatsToutesClasses[Number(btn.dataset.dashboardStatsClasse)];
+        dessinerGraphiqueDashboard();
+      });
     });
   }
 
@@ -7119,32 +7136,44 @@ async function construireBlocStatistiquesAdmin(){
       api('/notes').catch(() => []),
     ]);
     if(!classes.length) return '';
-    const classeId = classes[0].id;
-    const nomClasse = classes[0].nom;
 
-    const enseignementsClasse = new Map();
-    epreuves.forEach(ep => {
-      if(ep.enseignement.classe.id === classeId){
-        enseignementsClasse.set(ep.enseignement.id, ep.enseignement.matiere);
-      }
+    dashboardStatsToutesClasses = {};
+    classes.forEach(c => {
+      const enseignementsClasse = new Map();
+      epreuves.forEach(ep => {
+        if(ep.enseignement.classe.id === c.id){
+          enseignementsClasse.set(ep.enseignement.id, ep.enseignement.matiere);
+        }
+      });
+      const parMatiere = {};
+      notes.forEach(n => {
+        const matiereDeLEns = enseignementsClasse.get(n.enseignementId);
+        if(!matiereDeLEns) return;
+        if(!parMatiere[matiereDeLEns.nom]) parMatiere[matiereDeLEns.nom] = [];
+        parMatiere[matiereDeLEns.nom].push(n.valeur);
+      });
+      const labels = Object.keys(parMatiere);
+      dashboardStatsToutesClasses[c.id] = {
+        nom: c.nom,
+        labels,
+        moyennes: labels.map(nom => {
+          const vals = parMatiere[nom];
+          return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
+        }),
+      };
     });
 
-    const parMatiere = {};
-    notes.forEach(n => {
-      const matiereDeLEns = enseignementsClasse.get(n.enseignementId);
-      if(!matiereDeLEns) return;
-      if(!parMatiere[matiereDeLEns.nom]) parMatiere[matiereDeLEns.nom] = [];
-      parMatiere[matiereDeLEns.nom].push(n.valeur);
-    });
-    dashboardStatsData = { labels: Object.keys(parMatiere), moyennes: [] };
-    dashboardStatsData.moyennes = dashboardStatsData.labels.map(nom => {
-      const vals = parMatiere[nom];
-      return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
-    });
-    if(!dashboardStatsData.labels.length) return '';
+    const classesAvecNotes = classes.filter(c => dashboardStatsToutesClasses[c.id].labels.length);
+    if(!classesAvecNotes.length) return '';
+    const premiereId = classesAvecNotes[0].id;
+    dashboardStatsData = dashboardStatsToutesClasses[premiereId];
+
     return `
       <div class="card">
-        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyennes par matière — ${escapeHtml(nomClasse)}</h2>
+        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyennes par matière</h2>
+        <div class="selecteur-enfants" id="dashboard-stats-classe-pilules" style="margin-bottom:14px;">
+          ${classesAvecNotes.map(c => `<button class="pilule-enfant ${c.id === premiereId ? 'active' : ''}" data-dashboard-stats-classe="${c.id}">${escapeHtml(c.nom)}</button>`).join('')}
+        </div>
         <div style="max-width:420px;margin:0 auto;"><canvas id="dashboard-stats-canvas"></canvas></div>
       </div>`;
   }catch(err){ return ''; }
@@ -7161,12 +7190,13 @@ async function construireBlocAccueilProf(){
     const idsAMoi = new Set(mine.map(e => e.id));
     const mesCreneaux = creneaux.filter(c => idsAMoi.has(c.enseignement.id));
 
-    dashboardStatsData = { labels: [], moyennes: [] };
-    let nomClasseStats = '';
-    if(mine.length){
-      const classeId = mine[0].classe.id;
-      nomClasseStats = mine[0].classe.nom;
-      const idsClasse = new Set(mine.filter(e => e.classe.id === classeId).map(e => e.id));
+    dashboardStatsToutesClasses = {};
+    const classesDuProf = [];
+    const classesVues = new Set();
+    mine.forEach(e => { if(!classesVues.has(e.classe.id)){ classesVues.add(e.classe.id); classesDuProf.push(e.classe); } });
+
+    classesDuProf.forEach(classe => {
+      const idsClasse = new Set(mine.filter(e => e.classe.id === classe.id).map(e => e.id));
       const parMatiere = {};
       notes.forEach(n => {
         if(!idsClasse.has(n.enseignementId)) return;
@@ -7175,17 +7205,32 @@ async function construireBlocAccueilProf(){
         if(!parMatiere[nomMatiere]) parMatiere[nomMatiere] = [];
         parMatiere[nomMatiere].push(n.valeur);
       });
-      dashboardStatsData.labels = Object.keys(parMatiere);
-      dashboardStatsData.moyennes = dashboardStatsData.labels.map(nom => {
-        const vals = parMatiere[nom];
-        return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
-      });
-    }
-    const blocStats = dashboardStatsData.labels.length ? `
+      const labels = Object.keys(parMatiere);
+      dashboardStatsToutesClasses[classe.id] = {
+        nom: classe.nom,
+        labels,
+        moyennes: labels.map(nom => {
+          const vals = parMatiere[nom];
+          return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
+        }),
+      };
+    });
+
+    const classesAvecNotes = classesDuProf.filter(c => dashboardStatsToutesClasses[c.id].labels.length);
+    dashboardStatsData = { labels: [], moyennes: [] };
+    let blocStats = '';
+    if(classesAvecNotes.length){
+      const premiereId = classesAvecNotes[0].id;
+      dashboardStatsData = dashboardStatsToutesClasses[premiereId];
+      blocStats = `
       <div class="card">
-        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyennes par matière — ${escapeHtml(nomClasseStats)}</h2>
+        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyennes par matière</h2>
+        <div class="selecteur-enfants" id="dashboard-stats-classe-pilules" style="margin-bottom:14px;">
+          ${classesAvecNotes.map(c => `<button class="pilule-enfant ${c.id === premiereId ? 'active' : ''}" data-dashboard-stats-classe="${c.id}">${escapeHtml(c.nom)}</button>`).join('')}
+        </div>
         <div style="max-width:420px;margin:0 auto;"><canvas id="dashboard-stats-canvas"></canvas></div>
-      </div>` : '';
+      </div>`;
+    }
 
     const maintenant = new Date();
     const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
