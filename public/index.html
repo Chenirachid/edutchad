@@ -5048,6 +5048,7 @@ async function renderComportement(){
    BULLETINS PDF (ADMIN)
    ============================================================ */
 let bulletinsPdfData = null; // { classe, bulletins, parametres }
+let dashboardStatsData = null; // { labels, moyennes } pour le graphique du tableau de bord
 
 async function renderAdminBulletinsPdf(){
   document.getElementById('page-subtitle').textContent = '';
@@ -6704,9 +6705,19 @@ async function renderActualites(){
   const peutPublier = state.user.role === 'ADMIN' || state.user.role === 'CHEF_PROJET';
   const actualites = await api('/actualites');
 
+  dashboardStatsData = null;
+  if(['PROFESSEUR','ADMIN','CHEF_ETABLISSEMENT'].includes(state.user.role)){
+    await chargerChartJs();
+  }
+
   let blocEmploiProf = '';
   if(state.user.role === 'PROFESSEUR'){
     blocEmploiProf = await construireBlocAccueilProf();
+  }
+
+  let blocStatsAdmin = '';
+  if(['ADMIN','CHEF_ETABLISSEMENT'].includes(state.user.role)){
+    blocStatsAdmin = await construireBlocStatistiquesAdmin();
   }
 
   let blocEtudiant = '';
@@ -6741,7 +6752,19 @@ async function renderActualites(){
       </form>
     </div>` : '';
 
-  content.innerHTML = `${blocMessages}${blocEmploiProf}${blocEtudiant}<div id="dashboard-parent-conteneur">${blocParent}</div>${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
+  content.innerHTML = `${blocMessages}${blocEmploiProf}${blocStatsAdmin}${blocEtudiant}<div id="dashboard-parent-conteneur">${blocParent}</div>${formulaire}${actualites.length ? cartes : '<div class="card"><div class="empty-state">Aucune actualité pour l\'instant.</div></div>'}`;
+
+  const canvasStats = document.getElementById('dashboard-stats-canvas');
+  if(canvasStats && dashboardStatsData && dashboardStatsData.labels.length){
+    new window.Chart(canvasStats, {
+      type: 'bar',
+      data: {
+        labels: dashboardStatsData.labels,
+        datasets: [{ label: 'Moyenne /20', data: dashboardStatsData.moyennes, backgroundColor: '#1D6E68', borderRadius: 5, maxBarThickness: 40 }],
+      },
+      options: { scales: { y: { min: 0, max: 20 } }, plugins: { legend: { display: false } } },
+    });
+  }
 
   if(peutPublier){
     document.getElementById('actualite-form').addEventListener('submit', async (e) => {
@@ -7053,15 +7076,68 @@ async function construireBlocAccueilEtudiant(){
   }
 }
 
+async function construireBlocStatistiquesAdmin(){
+  try{
+    const [classes, epreuves, notes] = await Promise.all([
+      api('/classes').catch(() => []),
+      api('/epreuves').catch(() => []),
+      api('/notes').catch(() => []),
+    ]);
+    const enseignementParId = new Map();
+    epreuves.forEach(ep => enseignementParId.set(ep.enseignement.id, ep.enseignement));
+
+    const parClasse = {};
+    notes.forEach(n => {
+      const ens = enseignementParId.get(n.enseignementId);
+      if(!ens) return;
+      const cle = ens.classe.nom;
+      if(!parClasse[cle]) parClasse[cle] = [];
+      parClasse[cle].push(n.valeur);
+    });
+    dashboardStatsData = { labels: Object.keys(parClasse).sort(), moyennes: [] };
+    dashboardStatsData.moyennes = dashboardStatsData.labels.map(cle => {
+      const vals = parClasse[cle];
+      return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
+    });
+    if(!dashboardStatsData.labels.length) return '';
+    return `
+      <div class="card">
+        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Moyenne générale par classe</h2>
+        <canvas id="dashboard-stats-canvas" height="90"></canvas>
+      </div>`;
+  }catch(err){ return ''; }
+}
+
 async function construireBlocAccueilProf(){
   try{
-    const [mine, creneaux, appelsFaits] = await Promise.all([
+    const [mine, creneaux, appelsFaits, notes] = await Promise.all([
       getMesEnseignements(),
       api('/creneaux').catch(() => []),
       api('/appel-fait').catch(() => []),
+      api('/notes').catch(() => []),
     ]);
     const idsAMoi = new Set(mine.map(e => e.id));
     const mesCreneaux = creneaux.filter(c => idsAMoi.has(c.enseignement.id));
+
+    dashboardStatsData = { labels: [], moyennes: [] };
+    const parMatiere = {};
+    notes.forEach(n => {
+      if(!idsAMoi.has(n.enseignementId)) return;
+      const enseignement = mine.find(e => e.id === n.enseignementId);
+      const cle = `${enseignement.matiere.nom} — ${enseignement.classe.nom}`;
+      if(!parMatiere[cle]) parMatiere[cle] = [];
+      parMatiere[cle].push(n.valeur);
+    });
+    dashboardStatsData.labels = Object.keys(parMatiere);
+    dashboardStatsData.moyennes = dashboardStatsData.labels.map(cle => {
+      const vals = parMatiere[cle];
+      return Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100;
+    });
+    const blocStats = dashboardStatsData.labels.length ? `
+      <div class="card">
+        <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Mes moyennes par classe</h2>
+        <canvas id="dashboard-stats-canvas" height="90"></canvas>
+      </div>` : '';
 
     const maintenant = new Date();
     const joursNoms = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
@@ -7074,7 +7150,7 @@ async function construireBlocAccueilProf(){
       .sort((a, b) => a.heureDebut.localeCompare(b.heureDebut));
 
     if(!creneauxAujourdhui.length){
-      return `<div class="card"><h2>Mon emploi du temps — aujourd'hui</h2><div class="empty-state">Aucun cours prévu aujourd'hui.</div></div>`;
+      return `<div class="card"><h2>Mon emploi du temps — aujourd'hui</h2><div class="empty-state">Aucun cours prévu aujourd'hui.</div></div>${blocStats}`;
     }
 
     const appelsFaitsAujourdhui = new Set(
@@ -7100,7 +7176,7 @@ async function construireBlocAccueilProf(){
     const grilleSemaine = genererGrilleSimple(mesCreneaux, c => escapeHtml(c.enseignement.classe.nom));
 
     return `<div class="card"><h2>Mon emploi du temps — aujourd'hui</h2>${lignes}</div>
-      <div class="card"><h2>Mon emploi du temps — toute la semaine</h2>${grilleSemaine}</div>`;
+      <div class="card"><h2>Mon emploi du temps — toute la semaine</h2>${grilleSemaine}</div>${blocStats}`;
   }catch(err){
     return '';
   }
