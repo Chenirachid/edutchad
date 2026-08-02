@@ -32,6 +32,8 @@ export class InscriptionsAdministrativesService {
         etudiantId: etudiant.id,
         anneeScolaire: dto.anneeScolaire,
         dateNaissance: new Date(dto.dateNaissance),
+        emailContact: dto.emailContact,
+        telephoneContact: dto.telephoneContact,
         typeJustificatif: dto.typeJustificatif,
         justificatifNom: dto.justificatifNom,
         justificatifType: dto.justificatifType,
@@ -43,6 +45,8 @@ export class InscriptionsAdministrativesService {
       },
       update: {
         dateNaissance: new Date(dto.dateNaissance),
+        emailContact: dto.emailContact,
+        telephoneContact: dto.telephoneContact,
         typeJustificatif: dto.typeJustificatif,
         justificatifNom: dto.justificatifNom,
         justificatifType: dto.justificatifType,
@@ -82,6 +86,22 @@ export class InscriptionsAdministrativesService {
       data: {
         statut: dto.statut,
         dateValidation: dto.statut === StatutInscriptionAdmin.VALIDEE ? new Date() : null,
+      },
+      include: { etudiant: { select: etudiantSelect } },
+    });
+  }
+
+  async updateStatutPedagogique(id: number, dto: UpdateStatutInscriptionDto) {
+    const inscription = await this.prisma.inscriptionAdministrative.findUnique({ where: { id } });
+    if (!inscription) {
+      throw new NotFoundException(`Inscription administrative ${id} introuvable`);
+    }
+
+    return this.prisma.inscriptionAdministrative.update({
+      where: { id },
+      data: {
+        statutPedagogique: dto.statut,
+        dateValidationPedagogique: dto.statut === StatutInscriptionAdmin.VALIDEE ? new Date() : null,
       },
       include: { etudiant: { select: etudiantSelect } },
     });

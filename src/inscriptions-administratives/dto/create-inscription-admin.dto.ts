@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsEnum, IsString, MinLength, ValidateIf } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, MinLength, ValidateIf } from 'class-validator';
 import { TypeJustificatifIdentite } from '@prisma/client';
 
 export class CreateInscriptionAdminDto {
@@ -11,6 +11,14 @@ export class CreateInscriptionAdminDto {
 
   @IsDateString()
   dateNaissance: string;
+
+  @IsOptional()
+  @IsString()
+  emailContact?: string;
+
+  @IsOptional()
+  @IsString()
+  telephoneContact?: string;
 
   @IsEnum(TypeJustificatifIdentite)
   typeJustificatif: TypeJustificatifIdentite;

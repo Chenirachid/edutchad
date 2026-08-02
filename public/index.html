@@ -5748,16 +5748,21 @@ async function renderAdminInscriptions(){
       <td>${escapeHtml(i.etudiant.prenom)} ${escapeHtml(i.etudiant.nom)}</td>
       <td>${escapeHtml(i.anneeScolaire)}</td>
       <td><span class="moy-pill" style="background:transparent;border:1.5px solid ${STATUT_INSCRIPTION_COLORS[i.statut]};color:${STATUT_INSCRIPTION_COLORS[i.statut]};">${STATUT_INSCRIPTION_LABELS[i.statut]}</span></td>
+      <td><span class="moy-pill" style="background:transparent;border:1.5px solid ${STATUT_INSCRIPTION_COLORS[i.statutPedagogique]};color:${STATUT_INSCRIPTION_COLORS[i.statutPedagogique]};">${STATUT_INSCRIPTION_LABELS[i.statutPedagogique]}</span></td>
       <td>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Administrative :</div>
         <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="VALIDEE" style="border-color:var(--success);color:var(--success);">Valider</button>
         <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>
+        <div style="font-size:10px;color:var(--text-muted);margin:8px 0 3px;">Pédagogique (affectation aux enseignements) :</div>
+        <button class="btn-secondary" data-statut-pedagogique="${i.id}" data-valeur="VALIDEE" style="border-color:var(--success);color:var(--success);">Valider</button>
+        <button class="btn-secondary" data-statut-pedagogique="${i.id}" data-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>
       </td>
     </tr>`;
 
   const sectionsParClasse = Object.keys(parClasse).sort().map(nom => `
     <div style="margin-bottom:22px;">
       <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${parClasse[nom].length})</h3>
-      <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Statut</th><th></th></tr></thead><tbody>${parClasse[nom].map(ligneInscription).join('')}</tbody></table>
+      <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Administrative</th><th>Pédagogique</th><th>Actions</th></tr></thead><tbody>${parClasse[nom].map(ligneInscription).join('')}</tbody></table>
     </div>`).join('');
 
 
@@ -5777,6 +5782,8 @@ async function renderAdminInscriptions(){
         </div>
         <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
         <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required /></div>
+        <div class="f"><label>Adresse email (facultatif)</label><input type="email" name="emailContact" placeholder="famille@exemple.com" /></div>
+        <div class="f"><label>Numéro de téléphone (facultatif)</label><input type="tel" name="telephoneContact" placeholder="06 12 34 56 78" /></div>
         <div class="f">
           <label>Type de justificatif d'identité</label>
           <select name="typeJustificatif" required>
@@ -5879,6 +5886,8 @@ async function renderAdminInscriptions(){
         numeroEtudiant: nouvelEleve.numeroEtudiant,
         anneeScolaire: fd.get('anneeScolaire'),
         dateNaissance: new Date(fd.get('dateNaissance')).toISOString(),
+        emailContact: fd.get('emailContact') || undefined,
+        telephoneContact: fd.get('telephoneContact') || undefined,
         typeJustificatif: fd.get('typeJustificatif'),
         justificatifNom: fichierJustificatif.name,
         justificatifType: fichierJustificatif.type,
@@ -5953,7 +5962,17 @@ async function renderAdminInscriptions(){
     btn.addEventListener('click', async () => {
       try{
         await api('/inscriptions-administratives/' + btn.dataset.statutInscription + '/statut', { method:'PATCH', body: JSON.stringify({ statut: btn.dataset.valeur })});
-        toast('Statut mis à jour.');
+        toast('Statut administratif mis à jour.');
+        renderAdminInscriptions();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  });
+
+  content.querySelectorAll('[data-statut-pedagogique]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try{
+        await api('/inscriptions-administratives/' + btn.dataset.statutPedagogique + '/statut-pedagogique', { method:'PATCH', body: JSON.stringify({ statut: btn.dataset.valeur })});
+        toast('Affectation pédagogique mise à jour.');
         renderAdminInscriptions();
       }catch(err){ toast(err.message, 'error'); }
     });

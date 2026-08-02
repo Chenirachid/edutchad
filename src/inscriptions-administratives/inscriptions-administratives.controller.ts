@@ -47,4 +47,12 @@ export class InscriptionsAdministrativesController {
   ) {
     return this.service.updateStatut(id, dto);
   }
+
+  @Patch(':id/statut-pedagogique')
+  updateStatutPedagogique(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateStatutInscriptionDto,
+  ) {
+    return this.service.updateStatutPedagogique(id, dto);
+  }
 }
