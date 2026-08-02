@@ -1549,7 +1549,7 @@ function stringToPastel(str){
 function genererBarreIconesEDT(mode){
   const style = mode === 'absolute' ? 'position:absolute;top:0;right:0;' : mode === 'horizontal' ? 'flex-direction:row;justify-content:center;margin-bottom:16px;' : '';
   return `<div class="barre-icones-edt" style="${style}">
-    <button title="Cahier de texte" id="edt-icone-cahier"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg></button>
+    ${state.user.role === 'ETUDIANT' ? '' : `<button title="Cahier de texte" id="edt-icone-cahier"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg></button>`}
     <button title="Messagerie" id="edt-icone-messagerie"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
     <button title="Notes / Bulletin" id="edt-icone-notes"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></button>
     <button title="Vie scolaire" id="edt-icone-vie-scolaire"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -1865,7 +1865,6 @@ const MENUS = {
     { id:'resultats', label:'Résultats', render: renderEtudiantBulletin },
     { id:'absences', label:'Mes absences', render: renderEtudiantAbsences, grupo:'vie-scolaire' },
     { id:'comportement', label:'Mon comportement', render: renderComportement, grupo:'vie-scolaire' },
-    { id:'cahier-texte', label:'Cahier de texte', render: renderCahierTexte },
     { id:'emploi', label:'Emploi du temps', render: renderEmploiDuTemps },
     { id:'bibliotheque', label:'Bibliothèque', render: renderBibliotheque },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
