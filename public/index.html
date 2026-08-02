@@ -491,6 +491,7 @@
     display:flex;align-items:center;justify-content:center;flex-shrink:0;
   }
   .rond-nav:hover{background:var(--teal-100);}
+  .stats-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:0 0 8px;}
   .selecteur-enfants{display:flex;gap:8px;flex-wrap:wrap;}
   .pilule-enfant{
     padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:#fff;
@@ -6049,14 +6050,18 @@ async function renderStatistiques(){
     return;
   }
 
+  let classeStatsId = classes[0].id;
+
   content.innerHTML = `
     <div class="card">
       <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;">Statistiques par classe et par matière</h2>
       <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Moyennes par matière et comparaison d'un élève par rapport à sa classe.</p>
-      <div class="inline-form" style="margin-bottom:10px;">
-        <div class="f"><label>Classe</label><select id="stats-classe">${classes.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}</select></div>
-        <div class="f"><label>Élève (facultatif, pour le conseil de classe)</label><select id="stats-eleve"><option value="">Toute la classe</option></select></div>
+      <div class="stats-eyebrow">Classe</div>
+      <div class="selecteur-enfants" id="stats-classe-pilules" style="margin-bottom:16px;">
+        ${classes.map(c => `<button class="pilule-enfant ${c.id === classeStatsId ? 'active' : ''}" data-stats-classe="${c.id}">${escapeHtml(c.nom)}</button>`).join('')}
       </div>
+      <div class="stats-eyebrow">Élève <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);">(facultatif, pour le conseil de classe)</span></div>
+      <div class="selecteur-enfants" id="stats-eleve-pilules"></div>
     </div>
     <div class="card">
       <h3 style="margin-top:0;">Moyennes par matière</h3>
@@ -6068,17 +6073,28 @@ async function renderStatistiques(){
       </div>
     </div>`;
 
+  let eleveStatsId = null;
+
   function remplirElevesStats(){
-    const classeId = Number(document.getElementById('stats-classe').value);
-    const classe = classes.find(c => c.id === classeId);
+    const classe = classes.find(c => c.id === classeStatsId);
     const eleves = (classe && classe.etudiants ? classe.etudiants.slice() : []).sort((a, b) => a.nom.localeCompare(b.nom));
-    document.getElementById('stats-eleve').innerHTML = '<option value="">Toute la classe</option>' +
-      eleves.map(et => `<option value="${et.id}">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('');
+    eleveStatsId = null;
+    const zone = document.getElementById('stats-eleve-pilules');
+    zone.innerHTML = `<button class="pilule-enfant active" data-stats-eleve="">Toute la classe</button>` +
+      eleves.map(et => `<button class="pilule-enfant" data-stats-eleve="${et.id}">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</button>`).join('');
+    zone.querySelectorAll('[data-stats-eleve]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        zone.querySelectorAll('[data-stats-eleve]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        eleveStatsId = btn.dataset.statsEleve ? Number(btn.dataset.statsEleve) : null;
+        calculerEtAfficher();
+      });
+    });
   }
 
   function calculerEtAfficher(){
-    const classeId = Number(document.getElementById('stats-classe').value);
-    const eleveId = document.getElementById('stats-eleve').value ? Number(document.getElementById('stats-eleve').value) : null;
+    const classeId = classeStatsId;
+    const eleveId = eleveStatsId;
 
     // Enseignements de cette classe, pour relier notes/épreuves à leur matière
     const enseignementsClasse = new Map();
@@ -6118,7 +6134,9 @@ async function renderStatistiques(){
         const vals = parMatiereEleve[nom];
         return vals && vals.length ? Math.round((vals.reduce((a,v)=>a+v,0) / vals.length) * 100) / 100 : 0;
       });
-      const nomEleve = document.getElementById('stats-eleve').selectedOptions[0].textContent;
+      const classeCourante = classes.find(c => c.id === classeId);
+      const eleveCourant = classeCourante && classeCourante.etudiants ? classeCourante.etudiants.find(et => et.id === eleveId) : null;
+      const nomEleve = eleveCourant ? `${eleveCourant.prenom} ${eleveCourant.nom}` : '';
       datasets.push({ label: `${nomEleve} /20`, data: moyennesEleve, borderColor: '#D9713C', backgroundColor: 'rgba(217,113,60,0.22)', pointBackgroundColor: '#D9713C' });
     }
 
@@ -6141,11 +6159,15 @@ async function renderStatistiques(){
       : '<div class="empty-state">Aucune note pour cette classe.</div>';
   }
 
-  document.getElementById('stats-classe').addEventListener('change', () => {
-    remplirElevesStats();
-    calculerEtAfficher();
+  document.getElementById('stats-classe-pilules').querySelectorAll('[data-stats-classe]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('stats-classe-pilules').querySelectorAll('[data-stats-classe]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      classeStatsId = Number(btn.dataset.statsClasse);
+      remplirElevesStats();
+      calculerEtAfficher();
+    });
   });
-  document.getElementById('stats-eleve').addEventListener('change', calculerEtAfficher);
   remplirElevesStats();
   calculerEtAfficher();
 }
