@@ -42,6 +42,18 @@
     font-size:14px;text-decoration:none;display:inline-block;
   }
   .btn-connexion:hover{background:var(--teal-900);}
+  .lang-switch-btn{
+    display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:7px;border:1.5px solid var(--border);
+    background:#fff;color:var(--teal-900);font-size:12.5px;font-weight:600;cursor:pointer;
+  }
+  .lang-switch-btn:hover{background:var(--teal-100);}
+  .lang-switch-menu{
+    position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border);
+    border-radius:9px;box-shadow:var(--shadow);min-width:130px;overflow:hidden;z-index:50;
+  }
+  .lang-switch-menu button{display:block;width:100%;text-align:left;padding:9px 14px;font-size:13px;background:transparent;border:none;color:var(--text);cursor:pointer;}
+  .lang-switch-menu button:hover{background:var(--teal-100);}
+  .hidden{display:none;}
 
   /* ---------- HERO (asymétrique) ---------- */
   .hero{padding:76px 0 60px;background:var(--bg);}
@@ -146,19 +158,32 @@
       <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4L3 8.5l9 4 9-4L12 4z" fill="white"/><path d="M7 9.8v3.4c0 1.4 2 2.8 5 2.8s5-1.4 5-2.8V9.8" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20.5 8.5v4" stroke="white" stroke-width="1.4" stroke-linecap="round"/><circle cx="20.5" cy="13.3" r="0.9" fill="white"/></svg></div>
       <span>EduCheni</span>
     </div>
-    <a class="btn-connexion" href="/">Se connecter</a>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="lang-switch-wrap" style="position:relative;">
+        <button class="lang-switch-btn" id="lang-switch-btn" type="button">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
+          <span id="lang-switch-label">FR</span>
+        </button>
+        <div class="lang-switch-menu hidden" id="lang-switch-menu">
+          <button data-lang="fr">Français</button>
+          <button data-lang="en">English</button>
+          <button data-lang="ar">العربية</button>
+        </div>
+      </div>
+      <a class="btn-connexion" href="/" data-i18n="btn_connexion">Se connecter</a>
+    </div>
   </div>
 </header>
 
 <div class="hero">
   <div class="conteneur">
     <div>
-      <span class="hero-eyebrow">Fait pour les écoles</span>
-      <h1>Le quotidien de votre école, enfin simple à suivre</h1>
-      <p>Les notes, les absences, l'emploi du temps, les messages aux familles — tout ce qu'une équipe pédagogique fait chaque jour, sans classeur qui traîne ni fichier Excel à mettre à jour à la main.</p>
+      <span class="hero-eyebrow" data-i18n="eyebrow">Fait pour les écoles</span>
+      <h1 data-i18n="h1">Le quotidien de votre école, enfin simple à suivre</h1>
+      <p data-i18n="hero_p">Les notes, les absences, l'emploi du temps, les messages aux familles — tout ce qu'une équipe pédagogique fait chaque jour, sans classeur qui traîne ni fichier Excel à mettre à jour à la main.</p>
       <div class="hero-boutons">
-        <a class="btn-primaire" href="/">Se connecter à mon espace</a>
-        <a class="btn-secondaire" href="#fonctionnalites">Voir ce qu'il y a dedans</a>
+        <a class="btn-primaire" href="/" data-i18n="btn1">Se connecter à mon espace</a>
+        <a class="btn-secondaire" href="#fonctionnalites" data-i18n="btn2">Voir ce qu'il y a dedans</a>
       </div>
     </div>
     <div class="hero-visuel">
@@ -182,60 +207,60 @@
 
 <section id="fonctionnalites">
   <div class="conteneur">
-    <h2 class="titre-section">Ce qu'on y fait, concrètement</h2>
-    <p class="sous-titre-section">Les outils qu'un établissement utilise vraiment, au jour le jour — pas plus.</p>
+    <h2 class="titre-section" data-i18n="f_titre">Ce qu'on y fait, concrètement</h2>
+    <p class="sous-titre-section" data-i18n="f_sous">Les outils qu'un établissement utilise vraiment, au jour le jour — pas plus.</p>
     <div class="grille-fonctions">
-      <div class="carte-fonction"><span class="numero">01</span><h3>Notes &amp; bulletins</h3><p>Chaque note entrée met à jour la moyenne aussitôt. Le bulletin sort prêt à imprimer, avec la moyenne de la classe juste à côté pour comparer.</p></div>
-      <div class="carte-fonction"><span class="numero">02</span><h3>Vie scolaire</h3><p>Un retard, une absence, une punition : ça se saisit en quelques secondes, et les parents voient tout de suite si c'est justifié.</p></div>
-      <div class="carte-fonction"><span class="numero">03</span><h3>Emploi du temps</h3><p>La grille de la semaine, avec l'appel et le cahier de texte accessibles directement depuis chaque créneau — pas besoin de changer d'écran.</p></div>
-      <div class="carte-fonction"><span class="numero">04</span><h3>Messagerie</h3><p>Un mot à un parent, à un collègue, ou à toute une classe d'un coup — sans passer par un groupe WhatsApp ou le cahier de correspondance.</p></div>
-      <div class="carte-fonction"><span class="numero">05</span><h3>Bibliothèque numérique</h3><p>Les documents de cours au même endroit, avec un coin à part réservé aux corrigés, que seuls les professeurs peuvent ouvrir.</p></div>
-      <div class="carte-fonction"><span class="numero">06</span><h3>Frais scolaires</h3><p>Qui a payé, qui doit encore, et combien — par classe, avec une quittance imprimable à chaque versement.</p></div>
-      <div class="carte-fonction"><span class="numero">07</span><h3>Certificats &amp; attestations</h3><p>Un certificat de scolarité prêt en quelques secondes, avec le cachet propre à votre établissement dessus.</p></div>
-      <div class="carte-fonction"><span class="numero">08</span><h3>Multi-établissements</h3><p>Chaque établissement garde ses classes, ses comptes et ses réglages à lui, sans jamais se mélanger avec un autre.</p></div>
+      <div class="carte-fonction"><span class="numero">01</span><h3 data-i18n="f01_h">Notes &amp; bulletins</h3><p data-i18n="f01_p">Chaque note entrée met à jour la moyenne aussitôt. Le bulletin sort prêt à imprimer, avec la moyenne de la classe juste à côté pour comparer.</p></div>
+      <div class="carte-fonction"><span class="numero">02</span><h3 data-i18n="f02_h">Vie scolaire</h3><p data-i18n="f02_p">Un retard, une absence, une punition : ça se saisit en quelques secondes, et les parents voient tout de suite si c'est justifié.</p></div>
+      <div class="carte-fonction"><span class="numero">03</span><h3 data-i18n="f03_h">Emploi du temps</h3><p data-i18n="f03_p">La grille de la semaine, avec l'appel et le cahier de texte accessibles directement depuis chaque créneau — pas besoin de changer d'écran.</p></div>
+      <div class="carte-fonction"><span class="numero">04</span><h3 data-i18n="f04_h">Messagerie</h3><p data-i18n="f04_p">Un mot à un parent, à un collègue, ou à toute une classe d'un coup — sans passer par un groupe WhatsApp ou le cahier de correspondance.</p></div>
+      <div class="carte-fonction"><span class="numero">05</span><h3 data-i18n="f05_h">Bibliothèque numérique</h3><p data-i18n="f05_p">Les documents de cours au même endroit, avec un coin à part réservé aux corrigés, que seuls les professeurs peuvent ouvrir.</p></div>
+      <div class="carte-fonction"><span class="numero">06</span><h3 data-i18n="f06_h">Frais scolaires</h3><p data-i18n="f06_p">Qui a payé, qui doit encore, et combien — par classe, avec une quittance imprimable à chaque versement.</p></div>
+      <div class="carte-fonction"><span class="numero">07</span><h3 data-i18n="f07_h">Certificats &amp; attestations</h3><p data-i18n="f07_p">Un certificat de scolarité prêt en quelques secondes, avec le cachet propre à votre établissement dessus.</p></div>
+      <div class="carte-fonction"><span class="numero">08</span><h3 data-i18n="f08_h">Multi-établissements</h3><p data-i18n="f08_p">Chaque établissement garde ses classes, ses comptes et ses réglages à lui, sans jamais se mélanger avec un autre.</p></div>
     </div>
   </div>
 </section>
 
 <section style="background:var(--bg);">
   <div class="conteneur">
-    <h2 class="titre-section">Chacun ne voit que ce qui le concerne</h2>
-    <p class="sous-titre-section">Un élève, un professeur, un parent et l'administration n'ont pas accès aux mêmes choses.</p>
+    <h2 class="titre-section" data-i18n="p_titre">Chacun ne voit que ce qui le concerne</h2>
+    <p class="sous-titre-section" data-i18n="p_sous">Un élève, un professeur, un parent et l'administration n'ont pas accès aux mêmes choses.</p>
     <div class="grille-publics">
       <div class="carte-public">
         <span class="numero-public">A</span>
-        <h3>Élèves</h3>
+        <h3 data-i18n="pa_h">Élèves</h3>
         <ul>
-          <li>Ses notes et son bulletin, à jour</li>
-          <li>Son emploi du temps et ses devoirs</li>
-          <li>Ses absences et son comportement</li>
+          <li data-i18n="pa_1">Ses notes et son bulletin, à jour</li>
+          <li data-i18n="pa_2">Son emploi du temps et ses devoirs</li>
+          <li data-i18n="pa_3">Ses absences et son comportement</li>
         </ul>
       </div>
       <div class="carte-public">
         <span class="numero-public">B</span>
-        <h3>Professeurs</h3>
+        <h3 data-i18n="pb_h">Professeurs</h3>
         <ul>
-          <li>L'appel et les notes, classe par classe</li>
-          <li>Le cahier de texte en deux clics</li>
-          <li>Un message direct aux familles</li>
+          <li data-i18n="pb_1">L'appel et les notes, classe par classe</li>
+          <li data-i18n="pb_2">Le cahier de texte en deux clics</li>
+          <li data-i18n="pb_3">Un message direct aux familles</li>
         </ul>
       </div>
       <div class="carte-public">
         <span class="numero-public">C</span>
-        <h3>Parents</h3>
+        <h3 data-i18n="pc_h">Parents</h3>
         <ul>
-          <li>Le suivi de chacun de leurs enfants</li>
-          <li>Un rendez-vous avec l'administration</li>
-          <li>Où en sont les frais de scolarité</li>
+          <li data-i18n="pc_1">Le suivi de chacun de leurs enfants</li>
+          <li data-i18n="pc_2">Un rendez-vous avec l'administration</li>
+          <li data-i18n="pc_3">Où en sont les frais de scolarité</li>
         </ul>
       </div>
       <div class="carte-public">
         <span class="numero-public">D</span>
-        <h3>Administration</h3>
+        <h3 data-i18n="pd_h">Administration</h3>
         <ul>
-          <li>Tous les comptes, au même endroit</li>
-          <li>Des statistiques, classe par classe</li>
-          <li>Les documents officiels, générés seuls</li>
+          <li data-i18n="pd_1">Tous les comptes, au même endroit</li>
+          <li data-i18n="pd_2">Des statistiques, classe par classe</li>
+          <li data-i18n="pd_3">Les documents officiels, générés seuls</li>
         </ul>
       </div>
     </div>
@@ -244,23 +269,23 @@
 
 <section style="background:var(--bg);">
   <div class="conteneur">
-    <h2 class="titre-section">Questions qu'on nous pose souvent</h2>
+    <h2 class="titre-section" data-i18n="faq_titre">Questions qu'on nous pose souvent</h2>
     <div class="faq-liste">
       <div class="faq-item">
-        <h3>Combien de temps avant de vraiment s'en servir ?</h3>
-        <p>Le temps de créer les classes, les matières et les comptes. En général, une équipe commence à l'utiliser au quotidien en quelques jours.</p>
+        <h3 data-i18n="faq1_q">Combien de temps avant de vraiment s'en servir ?</h3>
+        <p data-i18n="faq1_r">Le temps de créer les classes, les matières et les comptes. En général, une équipe commence à l'utiliser au quotidien en quelques jours.</p>
       </div>
       <div class="faq-item">
-        <h3>Il faut du matériel particulier ?</h3>
-        <p>Non. Ça marche directement dans un navigateur — ordinateur, tablette ou téléphone — rien à installer.</p>
+        <h3 data-i18n="faq2_q">Il faut du matériel particulier ?</h3>
+        <p data-i18n="faq2_r">Non. Ça marche directement dans un navigateur — ordinateur, tablette ou téléphone — rien à installer.</p>
       </div>
       <div class="faq-item">
-        <h3>Les données d'un établissement peuvent-elles se mélanger avec celles d'un autre ?</h3>
-        <p>Non, jamais. Chaque établissement a ses propres classes, ses comptes et ses réglages, complètement séparés du reste.</p>
+        <h3 data-i18n="faq3_q">Les données d'un établissement peuvent-elles se mélanger avec celles d'un autre ?</h3>
+        <p data-i18n="faq3_r">Non, jamais. Chaque établissement a ses propres classes, ses comptes et ses réglages, complètement séparés du reste.</p>
       </div>
       <div class="faq-item">
-        <h3>Comment obtenir un accès pour son établissement ?</h3>
-        <p>Le plus simple, c'est de nous écrire directement — le lien "Nous contacter" est en haut de la page.</p>
+        <h3 data-i18n="faq4_q">Comment obtenir un accès pour son établissement ?</h3>
+        <p data-i18n="faq4_r">Le plus simple, c'est de nous écrire directement — le lien "Nous contacter" est en haut de la page.</p>
       </div>
     </div>
   </div>
@@ -269,16 +294,131 @@
 <section>
   <div class="conteneur">
     <div class="bandeau-cta">
-      <h2>Envie d'essayer avec votre établissement ?</h2>
-      <p>Connectez-vous à votre espace si vous en avez déjà un, ou écrivez-nous pour en mettre un en place.</p>
-      <a class="btn-primaire" href="/">Se connecter</a>
+      <h2 data-i18n="cta_titre">Envie d'essayer avec votre établissement ?</h2>
+      <p data-i18n="cta_p">Connectez-vous à votre espace si vous en avez déjà un, ou écrivez-nous pour en mettre un en place.</p>
+      <a class="btn-primaire" href="/" data-i18n="btn_connexion">Se connecter</a>
     </div>
   </div>
 </section>
 
 <footer>
-  <div class="conteneur">EduCheni — Plateforme scolaire de gestion d'établissement</div>
+  <div class="conteneur" data-i18n="footer">EduCheni — Plateforme scolaire de gestion d'établissement</div>
 </footer>
+
+<script>
+const I18N_PRESENTATION = {
+  fr: {
+    eyebrow: "Fait pour les écoles",
+    h1: "Le quotidien de votre école, enfin simple à suivre",
+    hero_p: "Les notes, les absences, l'emploi du temps, les messages aux familles — tout ce qu'une équipe pédagogique fait chaque jour, sans classeur qui traîne ni fichier Excel à mettre à jour à la main.",
+    btn1: "Se connecter à mon espace", btn2: "Voir ce qu'il y a dedans", btn_connexion: "Se connecter",
+    f_titre: "Ce qu'on y fait, concrètement", f_sous: "Les outils qu'un établissement utilise vraiment, au jour le jour — pas plus.",
+    f01_h: "Notes &amp; bulletins", f01_p: "Chaque note entrée met à jour la moyenne aussitôt. Le bulletin sort prêt à imprimer, avec la moyenne de la classe juste à côté pour comparer.",
+    f02_h: "Vie scolaire", f02_p: "Un retard, une absence, une punition : ça se saisit en quelques secondes, et les parents voient tout de suite si c'est justifié.",
+    f03_h: "Emploi du temps", f03_p: "La grille de la semaine, avec l'appel et le cahier de texte accessibles directement depuis chaque créneau — pas besoin de changer d'écran.",
+    f04_h: "Messagerie", f04_p: "Un mot à un parent, à un collègue, ou à toute une classe d'un coup — sans passer par un groupe WhatsApp ou le cahier de correspondance.",
+    f05_h: "Bibliothèque numérique", f05_p: "Les documents de cours au même endroit, avec un coin à part réservé aux corrigés, que seuls les professeurs peuvent ouvrir.",
+    f06_h: "Frais scolaires", f06_p: "Qui a payé, qui doit encore, et combien — par classe, avec une quittance imprimable à chaque versement.",
+    f07_h: "Certificats &amp; attestations", f07_p: "Un certificat de scolarité prêt en quelques secondes, avec le cachet propre à votre établissement dessus.",
+    f08_h: "Multi-établissements", f08_p: "Chaque établissement garde ses classes, ses comptes et ses réglages à lui, sans jamais se mélanger avec un autre.",
+    p_titre: "Chacun ne voit que ce qui le concerne", p_sous: "Un élève, un professeur, un parent et l'administration n'ont pas accès aux mêmes choses.",
+    pa_h: "Élèves", pa_1: "Ses notes et son bulletin, à jour", pa_2: "Son emploi du temps et ses devoirs", pa_3: "Ses absences et son comportement",
+    pb_h: "Professeurs", pb_1: "L'appel et les notes, classe par classe", pb_2: "Le cahier de texte en deux clics", pb_3: "Un message direct aux familles",
+    pc_h: "Parents", pc_1: "Le suivi de chacun de leurs enfants", pc_2: "Un rendez-vous avec l'administration", pc_3: "Où en sont les frais de scolarité",
+    pd_h: "Administration", pd_1: "Tous les comptes, au même endroit", pd_2: "Des statistiques, classe par classe", pd_3: "Les documents officiels, générés seuls",
+    faq_titre: "Questions qu'on nous pose souvent",
+    faq1_q: "Combien de temps avant de vraiment s'en servir ?", faq1_r: "Le temps de créer les classes, les matières et les comptes. En général, une équipe commence à l'utiliser au quotidien en quelques jours.",
+    faq2_q: "Il faut du matériel particulier ?", faq2_r: "Non. Ça marche directement dans un navigateur — ordinateur, tablette ou téléphone — rien à installer.",
+    faq3_q: "Les données d'un établissement peuvent-elles se mélanger avec celles d'un autre ?", faq3_r: "Non, jamais. Chaque établissement a ses propres classes, ses comptes et ses réglages, complètement séparés du reste.",
+    faq4_q: "Comment obtenir un accès pour son établissement ?", faq4_r: "Le plus simple, c'est de nous écrire directement — le lien \"Nous contacter\" est en haut de la page.",
+    cta_titre: "Envie d'essayer avec votre établissement ?", cta_p: "Connectez-vous à votre espace si vous en avez déjà un, ou écrivez-nous pour en mettre un en place.",
+    footer: "EduCheni — Plateforme scolaire de gestion d'établissement",
+  },
+  en: {
+    eyebrow: "Built for schools",
+    h1: "Your school's daily life, finally easy to follow",
+    hero_p: "Grades, absences, the timetable, messages to families — everything a teaching team does every day, without a folder that piles up or an Excel file to update by hand.",
+    btn1: "Sign in to my account", btn2: "See what's inside", btn_connexion: "Sign in",
+    f_titre: "What it actually does", f_sous: "The tools a school really uses, day to day — nothing more.",
+    f01_h: "Grades &amp; report cards", f01_p: "Every grade entered updates the average right away. The report card comes out ready to print, with the class average next to it for comparison.",
+    f02_h: "Student life", f02_p: "A late arrival, an absence, a sanction: it's logged in seconds, and parents see right away whether it's excused.",
+    f03_h: "Timetable", f03_p: "The weekly grid, with attendance and the class notebook accessible directly from each slot — no need to switch screens.",
+    f04_h: "Messaging", f04_p: "A note to a parent, a colleague, or a whole class at once — without going through a WhatsApp group or the correspondence book.",
+    f05_h: "Digital library", f05_p: "Course documents in one place, with a separate corner for answer keys, visible only to teachers.",
+    f06_h: "School fees", f06_p: "Who's paid, who still owes, and how much — by class, with a printable receipt for every payment.",
+    f07_h: "Certificates &amp; documents", f07_p: "An enrollment certificate ready in seconds, with your school's own stamp on it.",
+    f08_h: "Multi-school support", f08_p: "Each school keeps its own classes, accounts and settings, never mixed with another's.",
+    p_titre: "Everyone sees only what concerns them", p_sous: "A student, a teacher, a parent and the administration don't have access to the same things.",
+    pa_h: "Students", pa_1: "Their grades and report card, up to date", pa_2: "Their timetable and homework", pa_3: "Their absences and behaviour",
+    pb_h: "Teachers", pb_1: "Attendance and grades, class by class", pb_2: "The class notebook in two clicks", pb_3: "A direct message to families",
+    pc_h: "Parents", pc_1: "Tracking for each of their children", pc_2: "An appointment with the administration", pc_3: "Where school fees stand",
+    pd_h: "Administration", pd_1: "All accounts, in one place", pd_2: "Statistics, class by class", pd_3: "Official documents, generated on their own",
+    faq_titre: "Questions we get asked often",
+    faq1_q: "How long before it's actually usable?", faq1_r: "The time to create the classes, subjects and accounts. Generally, a team starts using it daily within a few days.",
+    faq2_q: "Do we need special equipment?", faq2_r: "No. It works directly in a browser — computer, tablet or phone — nothing to install.",
+    faq3_q: "Can one school's data mix with another's?", faq3_r: "No, never. Each school has its own classes, accounts and settings, fully separate from the rest.",
+    faq4_q: "How do we get access for our school?", faq4_r: "The simplest way is to write to us directly — see the \"Contact us\" link at the top of the page.",
+    cta_titre: "Want to try it with your school?", cta_p: "Sign in to your account if you already have one, or write to us to set one up.",
+    footer: "EduCheni — School management platform",
+  },
+  ar: {
+    eyebrow: "مصممة للمدارس",
+    h1: "الحياة اليومية لمدرستك، أصبحت أخيراً سهلة المتابعة",
+    hero_p: "النقاط، الغيابات، الجدول الزمني، الرسائل الموجهة للأسر — كل ما يقوم به الفريق التربوي يومياً، دون ملفات ورقية متراكمة أو جداول إكسل يجب تحديثها يدوياً.",
+    btn1: "تسجيل الدخول إلى مساحتي", btn2: "اكتشف محتوى المنصة", btn_connexion: "تسجيل الدخول",
+    f_titre: "ما الذي نقوم به فعلياً", f_sous: "الأدوات التي تستخدمها المدرسة فعلاً، يوماً بعد يوم — لا أكثر.",
+    f01_h: "النقاط والشهادات المدرسية", f01_p: "كل نقطة تُدخل تُحدّث المعدل فوراً. تخرج كشوف النقاط جاهزة للطباعة، مع معدل القسم بجانبها للمقارنة.",
+    f02_h: "الحياة المدرسية", f02_p: "تأخر، غياب، عقوبة: يتم تسجيلها في ثوانٍ، ويرى أولياء الأمور فوراً إن كانت مبررة أم لا.",
+    f03_h: "الجدول الزمني", f03_p: "جدول الأسبوع، مع إمكانية تسجيل الحضور ودفتر النصوص مباشرة من كل حصة — دون الحاجة لتغيير الشاشة.",
+    f04_h: "المراسلة", f04_p: "رسالة إلى ولي أمر، إلى زميل، أو إلى قسم كامل دفعة واحدة — دون المرور عبر مجموعة واتساب أو دفتر المراسلة.",
+    f05_h: "المكتبة الرقمية", f05_p: "وثائق الدروس في مكان واحد، مع ركن خاص بالتصحيحات، لا يراه سوى الأساتذة.",
+    f06_h: "الرسوم المدرسية", f06_p: "من دفع، من لا يزال مديناً، وكم — حسب القسم، مع وصل قابل للطباعة لكل دفعة.",
+    f07_h: "الشهادات والوثائق", f07_p: "شهادة مدرسية جاهزة في ثوانٍ، تحمل ختم مؤسستكم الخاص.",
+    f08_h: "دعم عدة مؤسسات", f08_p: "تحتفظ كل مؤسسة بأقسامها وحساباتها وإعداداتها الخاصة، دون أي اختلاط مع مؤسسة أخرى.",
+    p_titre: "كل شخص يرى فقط ما يخصه", p_sous: "التلميذ والأستاذ وولي الأمر والإدارة لا يملكون نفس الصلاحيات.",
+    pa_h: "التلاميذ", pa_1: "نقاطهم وكشف نقاطهم، محدّثة باستمرار", pa_2: "جدولهم الزمني وواجباتهم", pa_3: "غياباتهم وسلوكهم",
+    pb_h: "الأساتذة", pb_1: "تسجيل الحضور والنقاط، قسماً بقسم", pb_2: "دفتر النصوص بنقرتين", pb_3: "رسالة مباشرة إلى الأسر",
+    pc_h: "أولياء الأمور", pc_1: "متابعة كل طفل من أبنائهم", pc_2: "موعد مع الإدارة", pc_3: "وضعية الرسوم المدرسية",
+    pd_h: "الإدارة", pd_1: "جميع الحسابات في مكان واحد", pd_2: "إحصائيات، قسماً بقسم", pd_3: "الوثائق الرسمية، تُنشأ تلقائياً",
+    faq_titre: "أسئلة نتلقاها كثيراً",
+    faq1_q: "كم من الوقت قبل أن تصبح قابلة للاستخدام فعلياً؟", faq1_r: "الوقت اللازم لإنشاء الأقسام والمواد والحسابات. عموماً، يبدأ الفريق استخدامها يومياً خلال أيام قليلة.",
+    faq2_q: "هل نحتاج معدات خاصة؟", faq2_r: "لا. تعمل مباشرة عبر المتصفح — حاسوب، لوحة رقمية أو هاتف — دون أي تثبيت.",
+    faq3_q: "هل يمكن أن تختلط بيانات مؤسسة مع بيانات مؤسسة أخرى؟", faq3_r: "لا، أبداً. تملك كل مؤسسة أقسامها وحساباتها وإعداداتها الخاصة، منفصلة تماماً عن البقية.",
+    faq4_q: "كيف يمكن الحصول على وصول لمؤسستنا؟", faq4_r: "الطريقة الأبسط هي مراسلتنا مباشرة — انظر رابط \"تواصل معنا\" أعلى الصفحة.",
+    cta_titre: "تريدون تجربتها مع مؤسستكم؟", cta_p: "سجّلوا الدخول إلى مساحتكم إن كان لديكم حساب بالفعل، أو راسلونا لإعداد واحد.",
+    footer: "إيدوشيني — منصة إدارة المؤسسات المدرسية",
+  },
+};
+
+function appliquerLanguePresentation(lang){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const cle = el.getAttribute('data-i18n');
+    const texte = (I18N_PRESENTATION[lang] && I18N_PRESENTATION[lang][cle]) || I18N_PRESENTATION.fr[cle];
+    if(texte !== undefined) el.innerHTML = texte;
+  });
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.getElementById('lang-switch-label').textContent = lang.toUpperCase();
+  localStorage.setItem('educheni_lang', lang);
+}
+
+const langueDepart = localStorage.getItem('educheni_lang') || 'fr';
+appliquerLanguePresentation(langueDepart);
+
+document.getElementById('lang-switch-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('lang-switch-menu').classList.toggle('hidden');
+});
+document.querySelectorAll('#lang-switch-menu [data-lang]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    appliquerLanguePresentation(btn.dataset.lang);
+    document.getElementById('lang-switch-menu').classList.add('hidden');
+  });
+});
+document.addEventListener('click', () => {
+  document.getElementById('lang-switch-menu').classList.add('hidden');
+});
+</script>
 
 </body>
 </html>

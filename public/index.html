@@ -845,8 +845,19 @@
         <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4L3 8.5l9 4 9-4L12 4z" fill="white"/><path d="M7 9.8v3.4c0 1.4 2 2.8 5 2.8s5-1.4 5-2.8V9.8" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20.5 8.5v4" stroke="white" stroke-width="1.4" stroke-linecap="round"/><circle cx="20.5" cy="13.3" r="0.9" fill="white"/></svg></div>
         <span>EduCheni</span>
       </div>
-      <div style="display:flex;align-items:center;gap:20px;">
-        <a href="/rejoindre" style="font-size:13.5px;font-weight:600;color:var(--teal-900);text-decoration:none;">Nous contacter</a>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="lang-dropdown-wrap">
+          <button class="lang-dropdown-btn" id="lang-dropdown-btn-public" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
+            <span id="lang-dropdown-label-public">FR</span>
+          </button>
+          <div class="lang-dropdown-menu hidden" id="lang-dropdown-menu-public">
+            <button class="lang-dropdown-item" data-lang-btn="fr">Français</button>
+            <button class="lang-dropdown-item" data-lang-btn="en">English</button>
+            <button class="lang-dropdown-item" data-lang-btn="ar">العربية</button>
+          </div>
+        </div>
+        <a href="/rejoindre" id="lien-nous-contacter-public" style="font-size:13.5px;font-weight:600;color:var(--teal-900);text-decoration:none;">Nous contacter</a>
         <button class="btn-connexion" id="btn-mon-compte">Mon compte</button>
       </div>
     </div>
@@ -854,19 +865,19 @@
 
   <div class="hero">
     <div class="conteneur">
-      <h1>Le quotidien de votre école,<br/>enfin simple à suivre</h1>
-      <p>Les notes, les absences, l'emploi du temps, les messages aux familles — tout ce qu'une équipe pédagogique fait chaque jour, sans classeur qui traîne ni fichier Excel à remettre à jour à la main.</p>
+      <h1 id="pub-hero-titre">Le quotidien de votre école,<br/>enfin simple à suivre</h1>
+      <p id="pub-hero-texte">Les notes, les absences, l'emploi du temps, les messages aux familles — tout ce qu'une équipe pédagogique fait chaque jour, sans classeur qui traîne ni fichier Excel à remettre à jour à la main.</p>
       <div class="hero-boutons">
         <button class="btn-primaire" id="btn-mon-compte-hero">Mon compte</button>
-        <a class="btn-secondaire" href="#fonctionnalites">Voir ce qu'il y a dedans</a>
+        <a class="btn-secondaire" href="#fonctionnalites" id="pub-hero-lien-secondaire">Voir ce qu'il y a dedans</a>
       </div>
     </div>
   </div>
 
   <section id="fonctionnalites">
     <div class="conteneur">
-      <h2 class="titre-section">Ce qu'on y fait, concrètement</h2>
-      <p class="sous-titre-section">Les outils qu'un établissement utilise vraiment, au jour le jour — pas plus.</p>
+      <h2 class="titre-section" id="pub-fonctions-titre">Ce qu'on y fait, concrètement</h2>
+      <p class="sous-titre-section" id="pub-fonctions-sous-titre">Les outils qu'un établissement utilise vraiment, au jour le jour — pas plus.</p>
       <div class="grille-fonctions">
         <div class="carte-fonction"><span class="numero">01</span><h3>Notes &amp; bulletins</h3><p>Chaque note entrée met à jour la moyenne aussitôt. Le bulletin sort prêt à imprimer, avec la moyenne de la classe juste à côté pour comparer.</p></div>
         <div class="carte-fonction"><span class="numero">02</span><h3>Vie scolaire</h3><p>Un retard, une absence, une punition : ça se saisit en quelques secondes, et les parents voient tout de suite si c'est justifié.</p></div>
@@ -882,8 +893,8 @@
 
   <section style="background:var(--bg);">
     <div class="conteneur">
-      <h2 class="titre-section">Chacun ne voit que ce qui le concerne</h2>
-      <p class="sous-titre-section">Un élève, un professeur, un parent et l'administration n'ont pas accès aux mêmes choses.</p>
+      <h2 class="titre-section" id="pub-publics-titre">Chacun ne voit que ce qui le concerne</h2>
+      <p class="sous-titre-section" id="pub-publics-sous-titre">Un élève, un professeur, un parent et l'administration n'ont pas accès aux mêmes choses.</p>
       <div class="grille-publics">
         <div class="carte-public">
           <span class="numero-public">A</span>
@@ -912,8 +923,8 @@
   <section>
     <div class="conteneur">
       <div class="bandeau-cta">
-        <h2>Envie d'essayer avec votre établissement ?</h2>
-        <p>Connectez-vous à votre espace si vous en avez déjà un, ou écrivez-nous pour en mettre un en place.</p>
+        <h2 id="pub-cta-titre">Envie d'essayer avec votre établissement ?</h2>
+        <p id="pub-cta-texte">Connectez-vous à votre espace si vous en avez déjà un, ou écrivez-nous pour en mettre un en place.</p>
         <button class="btn-primaire" id="btn-mon-compte-cta">Mon compte</button>
       </div>
     </div>
@@ -1256,6 +1267,13 @@ const I18N = {
     el_ecrire_email: 'Écrire à un email', el_votre_message: 'Ton message…', el_envoyer: 'Envoyer',
     el_aucun_autre_utilisateur: 'Aucun autre utilisateur.', el_selectionner_personne: 'Sélectionnez une personne pour démarrer une conversation',
     el_ecrire_message: 'Écrire un message…',
+    pub_nous_contacter: 'Nous contacter', pub_mon_compte: 'Mon compte',
+    pub_hero_titre: "Le quotidien de votre école,<br/>enfin simple à suivre",
+    pub_hero_texte: "Les notes, les absences, l'emploi du temps, les messages aux familles — tout ce qu'une équipe pédagogique fait chaque jour, sans classeur qui traîne ni fichier Excel à remettre à jour à la main.",
+    pub_hero_lien: "Voir ce qu'il y a dedans",
+    pub_fonctions_titre: 'Ce qu\'on y fait, concrètement', pub_fonctions_sous_titre: "Les outils qu'un établissement utilise vraiment, au jour le jour — pas plus.",
+    pub_publics_titre: 'Chacun ne voit que ce qui le concerne', pub_publics_sous_titre: "Un élève, un professeur, un parent et l'administration n'ont pas accès aux mêmes choses.",
+    pub_cta_titre: 'Envie d\'essayer avec votre établissement ?', pub_cta_texte: 'Connectez-vous à votre espace si vous en avez déjà un, ou écrivez-nous pour en mettre un en place.',
   },
   en: {
     landing_titre: 'The all-in-one school platform',
@@ -1312,6 +1330,13 @@ const I18N = {
     el_ecrire_email: 'Write to an email', el_votre_message: 'Your message…', el_envoyer: 'Send',
     el_aucun_autre_utilisateur: 'No other users.', el_selectionner_personne: 'Select a person to start a conversation',
     el_ecrire_message: 'Write a message…',
+    pub_nous_contacter: 'Contact us', pub_mon_compte: 'My account',
+    pub_hero_titre: "Your school's daily routine,<br/>finally easy to follow",
+    pub_hero_texte: "Grades, absences, the timetable, messages to families — everything a teaching team does every day, without a folder lying around or an Excel file to update by hand.",
+    pub_hero_lien: "See what's inside",
+    pub_fonctions_titre: 'What actually happens here', pub_fonctions_sous_titre: 'The tools a school actually uses, day to day — nothing more.',
+    pub_publics_titre: 'Everyone sees only what concerns them', pub_publics_sous_titre: 'A student, a teacher, a parent and the administration do not have access to the same things.',
+    pub_cta_titre: 'Want to try it with your school?', pub_cta_texte: 'Sign in to your space if you already have one, or write to us to set one up.',
   },
   ar: {
     landing_titre: 'منصة مدرسية شاملة',
@@ -1368,6 +1393,13 @@ const I18N = {
     el_ecrire_email: 'الكتابة إلى بريد إلكتروني', el_votre_message: 'رسالتك…', el_envoyer: 'إرسال',
     el_aucun_autre_utilisateur: 'لا يوجد مستخدمون آخرون.', el_selectionner_personne: 'اختر شخصاً لبدء محادثة',
     el_ecrire_message: 'اكتب رسالة…',
+    pub_nous_contacter: 'اتصل بنا', pub_mon_compte: 'حسابي',
+    pub_hero_titre: 'الحياة اليومية لمدرستك،<br/>أصبحت أخيراً سهلة المتابعة',
+    pub_hero_texte: 'الدرجات، الغيابات، الجدول الزمني، الرسائل إلى الأسر — كل ما يقوم به الفريق التربوي يومياً، دون ملفات ورقية أو جداول إكسل يجب تحديثها يدوياً.',
+    pub_hero_lien: 'اكتشف ما بداخلها',
+    pub_fonctions_titre: 'ما نقوم به فعلياً', pub_fonctions_sous_titre: 'الأدوات التي تستخدمها المؤسسة فعلاً، يومياً — لا أكثر.',
+    pub_publics_titre: 'كل شخص يرى فقط ما يخصه', pub_publics_sous_titre: 'التلميذ والأستاذ وولي الأمر والإدارة لا يملكون نفس الصلاحيات.',
+    pub_cta_titre: 'هل ترغب بتجربتها مع مؤسستك؟', pub_cta_texte: 'سجل الدخول إلى مساحتك إذا كان لديك حساب بالفعل، أو راسلنا لإنشاء واحد.',
   },
 };
 
@@ -1390,8 +1422,10 @@ function setLangue(lang){
   const libelle = lang.toUpperCase();
   const labelLogin = document.getElementById('lang-dropdown-label');
   const labelApp = document.getElementById('lang-dropdown-label-app');
+  const labelPublic = document.getElementById('lang-dropdown-label-public');
   if(labelLogin) labelLogin.textContent = libelle;
   if(labelApp) labelApp.textContent = libelle;
+  if(labelPublic) labelPublic.textContent = libelle;
   document.querySelectorAll('.lang-dropdown-menu').forEach(m => m.classList.add('hidden'));
   if(state.token && state.user){
     const items = MENUS[state.user.role] || [];
@@ -1417,6 +1451,23 @@ function applyStaticTranslations(){
   document.getElementById('login-submit-btn').textContent = t('login_submit');
   document.getElementById('forgot-password-link').textContent = t('login_mdp_oublie');
   document.getElementById('login-connecte-a-label').textContent = t('login_connecte_a');
+
+  const majPub = (id, key, html) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(html) el.innerHTML = t(key); else el.textContent = t(key);
+  };
+  majPub('lien-nous-contacter-public', 'pub_nous_contacter');
+  majPub('pub-hero-titre', 'pub_hero_titre', true);
+  majPub('pub-hero-texte', 'pub_hero_texte');
+  majPub('pub-hero-lien-secondaire', 'pub_hero_lien');
+  majPub('pub-fonctions-titre', 'pub_fonctions_titre');
+  majPub('pub-fonctions-sous-titre', 'pub_fonctions_sous_titre');
+  majPub('pub-publics-titre', 'pub_publics_titre');
+  majPub('pub-publics-sous-titre', 'pub_publics_sous_titre');
+  majPub('pub-cta-titre', 'pub_cta_titre');
+  majPub('pub-cta-texte', 'pub_cta_texte');
+  ['btn-mon-compte', 'btn-mon-compte-hero', 'btn-mon-compte-cta'].forEach(id => majPub(id, 'pub_mon_compte'));
 }
 
 /* ============================================================
@@ -1632,6 +1683,7 @@ function toggleLangDropdown(btnId, menuId){
 }
 toggleLangDropdown('lang-dropdown-btn', 'lang-dropdown-menu');
 toggleLangDropdown('lang-dropdown-btn-app', 'lang-dropdown-menu-app');
+toggleLangDropdown('lang-dropdown-btn-public', 'lang-dropdown-menu-public');
 document.getElementById('entete-mobile-langue-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = document.getElementById('lang-dropdown-menu-mobile');
