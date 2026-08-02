@@ -2179,6 +2179,9 @@ function mentionBulletin(moyenne, bareme){
 
 function arrondi2(v){ return Math.round(v * 100) / 100; }
 
+const ENTETE_OFFICIEL_DEFAUT =
+  'RÉPUBLIQUE DU TCHAD<br>UNITÉ-TRAVAIL-PROGRÈS<br>MINISTÈRE DE L\'ÉDUCATION NATIONALE ET DE LA PROMOTION CIVIQUE<br>جمهورية تشاد — وحدة عمل تقدم — وزارة التربية الوطنية وترقية المواطنة';
+
 function decisionConseilBulletin(moyenne, bareme){
   if(moyenne === null || moyenne === undefined) return { fr: 'En attente de notes', ar: 'بانتظار النقاط' };
   const b = bareme || 20;
@@ -2222,7 +2225,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
   return `
     <div class="bulletin-impression" style="page-break-after:always;display:flex;flex-direction:column;justify-content:center;min-height:100vh;box-sizing:border-box;">
       <div>
-      ${parametres.enTeteOfficiel ? `<div class="bulletin-entete-officiel">${escapeHtml(parametres.enTeteOfficiel).replace(/\n/g,'<br>')}</div>` : ''}
+      <div class="bulletin-entete-officiel">${(parametres.enTeteOfficiel ? escapeHtml(parametres.enTeteOfficiel) : ENTETE_OFFICIEL_DEFAUT).replace(/\n/g,'<br>')}</div>
       <h1>${escapeHtml(parametres.nomEtablissement || 'Établissement')}</h1>
       <p class="sous-titre">BULLETIN DE NOTES / كشف الدرجات — ${escapeHtml(libellePeriodeTexte)} / الفترة — Année scolaire / السنة الدراسية ${escapeHtml(parametres.anneeScolaire || '')}</p>
       <div class="infos-generales" style="display:block;">
@@ -2267,12 +2270,11 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
         <div style="font-size:11px;font-weight:700;text-decoration:underline;">DÉCISION DU CONSEIL DES PROFESSEURS</div>
         <div style="font-size:12px;font-style:italic;margin-top:2px;">${escapeHtml(decision.fr)} — ${decision.ar}</div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:26px;">
-        <div>
-          <p style="font-size:10.5px;color:#333;margin:0 0 3px;">Document généré le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}.</p>
-          ${parametres.siteWeb ? `<p style="font-size:10.5px;color:#333;margin:0;">${escapeHtml(parametres.siteWeb)}</p>` : ''}
+      <div style="display:flex;justify-content:flex-end;align-items:flex-end;margin-top:26px;gap:20px;">
+        <div style="text-align:center;">
+          <div style="font-size:11px;font-weight:700;">Le Directeur / المدير</div>
+          ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:110px;max-height:110px;margin-top:6px;" />` : ''}
         </div>
-        ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:110px;max-height:110px;" />` : ''}
       </div>
       </div>
     </div>`;
