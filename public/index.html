@@ -2247,7 +2247,7 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
         <tbody>${lignes || '<tr><td colspan="7" style="text-align:center;">Aucune note pour cette période.</td></tr>'}</tbody>
         ${matieresNotees.length ? `<tfoot><tr style="font-weight:700;background:#f2f2f2;">
           <td>TOTAL / المجموع</td><td></td><td></td>
-          <td>${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) : '—'}</td>
+          <td>${b.moyenneGenerale !== null ? b.moyenneGenerale.toFixed(2) + ' / ' + (parametres.bareme || 20) : '—'}</td>
           <td>${sommeCoef}</td>
           <td>${sommePonderee.toFixed(2)}</td>
           <td></td>
@@ -5248,10 +5248,12 @@ function buildBulletinSheetHTML(bulletin){
       <div class="bulletin-eleve">${escapeHtml(bulletin.etudiant.prenom)} ${escapeHtml(bulletin.etudiant.nom)}</div>
       <div class="bulletin-classe">Classe : ${escapeHtml(classe.nom)} (${escapeHtml(classe.anneeScolaire)})</div>
       ${bulletin.matieres.length ? `<table><thead><tr><th>Matière</th><th>Coefficient</th><th>Moyenne</th></tr></thead><tbody>${rows}</tbody></table>` : '<p style="font-size:13px;color:#777;">Aucune note enregistrée.</p>'}
-      <div style="display:flex;align-items:center;gap:16px;margin:14px 0;">
+      <div style="display:flex;align-items:center;gap:16px;margin:14px 0;flex-wrap:wrap;">
         <div class="bulletin-moyenne-generale">Moyenne générale : ${bulletin.moyenneGenerale !== null ? bulletin.moyenneGenerale.toFixed(2) : '—'} / ${parametres.bareme}</div>
         ${bulletin.moyenneGenerale !== null ? `<div style="font-weight:700;font-size:14px;color:${estAdmis ? 'var(--success)' : 'var(--danger)'};border:2px solid ${estAdmis ? 'var(--success)' : 'var(--danger)'};padding:8px 16px;border-radius:8px;">${estAdmis ? 'Admis(e)' : 'Ajourné(e)'}</div>` : ''}
         ${mentionAuto ? `<div style="font-weight:700;font-size:14px;color:var(--teal-700);">Mention ${mentionAuto}</div>` : ''}
+        ${bulletin.rang ? `<div style="font-size:13px;color:#333;">Rang : ${bulletin.rang}e sur ${bulletin.totalClasse}</div>` : ''}
+        ${bulletin.absencesRetards ? `<div style="font-size:13px;color:#333;">Absences : ${bulletin.absencesRetards.absences} — Retards : ${bulletin.absencesRetards.retards}</div>` : ''}
       </div>
       <div class="certificat-signature" style="margin-top:40px;">
         <div class="certificat-date">Fait le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}</div>
