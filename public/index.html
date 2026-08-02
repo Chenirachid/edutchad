@@ -2217,7 +2217,10 @@ function construireBulletinHTML(b, parametres, moyennesClasse, trimestre){
         </thead>
         <tbody>${lignes || '<tr><td colspan="6" style="text-align:center;">Aucune note pour cette période.</td></tr>'}</tbody>
       </table>
-      <p style="font-size:10px;color:#333;margin-top:20px;">Document généré le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}.</p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;">
+        <p style="font-size:10px;color:#333;margin:0;">Document généré le ${new Date().toLocaleDateString('fr-FR', { dateStyle:'long' })}.</p>
+        ${parametres.cachetData ? `<img src="data:${parametres.cachetType};base64,${parametres.cachetData}" alt="Cachet de l'établissement" style="max-width:100px;max-height:100px;" />` : ''}
+      </div>
     </div>`;
 }
 
