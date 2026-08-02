@@ -1731,6 +1731,7 @@ const MENUS = {
   PARENT: [
     { id:'actualites', label:'Accueil', render: renderActualites },
     { id:'enfants', label:'Mes enfants', render: renderParentEnfants },
+    { id:'notes-liste', label:'Notes', render: renderNotesListeParent },
     { id:'rendez-vous', label:'Rendez-vous administration', render: renderParentRendezVous },
     { id:'messagerie', label:'Messagerie', render: renderMessagerie },
     { id:'parametres', label:'Paramètres', render: renderParametres },
@@ -2068,6 +2069,74 @@ function imprimerBulletin(b, parametres, moyennesClasse, trimestre){
     .replace('page-break-after:always;', '');
 
   window.print();
+}
+
+async function renderNotesListeParent(){
+  document.getElementById('page-subtitle').textContent = '';
+  const content = document.getElementById('content');
+  const enfants = await api('/parents/mes-enfants');
+
+  if(!enfants.length){
+    content.innerHTML = `<div class="card"><div class="empty-state">Aucun enfant n'est encore relié à ce compte.</div></div>`;
+    return;
+  }
+
+  const chargerNotesEnfant = async (etudiantId) => {
+    const zone = document.getElementById('notes-parent-zone');
+    zone.innerHTML = '<div class="empty-state">Chargement…</div>';
+    const toutesLesNotes = await api('/notes');
+    const notesEnfant = toutesLesNotes.filter(n => n.etudiant?.id === Number(etudiantId));
+
+    const notesParMatiere = {};
+    notesEnfant.forEach(n => {
+      const nom = n.enseignement.matiere.nom;
+      if(!notesParMatiere[nom]) notesParMatiere[nom] = [];
+      notesParMatiere[nom].push(n);
+    });
+
+    const sections = Object.entries(notesParMatiere).map(([nom, liste]) => {
+      const triees = liste.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const somme = triees.reduce((acc, n) => acc + n.valeur * n.coefficient, 0);
+      const poids = triees.reduce((acc, n) => acc + n.coefficient, 0);
+      const moyenne = poids ? somme / poids : null;
+      const rows = triees.map(n => `
+        <tr>
+          <td>${new Date(n.createdAt).toLocaleDateString('fr-FR')}</td>
+          <td>${TYPE_EVALUATION_LABELS[n.type] || n.type}</td>
+          <td class="bulletin-moy-cell" style="font-size:13px;">${n.valeur.toFixed(2)}</td>
+          <td>Coef. ${n.coefficient}</td>
+          <td>${n.commentaire ? escapeHtml(n.commentaire) : '—'}</td>
+        </tr>`).join('');
+      return `
+        <div class="section-matiere-notes">
+          <div class="section-matiere-entete">
+            <h2>${escapeHtml(nom)}</h2>
+            <div class="section-matiere-moyenne">
+              <span class="label">Moyenne</span>
+              <span class="moy-pill ${moyennePillClass(moyenne)}" style="font-size:15px;">${moyenne !== null ? moyenne.toFixed(2) : '—'}</span>
+            </div>
+          </div>
+          <table class="table-notes-matiere"><thead><tr><th>Date</th><th>Type</th><th>Note</th><th>Coefficient</th><th>Commentaire</th></tr></thead><tbody>${rows}</tbody></table>
+        </div>`;
+    }).join('');
+
+    zone.innerHTML = sections || '<div class="card"><div class="empty-state">Aucune note pour l\'instant.</div></div>';
+  };
+
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+      <h1 style="font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--teal-900);margin:0;">Notes</h1>
+      ${enfants.length > 1 ? `
+        <div class="f" style="margin:0;max-width:220px;">
+          <select id="notes-parent-enfant-select">${enfants.map(e => `<option value="${e.id}">${escapeHtml(e.prenom)} ${escapeHtml(e.nom)}</option>`).join('')}</select>
+        </div>` : `<div style="font-size:13px;color:var(--text-muted);">${escapeHtml(enfants[0].prenom)} ${escapeHtml(enfants[0].nom)}</div>`}
+    </div>
+    <div id="notes-parent-zone"></div>`;
+
+  if(enfants.length > 1){
+    document.getElementById('notes-parent-enfant-select').addEventListener('change', (e) => chargerNotesEnfant(e.target.value));
+  }
+  await chargerNotesEnfant(enfants[0].id);
 }
 
 async function renderNotesListeEtudiant(){
