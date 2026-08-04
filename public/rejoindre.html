@@ -36,45 +36,126 @@
   }
   button:hover{background:var(--teal-900);}
   #message-statut{text-align:center;font-size:13px;margin-top:14px;}
+  .hidden{display:none;}
 </style>
 </head>
 <body>
+
+<div style="position:fixed;top:16px;right:16px;">
+  <div style="position:relative;">
+    <button id="lang-switch-btn" type="button" style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:7px;border:1.5px solid var(--border);background:#fff;color:var(--teal-900);font-size:12.5px;font-weight:600;cursor:pointer;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
+      <span id="lang-switch-label">FR</span>
+    </button>
+    <div id="lang-switch-menu" class="hidden" style="position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 30px rgba(11,79,82,.12);min-width:130px;overflow:hidden;z-index:50;">
+      <button data-lang="fr" style="display:block;width:100%;text-align:left;padding:9px 14px;font-size:13px;background:transparent;border:none;color:var(--text);cursor:pointer;">Français</button>
+      <button data-lang="en" style="display:block;width:100%;text-align:left;padding:9px 14px;font-size:13px;background:transparent;border:none;color:var(--text);cursor:pointer;">English</button>
+      <button data-lang="ar" style="display:block;width:100%;text-align:left;padding:9px 14px;font-size:13px;background:transparent;border:none;color:var(--text);cursor:pointer;">العربية</button>
+    </div>
+  </div>
+</div>
 
 <div class="carte">
   <div class="logo-mark">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4L3 8.5l9 4 9-4L12 4z" fill="white"/><path d="M7 9.8v3.4c0 1.4 2 2.8 5 2.8s5-1.4 5-2.8V9.8" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20.5 8.5v4" stroke="white" stroke-width="1.4" stroke-linecap="round"/><circle cx="20.5" cy="13.3" r="0.9" fill="white"/></svg>
   </div>
-  <h1>Vous dirigez un établissement ?</h1>
-  <p class="sous-titre">Laissez-nous vos coordonnées, nous vous recontactons pour mettre en place votre espace EduCheni.</p>
+  <h1 data-i18n="titre">Vous dirigez un établissement ?</h1>
+  <p class="sous-titre" data-i18n="sous_titre">Laissez-nous vos coordonnées, nous vous recontactons pour mettre en place votre espace EduCheni.</p>
 
   <form id="rejoindre-form">
     <div class="champ">
-      <label>Votre nom</label>
+      <label data-i18n="label_nom">Votre nom</label>
       <input type="text" name="nom" required />
     </div>
     <div class="champ">
-      <label>Nom de l'établissement</label>
+      <label data-i18n="label_etablissement">Nom de l'établissement</label>
       <input type="text" name="etablissement" required />
     </div>
     <div class="champ">
-      <label>Email ou téléphone</label>
+      <label data-i18n="label_contact">Email ou téléphone</label>
       <input type="text" name="contact" required />
     </div>
     <div class="champ">
-      <label>Message (facultatif)</label>
-      <textarea name="message" placeholder="Nombre d'élèves, ville, besoins particuliers..."></textarea>
+      <label data-i18n="label_message">Message (facultatif)</label>
+      <textarea name="message" id="rejoindre-message" data-i18n-placeholder="placeholder_message" placeholder="Nombre d'élèves, ville, besoins particuliers..."></textarea>
     </div>
-    <button type="submit">Envoyer ma demande</button>
+    <button type="submit" data-i18n="bouton_envoyer">Envoyer ma demande</button>
   </form>
   <p id="message-statut"></p>
 </div>
 
 <script>
+const I18N_REJOINDRE = {
+  fr: {
+    titre: "Vous dirigez un établissement ?",
+    sous_titre: "Laissez-nous vos coordonnées, nous vous recontactons pour mettre en place votre espace EduCheni.",
+    label_nom: "Votre nom", label_etablissement: "Nom de l'établissement", label_contact: "Email ou téléphone",
+    label_message: "Message (facultatif)", placeholder_message: "Nombre d'élèves, ville, besoins particuliers...",
+    bouton_envoyer: "Envoyer ma demande",
+    envoi_en_cours: "Envoi en cours…",
+    succes: "Merci ! Votre demande a bien été envoyée, nous revenons vers vous rapidement.",
+    erreur: "Une erreur s'est produite, merci de réessayer plus tard.",
+  },
+  en: {
+    titre: "Do you run a school?",
+    sous_titre: "Leave us your details, we'll get back to you to set up your EduCheni space.",
+    label_nom: "Your name", label_etablissement: "School name", label_contact: "Email or phone number",
+    label_message: "Message (optional)", placeholder_message: "Number of students, city, specific needs...",
+    bouton_envoyer: "Send my request",
+    envoi_en_cours: "Sending…",
+    succes: "Thank you! Your request has been sent, we'll get back to you shortly.",
+    erreur: "Something went wrong, please try again later.",
+  },
+  ar: {
+    titre: "هل تدير مؤسسة تعليمية؟",
+    sous_titre: "اترك لنا بياناتك، سنعاود الاتصال بك لإعداد مساحتك على إيدوشيني.",
+    label_nom: "اسمك", label_etablissement: "اسم المؤسسة", label_contact: "البريد الإلكتروني أو الهاتف",
+    label_message: "رسالة (اختياري)", placeholder_message: "عدد التلاميذ، المدينة، احتياجات خاصة...",
+    bouton_envoyer: "إرسال طلبي",
+    envoi_en_cours: "جارٍ الإرسال…",
+    succes: "شكراً! تم إرسال طلبك بنجاح، سنعاود الاتصال بك قريباً.",
+    erreur: "حدث خطأ، يرجى إعادة المحاولة لاحقاً.",
+  },
+};
+
+function appliquerLangueRejoindre(lang){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const cle = el.getAttribute('data-i18n');
+    if(I18N_REJOINDRE[lang] && I18N_REJOINDRE[lang][cle] !== undefined) el.textContent = I18N_REJOINDRE[lang][cle];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const cle = el.getAttribute('data-i18n-placeholder');
+    if(I18N_REJOINDRE[lang] && I18N_REJOINDRE[lang][cle] !== undefined) el.placeholder = I18N_REJOINDRE[lang][cle];
+  });
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.getElementById('lang-switch-label').textContent = lang.toUpperCase();
+  localStorage.setItem('educheni_lang', lang);
+}
+
+const langueDepartRejoindre = localStorage.getItem('educheni_lang') || 'fr';
+appliquerLangueRejoindre(langueDepartRejoindre);
+
+document.getElementById('lang-switch-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('lang-switch-menu').classList.toggle('hidden');
+});
+document.querySelectorAll('#lang-switch-menu [data-lang]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    appliquerLangueRejoindre(btn.dataset.lang);
+    document.getElementById('lang-switch-menu').classList.add('hidden');
+  });
+});
+document.addEventListener('click', () => {
+  document.getElementById('lang-switch-menu').classList.add('hidden');
+});
+
 document.getElementById('rejoindre-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const fd = new FormData(e.target);
   const statut = document.getElementById('message-statut');
-  statut.textContent = 'Envoi en cours…';
+  const lang = localStorage.getItem('educheni_lang') || 'fr';
+  statut.textContent = I18N_REJOINDRE[lang].envoi_en_cours;
   statut.style.color = '#6B7280';
   try{
     const reponse = await fetch(window.location.origin + '/demande-etablissement', {
@@ -86,11 +167,11 @@ document.getElementById('rejoindre-form').addEventListener('submit', async (e) =
       }),
     });
     if(!reponse.ok) throw new Error();
-    statut.textContent = 'Merci ! Votre demande a bien été envoyée, nous revenons vers vous rapidement.';
+    statut.textContent = I18N_REJOINDRE[lang].succes;
     statut.style.color = '#16A34A';
     e.target.reset();
   }catch(err){
-    statut.textContent = "Une erreur s'est produite, merci de réessayer plus tard.";
+    statut.textContent = I18N_REJOINDRE[lang].erreur;
     statut.style.color = '#EF4444';
   }
 });
