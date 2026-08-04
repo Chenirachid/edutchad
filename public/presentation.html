@@ -90,6 +90,16 @@
   .sous-titre-section{font-size:15px;color:var(--text-muted);max-width:560px;margin:0 0 44px;}
   #fonctionnalites .titre-section, #fonctionnalites .sous-titre-section, #faq .titre-section{text-align:left;margin-left:0;}
 
+  .etapes-ligne{display:flex;gap:0;align-items:flex-start;}
+  .etape-item{flex:1;position:relative;padding-right:28px;}
+  .etape-num{font-family:'Fraunces',Georgia,serif;font-size:34px;font-weight:600;color:var(--accent);opacity:.35;margin-bottom:6px;}
+  .etape-trait{position:absolute;top:20px;right:0;width:100%;height:1px;background:var(--border);}
+  .etape-item h3{font-size:16.5px;color:var(--teal-900);margin:0 0 8px;}
+  .etape-item p{font-size:13.5px;color:var(--text-muted);margin:0;}
+  @media (max-width:700px){
+    .etapes-ligne{flex-direction:column;gap:28px;}
+    .etape-trait{display:none;}
+  }
   .grille-fonctions{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
   .carte-fonction{
     background:var(--surface);padding:28px 24px;position:relative;
@@ -113,9 +123,21 @@
 
   .bandeau-cta{background:var(--teal-900);color:#fff;text-align:center;padding:56px 24px;border-radius:var(--radius);}
   .faq-liste{max-width:720px;margin:0 auto;}
-  .faq-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:14px;}
-  .faq-item h3{font-size:15px;color:var(--teal-900);margin:0 0 8px;}
-  .faq-item p{font-size:13.5px;color:var(--text-muted);margin:0;line-height:1.6;}
+  .faq-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;}
+  .faq-question{
+    display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;
+    background:transparent;border:none;padding:18px 22px;font-size:15px;font-weight:600;color:var(--teal-900);
+    cursor:pointer;font-family:inherit;
+  }
+  .faq-question::after{
+    content:'+';font-size:20px;font-weight:400;color:var(--accent);flex-shrink:0;margin-left:16px;transition:transform .2s;
+  }
+  .faq-item.ouvert .faq-question::after{transform:rotate(45deg);}
+  .faq-reponse{
+    font-size:13.5px;color:var(--text-muted);margin:0;line-height:1.6;
+    max-height:0;overflow:hidden;padding:0 22px;transition:max-height .25s ease,padding .25s ease;
+  }
+  .faq-item.ouvert .faq-reponse{max-height:200px;padding:0 22px 20px;}
   .bandeau-cta h2{font-size:26px;margin:0 0 14px;}
   .bandeau-cta p{color:rgba(255,255,255,.82);margin:0 0 26px;font-size:15px;}
   .bandeau-cta .btn-primaire{background:#fff;color:var(--teal-900);}
@@ -205,6 +227,30 @@
   </div>
 </div>
 
+<section style="padding-top:0;">
+  <div class="conteneur">
+    <div class="etapes-ligne">
+      <div class="etape-item">
+        <div class="etape-num">01</div>
+        <div class="etape-trait"></div>
+        <h3 data-i18n="etape1_h">Vous créez votre espace</h3>
+        <p data-i18n="etape1_p">Classes, matières, professeurs — la structure de votre établissement, mise en place en une fois.</p>
+      </div>
+      <div class="etape-item">
+        <div class="etape-num">02</div>
+        <div class="etape-trait"></div>
+        <h3 data-i18n="etape2_h">Chacun reçoit son accès</h3>
+        <p data-i18n="etape2_p">Un identifiant et un mot de passe pour les élèves, les parents et les professeurs — rien à installer.</p>
+      </div>
+      <div class="etape-item">
+        <div class="etape-num">03</div>
+        <h3 data-i18n="etape3_h">La vie de l'école, au jour le jour</h3>
+        <p data-i18n="etape3_p">Notes, absences, messages, emploi du temps — utilisés naturellement, sans y penser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="fonctionnalites">
   <div class="conteneur">
     <h2 class="titre-section" data-i18n="f_titre">Ce qu'on y fait, concrètement</h2>
@@ -272,20 +318,20 @@
     <h2 class="titre-section" data-i18n="faq_titre">Questions qu'on nous pose souvent</h2>
     <div class="faq-liste">
       <div class="faq-item">
-        <h3 data-i18n="faq1_q">Combien de temps avant de vraiment s'en servir ?</h3>
-        <p data-i18n="faq1_r">Le temps de créer les classes, les matières et les comptes. En général, une équipe commence à l'utiliser au quotidien en quelques jours.</p>
+        <button class="faq-question" data-i18n="faq1_q">Combien de temps avant de vraiment s'en servir ?</button>
+        <p class="faq-reponse" data-i18n="faq1_r">Le temps de créer les classes, les matières et les comptes. En général, une équipe commence à l'utiliser au quotidien en quelques jours.</p>
       </div>
       <div class="faq-item">
-        <h3 data-i18n="faq2_q">Il faut du matériel particulier ?</h3>
-        <p data-i18n="faq2_r">Non. Ça marche directement dans un navigateur — ordinateur, tablette ou téléphone — rien à installer.</p>
+        <button class="faq-question" data-i18n="faq2_q">Il faut du matériel particulier ?</button>
+        <p class="faq-reponse" data-i18n="faq2_r">Non. Ça marche directement dans un navigateur — ordinateur, tablette ou téléphone — rien à installer.</p>
       </div>
       <div class="faq-item">
-        <h3 data-i18n="faq3_q">Les données d'un établissement peuvent-elles se mélanger avec celles d'un autre ?</h3>
-        <p data-i18n="faq3_r">Non, jamais. Chaque établissement a ses propres classes, ses comptes et ses réglages, complètement séparés du reste.</p>
+        <button class="faq-question" data-i18n="faq3_q">Les données d'un établissement peuvent-elles se mélanger avec celles d'un autre ?</button>
+        <p class="faq-reponse" data-i18n="faq3_r">Non, jamais. Chaque établissement a ses propres classes, ses comptes et ses réglages, complètement séparés du reste.</p>
       </div>
       <div class="faq-item">
-        <h3 data-i18n="faq4_q">Comment obtenir un accès pour son établissement ?</h3>
-        <p data-i18n="faq4_r">Le plus simple, c'est de nous écrire directement — le lien "Nous contacter" est en haut de la page.</p>
+        <button class="faq-question" data-i18n="faq4_q">Comment obtenir un accès pour son établissement ?</button>
+        <p class="faq-reponse" data-i18n="faq4_r">Le plus simple, c'est de nous écrire directement — le lien "Nous contacter" est en haut de la page.</p>
       </div>
     </div>
   </div>
@@ -332,6 +378,9 @@ const I18N_PRESENTATION = {
     faq3_q: "Les données d'un établissement peuvent-elles se mélanger avec celles d'un autre ?", faq3_r: "Non, jamais. Chaque établissement a ses propres classes, ses comptes et ses réglages, complètement séparés du reste.",
     faq4_q: "Comment obtenir un accès pour son établissement ?", faq4_r: "Le plus simple, c'est de nous écrire directement — le lien \"Nous contacter\" est en haut de la page.",
     cta_titre: "Envie d'essayer avec votre établissement ?", cta_p: "Connectez-vous à votre espace si vous en avez déjà un, ou écrivez-nous pour en mettre un en place.",
+    etape1_h: "Vous créez votre espace", etape1_p: "Classes, matières, professeurs — la structure de votre établissement, mise en place en une fois.",
+    etape2_h: "Chacun reçoit son accès", etape2_p: "Un identifiant et un mot de passe pour les élèves, les parents et les professeurs — rien à installer.",
+    etape3_h: "La vie de l'école, au jour le jour", etape3_p: "Notes, absences, messages, emploi du temps — utilisés naturellement, sans y penser.",
     footer: "EduCheni — Plateforme scolaire de gestion d'établissement",
   },
   en: {
@@ -359,6 +408,9 @@ const I18N_PRESENTATION = {
     faq3_q: "Can one school's data mix with another's?", faq3_r: "No, never. Each school has its own classes, accounts and settings, fully separate from the rest.",
     faq4_q: "How do we get access for our school?", faq4_r: "The simplest way is to write to us directly — see the \"Contact us\" link at the top of the page.",
     cta_titre: "Want to try it with your school?", cta_p: "Sign in to your account if you already have one, or write to us to set one up.",
+    etape1_h: "You set up your space", etape1_p: "Classes, subjects, teachers — your school's structure, set up in one go.",
+    etape2_h: "Everyone gets their access", etape2_p: "A login and password for students, parents and teachers — nothing to install.",
+    etape3_h: "School life, day by day", etape3_p: "Grades, absences, messages, timetable — used naturally, without thinking about it.",
     footer: "EduCheni — School management platform",
   },
   ar: {
@@ -386,6 +438,9 @@ const I18N_PRESENTATION = {
     faq3_q: "هل يمكن أن تختلط بيانات مؤسسة مع بيانات مؤسسة أخرى؟", faq3_r: "لا، أبداً. تملك كل مؤسسة أقسامها وحساباتها وإعداداتها الخاصة، منفصلة تماماً عن البقية.",
     faq4_q: "كيف يمكن الحصول على وصول لمؤسستنا؟", faq4_r: "الطريقة الأبسط هي مراسلتنا مباشرة — انظر رابط \"تواصل معنا\" أعلى الصفحة.",
     cta_titre: "تريدون تجربتها مع مؤسستكم؟", cta_p: "سجّلوا الدخول إلى مساحتكم إن كان لديكم حساب بالفعل، أو راسلونا لإعداد واحد.",
+    etape1_h: "تنشئون مساحتكم", etape1_p: "الأقسام، المواد، الأساتذة — هيكلة مؤسستكم، مُعدّة دفعة واحدة.",
+    etape2_h: "كل شخص يحصل على وصوله", etape2_p: "معرّف وكلمة مرور للتلاميذ وأولياء الأمور والأساتذة — لا شيء يُثبَّت.",
+    etape3_h: "حياة المدرسة، يوماً بيوم", etape3_p: "النقاط، الغيابات، الرسائل، الجدول الزمني — تُستخدم بشكل طبيعي، دون تفكير.",
     footer: "إيدوشيني — منصة إدارة المؤسسات المدرسية",
   },
 };
@@ -417,6 +472,15 @@ document.querySelectorAll('#lang-switch-menu [data-lang]').forEach(btn => {
 });
 document.addEventListener('click', () => {
   document.getElementById('lang-switch-menu').classList.add('hidden');
+});
+
+document.querySelectorAll('.faq-question').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.closest('.faq-item');
+    const etaitOuvert = item.classList.contains('ouvert');
+    document.querySelectorAll('.faq-item.ouvert').forEach(i => i.classList.remove('ouvert'));
+    if(!etaitOuvert) item.classList.add('ouvert');
+  });
 });
 </script>
 
