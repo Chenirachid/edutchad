@@ -33,6 +33,12 @@
   .conteneur{max-width:1100px;margin:0 auto;padding:0 24px;}
 
   /* ---------- HEADER ---------- */
+  .barre-utilitaire{background:var(--bg);border-bottom:1px solid var(--border);padding:8px 0;}
+  .barre-utilitaire a{
+    display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text-muted);
+    text-decoration:none;
+  }
+  .barre-utilitaire a:hover{color:var(--teal-700);}
   header{padding:20px 0;border-bottom:1px solid var(--border);}
   .entete-flex{display:flex;align-items:center;justify-content:space-between;}
   .logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600;color:var(--teal-900);}
@@ -214,6 +220,19 @@
 </script>
 </head>
 <body>
+
+<div class="barre-utilitaire">
+  <div class="conteneur" style="display:flex;justify-content:flex-end;gap:24px;">
+    <a href="/">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
+      <span data-i18n="util_accueil">Accueil</span>
+    </a>
+    <a href="/rejoindre">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+      <span data-i18n="util_contact">Nous contacter</span>
+    </a>
+  </div>
+</div>
 
 <header>
   <div class="conteneur entete-flex">
@@ -445,6 +464,7 @@ const I18N_PRESENTATION = {
     etape2_h: "Chacun reçoit son accès", etape2_p: "Un identifiant et un mot de passe pour les élèves, les parents et les professeurs — rien à installer.",
     etape3_h: "La vie de l'école, au jour le jour", etape3_p: "Notes, absences, messages, emploi du temps — utilisés naturellement, sans y penser.",
     lien_eleves_parents: "Pour les élèves et les parents →", lien_profs: "Pour les professeurs →",
+    util_accueil: "Accueil", util_contact: "Nous contacter",
     espaces_titre: "Un espace pour chacun", espaces_sous: "Ce que voit vraiment chaque profil en se connectant.", espace_lien: "Se connecter →",
     pied_produit: "La plateforme", pied_fonctionnalites: "Fonctionnalités", pied_espaces: "Les espaces",
     pied_utilisateurs: "Utilisateurs", pied_etablissement: "Votre établissement", pied_nous_contacter: "Nous contacter",
@@ -479,6 +499,7 @@ const I18N_PRESENTATION = {
     etape2_h: "Everyone gets their access", etape2_p: "A login and password for students, parents and teachers — nothing to install.",
     etape3_h: "School life, day by day", etape3_p: "Grades, absences, messages, timetable — used naturally, without thinking about it.",
     lien_eleves_parents: "For students and parents →", lien_profs: "For teachers →",
+    util_accueil: "Home", util_contact: "Contact us",
     espaces_titre: "A space for everyone", espaces_sous: "What each profile actually sees when signing in.", espace_lien: "Sign in →",
     pied_produit: "The platform", pied_fonctionnalites: "Features", pied_espaces: "The spaces",
     pied_utilisateurs: "Users", pied_etablissement: "Your school", pied_nous_contacter: "Contact us",
@@ -513,6 +534,7 @@ const I18N_PRESENTATION = {
     etape2_h: "كل شخص يحصل على وصوله", etape2_p: "معرّف وكلمة مرور للتلاميذ وأولياء الأمور والأساتذة — لا شيء يُثبَّت.",
     etape3_h: "حياة المدرسة، يوماً بيوم", etape3_p: "النقاط، الغيابات، الرسائل، الجدول الزمني — تُستخدم بشكل طبيعي، دون تفكير.",
     lien_eleves_parents: "للتلاميذ وأولياء الأمور ←", lien_profs: "للأساتذة ←",
+    util_accueil: "الرئيسية", util_contact: "تواصل معنا",
     espaces_titre: "مساحة لكل شخص", espaces_sous: "ما يراه كل ملف تعريف فعلياً عند تسجيل الدخول.", espace_lien: "تسجيل الدخول ←",
     pied_produit: "المنصة", pied_fonctionnalites: "الميزات", pied_espaces: "المساحات",
     pied_utilisateurs: "المستخدمون", pied_etablissement: "مؤسستكم", pied_nous_contacter: "تواصل معنا",
