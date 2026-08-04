@@ -64,9 +64,12 @@
   .hero h1{font-size:44px;font-weight:600;color:var(--teal-900);margin:0 0 20px;line-height:1.15;letter-spacing:-.01em;}
   .hero p{font-size:16.5px;color:var(--text-muted);max-width:480px;margin:0 0 32px;}
   .hero-boutons{display:flex;gap:22px;flex-wrap:wrap;align-items:center;}
-  .hero-liens-profils{display:flex;gap:24px;margin-top:22px;flex-wrap:wrap;}
-  .hero-liens-profils a{font-size:13.5px;font-weight:600;color:var(--teal-700);text-decoration:none;}
-  .hero-liens-profils a:hover{text-decoration:underline;}
+  .hero-liens-profils{display:flex;gap:32px;flex-wrap:wrap;margin:14px 0 22px;}
+  .hero-liens-profils a{
+    font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;color:var(--teal-700);
+    text-decoration:none;border-bottom:2px solid transparent;transition:border-color .15s,color .15s;
+  }
+  .hero-liens-profils a:hover{color:var(--accent);border-bottom-color:var(--accent);}
   .btn-primaire{
     padding:13px 26px;border-radius:6px;background:var(--teal-900);color:#fff;font-weight:700;font-size:15px;
     text-decoration:none;border:1.5px solid var(--teal-900);box-shadow:4px 4px 0 var(--accent);
@@ -231,14 +234,14 @@
     <div>
       <span class="hero-eyebrow" data-i18n="eyebrow">Fait pour les écoles</span>
       <h1 data-i18n="h1">Le quotidien de votre école, enfin simple à suivre</h1>
+      <div class="hero-liens-profils">
+        <a href="#publics" data-i18n="lien_eleves_parents">Pour les élèves et les parents →</a>
+        <a href="#publics" data-i18n="lien_profs">Pour les professeurs →</a>
+      </div>
       <p data-i18n="hero_p">Les notes, les absences, l'emploi du temps, les messages aux familles — tout ce qu'une équipe pédagogique fait chaque jour, sans classeur qui traîne ni fichier Excel à mettre à jour à la main.</p>
       <div class="hero-boutons">
         <a class="btn-primaire" href="/" data-i18n="btn1">Se connecter à mon espace</a>
         <a class="btn-secondaire" href="#fonctionnalites"><span data-i18n="btn2">Voir ce qu'il y a dedans</span></a>
-      </div>
-      <div class="hero-liens-profils">
-        <a href="#publics" data-i18n="lien_eleves_parents">Pour les élèves et les parents →</a>
-        <a href="#publics" data-i18n="lien_profs">Pour les professeurs →</a>
       </div>
     </div>
     <div class="hero-visuel">
