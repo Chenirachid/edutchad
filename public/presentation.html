@@ -110,6 +110,17 @@
     .etape-trait{display:none;}
   }
   .conteneur-etroit{max-width:760px;}
+  .grille-espaces{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;}
+  .carte-espace{
+    display:block;border:1px solid var(--border);border-radius:var(--radius);padding:16px;
+    text-decoration:none;transition:border-color .15s,transform .15s;
+  }
+  .carte-espace:hover{border-color:var(--teal-700);transform:translateY(-2px);}
+  .carte-espace-apercu{background:var(--bg);border-radius:8px;padding:14px;margin-bottom:14px;}
+  .apercu-barre{height:6px;width:40%;border-radius:3px;background:var(--accent);margin-bottom:10px;}
+  .apercu-ligne{height:7px;border-radius:3px;background:var(--border);margin-bottom:7px;}
+  .carte-espace h3{font-size:15px;color:var(--teal-900);margin:0 0 4px;}
+  .carte-espace span{font-size:12.5px;color:var(--teal-700);font-weight:600;}
 
   .liste-fonctions{margin-top:8px;}
   .ligne-fonction{display:flex;gap:28px;padding:26px 0;border-bottom:1px solid var(--border);}
@@ -281,6 +292,35 @@
   </div>
 </section>
 
+<section style="padding-top:0;">
+  <div class="conteneur">
+    <h2 class="titre-section" data-i18n="espaces_titre">Un espace pour chacun</h2>
+    <p class="sous-titre-section" data-i18n="espaces_sous">Ce que voit vraiment chaque profil en se connectant.</p>
+    <div class="grille-espaces">
+      <a class="carte-espace" href="/">
+        <div class="carte-espace-apercu"><div class="apercu-barre"></div><div class="apercu-ligne" style="width:70%;"></div><div class="apercu-ligne" style="width:45%;"></div></div>
+        <h3 data-i18n="pa_h">Élèves</h3>
+        <span data-i18n="espace_lien">Se connecter →</span>
+      </a>
+      <a class="carte-espace" href="/">
+        <div class="carte-espace-apercu"><div class="apercu-barre"></div><div class="apercu-ligne" style="width:60%;"></div><div class="apercu-ligne" style="width:80%;"></div></div>
+        <h3 data-i18n="pb_h">Professeurs</h3>
+        <span data-i18n="espace_lien">Se connecter →</span>
+      </a>
+      <a class="carte-espace" href="/">
+        <div class="carte-espace-apercu"><div class="apercu-barre"></div><div class="apercu-ligne" style="width:50%;"></div><div class="apercu-ligne" style="width:65%;"></div></div>
+        <h3 data-i18n="pc_h">Parents</h3>
+        <span data-i18n="espace_lien">Se connecter →</span>
+      </a>
+      <a class="carte-espace" href="/">
+        <div class="carte-espace-apercu"><div class="apercu-barre"></div><div class="apercu-ligne" style="width:80%;"></div><div class="apercu-ligne" style="width:35%;"></div></div>
+        <h3 data-i18n="pd_h">Administration</h3>
+        <span data-i18n="espace_lien">Se connecter →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <section id="publics" style="background:var(--bg);">
   <div class="conteneur conteneur-etroit">
     <h2 class="titre-section" data-i18n="p_titre">Chacun ne voit que ce qui le concerne</h2>
@@ -400,6 +440,7 @@ const I18N_PRESENTATION = {
     etape2_h: "Chacun reçoit son accès", etape2_p: "Un identifiant et un mot de passe pour les élèves, les parents et les professeurs — rien à installer.",
     etape3_h: "La vie de l'école, au jour le jour", etape3_p: "Notes, absences, messages, emploi du temps — utilisés naturellement, sans y penser.",
     lien_eleves_parents: "Pour les élèves et les parents →", lien_profs: "Pour les professeurs →",
+    espaces_titre: "Un espace pour chacun", espaces_sous: "Ce que voit vraiment chaque profil en se connectant.", espace_lien: "Se connecter →",
     pied_produit: "La plateforme", pied_fonctionnalites: "Fonctionnalités", pied_espaces: "Les espaces",
     pied_utilisateurs: "Utilisateurs", pied_etablissement: "Votre établissement", pied_nous_contacter: "Nous contacter",
     footer: "EduCheni — Plateforme scolaire de gestion d'établissement",
@@ -433,6 +474,7 @@ const I18N_PRESENTATION = {
     etape2_h: "Everyone gets their access", etape2_p: "A login and password for students, parents and teachers — nothing to install.",
     etape3_h: "School life, day by day", etape3_p: "Grades, absences, messages, timetable — used naturally, without thinking about it.",
     lien_eleves_parents: "For students and parents →", lien_profs: "For teachers →",
+    espaces_titre: "A space for everyone", espaces_sous: "What each profile actually sees when signing in.", espace_lien: "Sign in →",
     pied_produit: "The platform", pied_fonctionnalites: "Features", pied_espaces: "The spaces",
     pied_utilisateurs: "Users", pied_etablissement: "Your school", pied_nous_contacter: "Contact us",
     footer: "EduCheni — School management platform",
@@ -466,6 +508,7 @@ const I18N_PRESENTATION = {
     etape2_h: "كل شخص يحصل على وصوله", etape2_p: "معرّف وكلمة مرور للتلاميذ وأولياء الأمور والأساتذة — لا شيء يُثبَّت.",
     etape3_h: "حياة المدرسة، يوماً بيوم", etape3_p: "النقاط، الغيابات، الرسائل، الجدول الزمني — تُستخدم بشكل طبيعي، دون تفكير.",
     lien_eleves_parents: "للتلاميذ وأولياء الأمور ←", lien_profs: "للأساتذة ←",
+    espaces_titre: "مساحة لكل شخص", espaces_sous: "ما يراه كل ملف تعريف فعلياً عند تسجيل الدخول.", espace_lien: "تسجيل الدخول ←",
     pied_produit: "المنصة", pied_fonctionnalites: "الميزات", pied_espaces: "المساحات",
     pied_utilisateurs: "المستخدمون", pied_etablissement: "مؤسستكم", pied_nous_contacter: "تواصل معنا",
     footer: "إيدوشيني — منصة إدارة المؤسسات المدرسية",
