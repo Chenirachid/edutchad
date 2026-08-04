@@ -756,21 +756,24 @@
   #presentation-screen section{padding:64px 0;}
   #presentation-screen .titre-section{text-align:center;font-size:28px;font-weight:700;color:var(--teal-900);margin:0 0 10px;}
   #presentation-screen .sous-titre-section{text-align:center;font-size:15px;color:var(--text-muted);max-width:560px;margin:0 auto 44px;}
-  #presentation-screen .grille-fonctions{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;}
-  #presentation-screen .carte-fonction{background:var(--bg);border-radius:var(--radius);padding:26px 22px;border:1px solid var(--border);}
-  #presentation-screen .carte-fonction .numero{font-size:13px;color:#B45309;font-weight:700;display:block;margin-bottom:12px;}
-  #presentation-screen .carte-fonction h3{font-size:16px;color:var(--teal-900);margin:0 0 8px;}
-  #presentation-screen .carte-fonction p{font-size:13.5px;color:var(--text-muted);margin:0;}
-  #presentation-screen .grille-publics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
-  #presentation-screen .carte-public{border:1.5px solid var(--border);border-radius:var(--radius);padding:24px 20px;text-align:center;}
-  #presentation-screen .carte-public .numero-public{
-    display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;
-    border-radius:50%;background:var(--teal-100, #E7F1EC);color:#123A3D;font-weight:700;font-size:14px;margin-bottom:12px;
+  #presentation-screen .liste-fonctions{margin-top:8px;max-width:760px;}
+  #presentation-screen .ligne-fonction{display:flex;gap:28px;padding:26px 0;border-bottom:1px solid var(--border);}
+  #presentation-screen .ligne-fonction:first-child{padding-top:0;}
+  #presentation-screen .ligne-fonction:last-child{border-bottom:none;}
+  #presentation-screen .ligne-fonction .numero{font-size:22px;color:#B45309;font-weight:600;flex-shrink:0;width:38px;line-height:1.4;}
+  #presentation-screen .ligne-fonction h3{font-size:17px;color:var(--teal-900);margin:0 0 6px;font-weight:600;}
+  #presentation-screen .ligne-fonction p{font-size:14px;color:var(--text-muted);margin:0;line-height:1.6;max-width:520px;}
+  #presentation-screen .liste-publics{margin-top:8px;max-width:760px;}
+  #presentation-screen .ligne-public{padding:22px 0;border-bottom:1px solid var(--border);}
+  #presentation-screen .ligne-public:first-child{padding-top:0;}
+  #presentation-screen .ligne-public:last-child{border-bottom:none;}
+  #presentation-screen .ligne-public .numero-public{
+    display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+    border-radius:50%;background:var(--teal-900);color:#fff;font-weight:700;font-size:12px;margin-bottom:8px;
   }
-  #presentation-screen .carte-public h3{font-size:15.5px;color:var(--teal-900);margin:0 0 10px;}
-  #presentation-screen .carte-public ul{list-style:none;padding:0;margin:0;font-size:13px;color:var(--text-muted);text-align:left;}
-  #presentation-screen .carte-public li{padding:4px 0;padding-left:18px;position:relative;}
-  #presentation-screen .carte-public li::before{content:'✓';position:absolute;left:0;color:var(--success);font-weight:700;}
+  #presentation-screen .ligne-public h3{font-size:16px;color:var(--teal-900);margin:0 0 6px;display:block;}
+  #presentation-screen .ligne-public p{font-size:13.5px;color:var(--text-muted);margin:0;line-height:1.6;}
+  #presentation-screen .ligne-public p span{white-space:nowrap;}
   #presentation-screen .bandeau-cta{background:var(--teal-900);color:#fff;text-align:center;padding:56px 24px;border-radius:var(--radius);}
   #presentation-screen .bandeau-cta h2{font-size:26px;margin:0 0 14px;}
   #presentation-screen .bandeau-cta p{color:rgba(255,255,255,.82);margin:0 0 26px;font-size:15px;}
@@ -881,15 +884,15 @@
     <div class="conteneur">
       <h2 class="titre-section" id="pub-fonctions-titre">Ce qu'on y fait, concrètement</h2>
       <p class="sous-titre-section" id="pub-fonctions-sous-titre">Les outils qu'un établissement utilise vraiment, au jour le jour — pas plus.</p>
-      <div class="grille-fonctions">
-        <div class="carte-fonction"><span class="numero">01</span><h3 id="pub-f01-h">Notes &amp; bulletins</h3><p id="pub-f01-p">Chaque note entrée met à jour la moyenne aussitôt. Le bulletin sort prêt à imprimer, avec la moyenne de la classe juste à côté pour comparer.</p></div>
-        <div class="carte-fonction"><span class="numero">02</span><h3 id="pub-f02-h">Vie scolaire</h3><p id="pub-f02-p">Un retard, une absence, une punition : ça se saisit en quelques secondes, et les parents voient tout de suite si c'est justifié.</p></div>
-        <div class="carte-fonction"><span class="numero">03</span><h3 id="pub-f03-h">Emploi du temps</h3><p id="pub-f03-p">La grille de la semaine, avec l'appel et le cahier de texte accessibles directement depuis chaque créneau — pas besoin de changer d'écran.</p></div>
-        <div class="carte-fonction"><span class="numero">04</span><h3 id="pub-f04-h">Messagerie</h3><p id="pub-f04-p">Un mot à un parent, à un collègue, ou à toute une classe d'un coup — sans passer par un groupe WhatsApp ou le cahier de correspondance.</p></div>
-        <div class="carte-fonction"><span class="numero">05</span><h3 id="pub-f05-h">Bibliothèque numérique</h3><p id="pub-f05-p">Les documents de cours au même endroit, avec un coin à part réservé aux corrigés, que seuls les professeurs peuvent ouvrir.</p></div>
-        <div class="carte-fonction"><span class="numero">06</span><h3 id="pub-f06-h">Frais scolaires</h3><p id="pub-f06-p">Qui a payé, qui doit encore, et combien — par classe, avec une quittance imprimable à chaque versement.</p></div>
-        <div class="carte-fonction"><span class="numero">07</span><h3 id="pub-f07-h">Certificats &amp; attestations</h3><p id="pub-f07-p">Un certificat de scolarité prêt en quelques secondes, avec le cachet propre à votre établissement dessus.</p></div>
-        <div class="carte-fonction"><span class="numero">08</span><h3 id="pub-f08-h">Multi-établissements</h3><p id="pub-f08-p">Chaque établissement garde ses classes, ses comptes et ses réglages à lui, sans jamais se mélanger avec un autre.</p></div>
+      <div class="liste-fonctions">
+        <div class="ligne-fonction"><span class="numero">01</span><div><h3 id="pub-f01-h">Notes &amp; bulletins</h3><p id="pub-f01-p">Chaque note entrée met à jour la moyenne aussitôt. Le bulletin sort prêt à imprimer, avec la moyenne de la classe juste à côté pour comparer.</p></div></div>
+        <div class="ligne-fonction"><span class="numero">02</span><div><h3 id="pub-f02-h">Vie scolaire</h3><p id="pub-f02-p">Un retard, une absence, une punition : ça se saisit en quelques secondes, et les parents voient tout de suite si c'est justifié.</p></div></div>
+        <div class="ligne-fonction"><span class="numero">03</span><div><h3 id="pub-f03-h">Emploi du temps</h3><p id="pub-f03-p">La grille de la semaine, avec l'appel et le cahier de texte accessibles directement depuis chaque créneau — pas besoin de changer d'écran.</p></div></div>
+        <div class="ligne-fonction"><span class="numero">04</span><div><h3 id="pub-f04-h">Messagerie</h3><p id="pub-f04-p">Un mot à un parent, à un collègue, ou à toute une classe d'un coup — sans passer par un groupe WhatsApp ou le cahier de correspondance.</p></div></div>
+        <div class="ligne-fonction"><span class="numero">05</span><div><h3 id="pub-f05-h">Bibliothèque numérique</h3><p id="pub-f05-p">Les documents de cours au même endroit, avec un coin à part réservé aux corrigés, que seuls les professeurs peuvent ouvrir.</p></div></div>
+        <div class="ligne-fonction"><span class="numero">06</span><div><h3 id="pub-f06-h">Frais scolaires</h3><p id="pub-f06-p">Qui a payé, qui doit encore, et combien — par classe, avec une quittance imprimable à chaque versement.</p></div></div>
+        <div class="ligne-fonction"><span class="numero">07</span><div><h3 id="pub-f07-h">Certificats &amp; attestations</h3><p id="pub-f07-p">Un certificat de scolarité prêt en quelques secondes, avec le cachet propre à votre établissement dessus.</p></div></div>
+        <div class="ligne-fonction"><span class="numero">08</span><div><h3 id="pub-f08-h">Multi-établissements</h3><p id="pub-f08-p">Chaque établissement garde ses classes, ses comptes et ses réglages à lui, sans jamais se mélanger avec un autre.</p></div></div>
       </div>
     </div>
   </section>
@@ -898,26 +901,26 @@
     <div class="conteneur">
       <h2 class="titre-section" id="pub-publics-titre">Chacun ne voit que ce qui le concerne</h2>
       <p class="sous-titre-section" id="pub-publics-sous-titre">Un élève, un professeur, un parent et l'administration n'ont pas accès aux mêmes choses.</p>
-      <div class="grille-publics">
-        <div class="carte-public">
+      <div class="liste-publics">
+        <div class="ligne-public">
           <span class="numero-public">A</span>
           <h3 id="pub-pa-h">Élèves</h3>
-          <ul><li id="pub-pa-1">Ses notes et son bulletin, à jour</li><li id="pub-pa-2">Son emploi du temps et ses devoirs</li><li id="pub-pa-3">Ses absences et son comportement</li></ul>
+          <p><span id="pub-pa-1">Ses notes et son bulletin, à jour</span> · <span id="pub-pa-2">son emploi du temps et ses devoirs</span> · <span id="pub-pa-3">ses absences et son comportement</span></p>
         </div>
-        <div class="carte-public">
+        <div class="ligne-public">
           <span class="numero-public">B</span>
           <h3 id="pub-pb-h">Professeurs</h3>
-          <ul><li id="pub-pb-1">L'appel et les notes, classe par classe</li><li id="pub-pb-2">Le cahier de texte en deux clics</li><li id="pub-pb-3">Un message direct aux familles</li></ul>
+          <p><span id="pub-pb-1">L'appel et les notes, classe par classe</span> · <span id="pub-pb-2">le cahier de texte en deux clics</span> · <span id="pub-pb-3">un message direct aux familles</span></p>
         </div>
-        <div class="carte-public">
+        <div class="ligne-public">
           <span class="numero-public">C</span>
           <h3 id="pub-pc-h">Familles</h3>
-          <ul><li id="pub-pc-1">Le suivi de chacun de leurs enfants</li><li id="pub-pc-2">Un rendez-vous avec l'administration</li><li id="pub-pc-3">Où en sont les frais de scolarité</li></ul>
+          <p><span id="pub-pc-1">Le suivi de chacun de leurs enfants</span> · <span id="pub-pc-2">un rendez-vous avec l'administration</span> · <span id="pub-pc-3">où en sont les frais de scolarité</span></p>
         </div>
-        <div class="carte-public">
+        <div class="ligne-public">
           <span class="numero-public">D</span>
           <h3 id="pub-pd-h">Administration</h3>
-          <ul><li id="pub-pd-1">Tous les comptes, au même endroit</li><li id="pub-pd-2">Des statistiques, classe par classe</li><li id="pub-pd-3">Les documents officiels, générés seuls</li></ul>
+          <p><span id="pub-pd-1">Tous les comptes, au même endroit</span> · <span id="pub-pd-2">des statistiques, classe par classe</span> · <span id="pub-pd-3">les documents officiels, générés seuls</span></p>
         </div>
       </div>
     </div>
