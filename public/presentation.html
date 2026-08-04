@@ -64,6 +64,9 @@
   .hero h1{font-size:44px;font-weight:600;color:var(--teal-900);margin:0 0 20px;line-height:1.15;letter-spacing:-.01em;}
   .hero p{font-size:16.5px;color:var(--text-muted);max-width:480px;margin:0 0 32px;}
   .hero-boutons{display:flex;gap:22px;flex-wrap:wrap;align-items:center;}
+  .hero-liens-profils{display:flex;gap:24px;margin-top:22px;flex-wrap:wrap;}
+  .hero-liens-profils a{font-size:13.5px;font-weight:600;color:var(--teal-700);text-decoration:none;}
+  .hero-liens-profils a:hover{text-decoration:underline;}
   .btn-primaire{
     padding:13px 26px;border-radius:6px;background:var(--teal-900);color:#fff;font-weight:700;font-size:15px;
     text-decoration:none;border:1.5px solid var(--teal-900);box-shadow:4px 4px 0 var(--accent);
@@ -151,7 +154,14 @@
   .bandeau-cta .btn-primaire{background:#fff;color:var(--teal-900);}
   .bandeau-cta .btn-primaire:hover{background:var(--teal-100);}
 
-  footer{padding:30px 0;border-top:1px solid var(--border);text-align:center;font-size:12.5px;color:var(--text-muted);}
+  footer{padding:0;border-top:1px solid var(--border);font-size:13px;color:var(--text-muted);}
+  .pied-page-complet{padding:48px 0 0;}
+  .pied-colonnes{display:flex;gap:60px;flex-wrap:wrap;padding-bottom:36px;}
+  .pied-colonne{display:flex;flex-direction:column;gap:10px;min-width:140px;}
+  .pied-titre{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--teal-900);margin-bottom:4px;}
+  .pied-colonne a{font-size:13px;color:var(--text-muted);text-decoration:none;}
+  .pied-colonne a:hover{color:var(--teal-700);text-decoration:underline;}
+  .pied-bas{border-top:1px solid var(--border);padding:18px 0;font-size:12.5px;color:var(--text-muted);}
 
   @media (max-width:640px){
     .conteneur{padding:0 18px;}
@@ -215,6 +225,10 @@
         <a class="btn-primaire" href="/" data-i18n="btn1">Se connecter à mon espace</a>
         <a class="btn-secondaire" href="#fonctionnalites"><span data-i18n="btn2">Voir ce qu'il y a dedans</span></a>
       </div>
+      <div class="hero-liens-profils">
+        <a href="#publics" data-i18n="lien_eleves_parents">Pour les élèves et les parents →</a>
+        <a href="#publics" data-i18n="lien_profs">Pour les professeurs →</a>
+      </div>
     </div>
     <div class="hero-visuel">
       <div class="hero-mot-deco">Simple.</div>
@@ -267,7 +281,7 @@
   </div>
 </section>
 
-<section style="background:var(--bg);">
+<section id="publics" style="background:var(--bg);">
   <div class="conteneur conteneur-etroit">
     <h2 class="titre-section" data-i18n="p_titre">Chacun ne voit que ce qui le concerne</h2>
     <p class="sous-titre-section" data-i18n="p_sous">Un élève, un professeur, un parent et l'administration n'ont pas accès aux mêmes choses.</p>
@@ -296,7 +310,7 @@
   </div>
 </section>
 
-<section style="background:var(--bg);">
+<section id="faq" style="background:var(--bg);">
   <div class="conteneur">
     <h2 class="titre-section" data-i18n="faq_titre">Questions qu'on nous pose souvent</h2>
     <div class="faq-liste">
@@ -330,8 +344,29 @@
   </div>
 </section>
 
-<footer>
-  <div class="conteneur" data-i18n="footer">EduCheni — Plateforme scolaire de gestion d'établissement</div>
+<footer class="pied-page-complet">
+  <div class="conteneur">
+    <div class="pied-colonnes">
+      <div class="pied-colonne">
+        <div class="pied-titre" data-i18n="pied_produit">La plateforme</div>
+        <a href="#fonctionnalites" data-i18n="pied_fonctionnalites">Fonctionnalités</a>
+        <a href="#publics" data-i18n="pied_espaces">Les espaces</a>
+        <a href="/" data-i18n="btn_connexion">Se connecter</a>
+      </div>
+      <div class="pied-colonne">
+        <div class="pied-titre" data-i18n="pied_utilisateurs">Utilisateurs</div>
+        <a href="#publics" data-i18n="pa_h">Élèves</a>
+        <a href="#publics" data-i18n="pb_h">Professeurs</a>
+        <a href="#publics" data-i18n="pc_h">Parents</a>
+      </div>
+      <div class="pied-colonne">
+        <div class="pied-titre" data-i18n="pied_etablissement">Votre établissement</div>
+        <a href="/rejoindre" data-i18n="pied_nous_contacter">Nous contacter</a>
+        <a href="#faq" data-i18n="faq_titre">Questions fréquentes</a>
+      </div>
+    </div>
+    <div class="pied-bas" data-i18n="footer">EduCheni — Plateforme scolaire de gestion d'établissement</div>
+  </div>
 </footer>
 
 <script>
@@ -364,6 +399,9 @@ const I18N_PRESENTATION = {
     etape1_h: "Vous créez votre espace", etape1_p: "Classes, matières, professeurs — la structure de votre établissement, mise en place en une fois.",
     etape2_h: "Chacun reçoit son accès", etape2_p: "Un identifiant et un mot de passe pour les élèves, les parents et les professeurs — rien à installer.",
     etape3_h: "La vie de l'école, au jour le jour", etape3_p: "Notes, absences, messages, emploi du temps — utilisés naturellement, sans y penser.",
+    lien_eleves_parents: "Pour les élèves et les parents →", lien_profs: "Pour les professeurs →",
+    pied_produit: "La plateforme", pied_fonctionnalites: "Fonctionnalités", pied_espaces: "Les espaces",
+    pied_utilisateurs: "Utilisateurs", pied_etablissement: "Votre établissement", pied_nous_contacter: "Nous contacter",
     footer: "EduCheni — Plateforme scolaire de gestion d'établissement",
   },
   en: {
@@ -394,6 +432,9 @@ const I18N_PRESENTATION = {
     etape1_h: "You set up your space", etape1_p: "Classes, subjects, teachers — your school's structure, set up in one go.",
     etape2_h: "Everyone gets their access", etape2_p: "A login and password for students, parents and teachers — nothing to install.",
     etape3_h: "School life, day by day", etape3_p: "Grades, absences, messages, timetable — used naturally, without thinking about it.",
+    lien_eleves_parents: "For students and parents →", lien_profs: "For teachers →",
+    pied_produit: "The platform", pied_fonctionnalites: "Features", pied_espaces: "The spaces",
+    pied_utilisateurs: "Users", pied_etablissement: "Your school", pied_nous_contacter: "Contact us",
     footer: "EduCheni — School management platform",
   },
   ar: {
@@ -424,6 +465,9 @@ const I18N_PRESENTATION = {
     etape1_h: "تنشئون مساحتكم", etape1_p: "الأقسام، المواد، الأساتذة — هيكلة مؤسستكم، مُعدّة دفعة واحدة.",
     etape2_h: "كل شخص يحصل على وصوله", etape2_p: "معرّف وكلمة مرور للتلاميذ وأولياء الأمور والأساتذة — لا شيء يُثبَّت.",
     etape3_h: "حياة المدرسة، يوماً بيوم", etape3_p: "النقاط، الغيابات، الرسائل، الجدول الزمني — تُستخدم بشكل طبيعي، دون تفكير.",
+    lien_eleves_parents: "للتلاميذ وأولياء الأمور ←", lien_profs: "للأساتذة ←",
+    pied_produit: "المنصة", pied_fonctionnalites: "الميزات", pied_espaces: "المساحات",
+    pied_utilisateurs: "المستخدمون", pied_etablissement: "مؤسستكم", pied_nous_contacter: "تواصل معنا",
     footer: "إيدوشيني — منصة إدارة المؤسسات المدرسية",
   },
 };
