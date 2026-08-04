@@ -38,10 +38,11 @@
   .logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600;color:var(--teal-900);}
   .logo-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--teal-500),var(--teal-700));display:flex;align-items:center;justify-content:center;}
   .btn-connexion{
-    padding:10px 22px;border-radius:9px;background:var(--teal-700);color:#fff;font-weight:600;
-    font-size:14px;text-decoration:none;display:inline-block;
+    padding:9px 20px;border-radius:6px;background:var(--teal-900);color:#fff;font-weight:700;
+    font-size:14px;text-decoration:none;display:inline-block;border:1.5px solid var(--teal-900);
+    box-shadow:3px 3px 0 var(--accent);transition:transform .12s,box-shadow .12s;
   }
-  .btn-connexion:hover{background:var(--teal-900);}
+  .btn-connexion:hover{transform:translate(3px,3px);box-shadow:0 0 0 var(--accent);}
   .lang-switch-btn{
     display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:7px;border:1.5px solid var(--border);
     background:#fff;color:var(--teal-900);font-size:12.5px;font-weight:600;cursor:pointer;
@@ -62,11 +63,22 @@
   .hero-eyebrow::before{content:'';width:22px;height:2px;background:var(--accent);display:inline-block;}
   .hero h1{font-size:44px;font-weight:600;color:var(--teal-900);margin:0 0 20px;line-height:1.15;letter-spacing:-.01em;}
   .hero p{font-size:16.5px;color:var(--text-muted);max-width:480px;margin:0 0 32px;}
-  .hero-boutons{display:flex;gap:14px;flex-wrap:wrap;}
-  .btn-primaire{padding:14px 28px;border-radius:10px;background:var(--teal-700);color:#fff;font-weight:700;font-size:15px;text-decoration:none;}
-  .btn-primaire:hover{background:var(--teal-900);}
-  .btn-secondaire{padding:14px 28px;border-radius:10px;border:1.5px solid var(--border);color:var(--teal-900);font-weight:700;font-size:15px;text-decoration:none;}
-  .btn-secondaire:hover{background:var(--teal-100);}
+  .hero-boutons{display:flex;gap:22px;flex-wrap:wrap;align-items:center;}
+  .btn-primaire{
+    padding:13px 26px;border-radius:6px;background:var(--teal-900);color:#fff;font-weight:700;font-size:15px;
+    text-decoration:none;border:1.5px solid var(--teal-900);box-shadow:4px 4px 0 var(--accent);
+    transition:transform .12s,box-shadow .12s;display:inline-block;
+  }
+  .btn-primaire:hover{transform:translate(4px,4px);box-shadow:0 0 0 var(--accent);}
+  .btn-secondaire{
+    padding:13px 0;color:var(--teal-900);font-weight:700;font-size:15px;text-decoration:none;
+    border:none;background:none;position:relative;display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn-secondaire::after{content:'→';transition:transform .2s;}
+  .btn-secondaire span{position:relative;}
+  .btn-secondaire span::after{content:'';position:absolute;left:0;bottom:-2px;width:100%;height:1.5px;background:var(--teal-900);transform:scaleX(.3);transform-origin:left;transition:transform .2s;}
+  .btn-secondaire:hover span::after{transform:scaleX(1);}
+  .btn-secondaire:hover::after{transform:translateX(4px);}
 
   /* Composition graphique du hero : cartes empilées en biais, façon aperçu d'écran */
   .hero-visuel{position:relative;height:340px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;}
@@ -201,7 +213,7 @@
       <p data-i18n="hero_p">Les notes, les absences, l'emploi du temps, les messages aux familles — tout ce qu'une équipe pédagogique fait chaque jour, sans classeur qui traîne ni fichier Excel à mettre à jour à la main.</p>
       <div class="hero-boutons">
         <a class="btn-primaire" href="/" data-i18n="btn1">Se connecter à mon espace</a>
-        <a class="btn-secondaire" href="#fonctionnalites" data-i18n="btn2">Voir ce qu'il y a dedans</a>
+        <a class="btn-secondaire" href="#fonctionnalites"><span data-i18n="btn2">Voir ce qu'il y a dedans</span></a>
       </div>
     </div>
     <div class="hero-visuel">
