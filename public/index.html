@@ -734,6 +734,8 @@
   .boite-mail-ligne.non-lu .boite-mail-expediteur{font-weight:700;}
   .boite-mail-apercu{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .boite-mail-date{font-size:10.5px;color:var(--text-muted);flex-shrink:0;}
+  .boite-mail-colonne-lecture{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .boite-mail-lecture-barre{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);}
   .boite-mail-lecture{flex:1;padding:22px 26px;overflow-y:auto;}
   .boite-mail-lecture-entete{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:18px;}
   .boite-mail-lecture-nom{font-size:18px;font-weight:600;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;}
@@ -741,8 +743,25 @@
   .boite-mail-lecture-corps{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:24px;}
   .boite-mail-reponse{display:flex;gap:8px;border-top:1px solid var(--border);padding-top:16px;}
   .boite-mail-reponse input{flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;}
-  .boite-mail-composition h3{font-family:'Fraunces',Georgia,serif;font-weight:600;color:var(--teal-900);}
-  .boite-mail-composition .f{margin-bottom:12px;}
+  .boite-mail-fenetre{max-width:640px;}
+  .boite-mail-fenetre-titre{
+    display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:18px;
+    color:var(--teal-900);border-bottom:2px solid var(--teal-100);padding-bottom:12px;margin-bottom:18px;
+  }
+  .boite-mail-fenetre-forum .boite-mail-fenetre-titre{color:#9A3E1B;border-bottom-color:var(--accent-light);}
+  .boite-mail-champ-ligne{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:14px;}
+  .boite-mail-champ-ligne label{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;flex-shrink:0;width:52px;}
+  .boite-mail-champ-ligne input, .boite-mail-champ-ligne select{
+    flex:1;border:none;padding:6px 0;font-size:14px;background:transparent;
+  }
+  .boite-mail-champ-ligne input:focus, .boite-mail-champ-ligne select:focus{outline:none;}
+  #boite-mail-nouveau-form textarea, #boite-mail-forum-form textarea{
+    width:100%;border:none;padding:8px 0;font-size:14px;font-family:inherit;resize:vertical;
+  }
+  #boite-mail-nouveau-form textarea:focus, #boite-mail-forum-form textarea:focus{outline:none;}
+  .boite-mail-fenetre-pied{display:flex;justify-content:flex-end;border-top:1px solid var(--border);padding-top:16px;margin-top:10px;}
+  .boite-mail-fenetre-forum .btn-submit{background:var(--accent);border-bottom-color:#9A3E1B;}
+  .boite-mail-fenetre-forum .btn-submit:hover{background:#B85A2C;}
   .boite-mail-suggestions{
     position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--teal-700);border-top:none;
     border-radius:0 0 10px 10px;box-shadow:var(--shadow);z-index:20;max-height:220px;overflow-y:auto;
@@ -753,21 +772,24 @@
   }
   .boite-mail-suggestion:last-child{border-bottom:none;}
   .boite-mail-suggestion:hover{background:var(--teal-100);}
-  .boite-mail-forum{
-    margin:22px 0 0;padding:18px 20px;border:1.5px dashed var(--accent);border-radius:12px;background:var(--accent-light);
-  }
-  .boite-mail-forum-titre{
-    display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:15px;
-    color:#9A3E1B;margin-bottom:4px;
-  }
-  .boite-mail-forum .btn-submit{background:var(--accent);border-bottom-color:#9A3E1B;}
-  .boite-mail-forum .btn-submit:hover{background:#B85A2C;}
   @media screen and (max-width:900px){
     .boite-mail-corps{flex-direction:column;height:auto;}
-    .boite-mail-dossiers{width:100%;border-right:none;border-bottom:1px solid var(--border);display:flex;gap:8px;padding:12px;align-items:center;}
+    .boite-mail-dossiers{width:100%;border-right:none;border-bottom:1px solid var(--border);display:flex;gap:8px;padding:12px;align-items:center;flex-wrap:wrap;}
     .boite-mail-dossiers #msg-nouveau-btn{width:auto;margin-bottom:0;}
-    .boite-mail-dossier{width:auto;white-space:nowrap;}
-    .boite-mail-liste{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:280px;}
+    .boite-mail-dossier{width:auto;white-space:nowrap;padding:8px 10px;font-size:12px;}
+    .boite-mail-dossier svg{width:14px;height:14px;}
+    .boite-mail-liste{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:260px;}
+    .boite-mail-colonne-lecture{min-height:400px;}
+    .boite-mail-lecture-barre{padding:10px 14px;}
+    .boite-mail-lecture-barre #msg-forum-btn{font-size:12px;padding:8px 10px;}
+    .boite-mail-lecture{padding:16px 18px;}
+    .boite-mail-lecture-entete{flex-wrap:wrap;}
+    .boite-mail-avatar-grand{width:36px;height:36px;font-size:13px;}
+    .boite-mail-lecture-nom{font-size:16px;}
+    .boite-mail-fenetre{max-width:100%;}
+    .boite-mail-champ-ligne{flex-wrap:wrap;}
+    .boite-mail-reponse{flex-wrap:wrap;}
+    .boite-mail-reponse button{width:100%;}
   }
 
   .msg-layout{display:flex;height:560px;}
@@ -4843,7 +4865,17 @@ async function renderMessagerie(){
           </button>
         </div>
         <div class="boite-mail-liste" id="boite-mail-liste"><div class="empty-state">Chargement…</div></div>
-        <div class="boite-mail-lecture" id="boite-mail-lecture"><div class="empty-state">Sélectionne un message pour le lire.</div></div>
+        <div class="boite-mail-colonne-lecture">
+          <div class="boite-mail-lecture-barre">
+            <span></span>
+            ${classesAvecEleves.length ? `
+            <button class="btn-secondary" id="msg-forum-btn" style="display:flex;align-items:center;gap:6px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              Forum de classe
+            </button>` : ''}
+          </div>
+          <div class="boite-mail-lecture" id="boite-mail-lecture"><div class="empty-state">Sélectionne un message pour le lire.</div></div>
+        </div>
       </div>
     </div>`;
 
@@ -4926,34 +4958,22 @@ async function renderMessagerie(){
     document.querySelectorAll('.boite-mail-ligne').forEach(l => l.classList.remove('active'));
     const lecture = document.getElementById('boite-mail-lecture');
     lecture.innerHTML = `
-      <form id="boite-mail-nouveau-form" class="boite-mail-composition">
-        <h3 style="margin:0 0 14px;">Nouveau message</h3>
-        <div class="f" style="position:relative;">
-          <label>Destinataire</label>
-          <input type="text" name="email" id="boite-mail-destinataire" placeholder="Tape un prénom ou une adresse email…" autocomplete="off" required />
-          <div class="boite-mail-suggestions hidden" id="boite-mail-suggestions"></div>
-        </div>
-        <div class="f"><label>Message</label><textarea name="contenu" rows="5" required></textarea></div>
-        <button class="btn-submit" type="submit">Envoyer</button>
-      </form>
-      ${classesAvecEleves.length ? `
-      <div class="boite-mail-forum">
-        <div class="boite-mail-forum-titre">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-          Forum — message à toute une classe
-        </div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;">Envoie le même message à chaque élève d'une classe, en une fois.</p>
-        <form id="boite-mail-forum-form" class="boite-mail-composition">
-          <div class="f"><label>Classe</label>
-            <select id="boite-mail-classe-select" required>
-              <option value="">— Choisir une classe —</option>
-              ${classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)} (${c.etudiants.length} élèves)</option>`).join('')}
-            </select>
+      <div class="boite-mail-fenetre">
+        <div class="boite-mail-fenetre-titre">Nouveau message</div>
+        <form id="boite-mail-nouveau-form">
+          <div class="boite-mail-champ-ligne">
+            <label>À</label>
+            <div style="position:relative;flex:1;">
+              <input type="text" name="email" id="boite-mail-destinataire" placeholder="Nom, prénom ou adresse…" autocomplete="off" required />
+              <div class="boite-mail-suggestions hidden" id="boite-mail-suggestions"></div>
+            </div>
           </div>
-          <div class="f"><label>Message</label><textarea name="contenu" rows="4" required></textarea></div>
-          <button class="btn-submit" type="submit">Publier au forum de la classe</button>
+          <textarea name="contenu" placeholder="Écrivez votre message…" rows="10" required></textarea>
+          <div class="boite-mail-fenetre-pied">
+            <button class="btn-submit" type="submit">Envoyer</button>
+          </div>
         </form>
-      </div>` : ''}`;
+      </div>`;
 
     const inputDest = document.getElementById('boite-mail-destinataire');
     const boiteSuggestions = document.getElementById('boite-mail-suggestions');
@@ -4978,7 +4998,7 @@ async function renderMessagerie(){
       boiteSuggestions.classList.add('hidden');
     });
     document.addEventListener('click', (e) => {
-      if(!e.target.closest('.f')) boiteSuggestions.classList.add('hidden');
+      if(!e.target.closest('.boite-mail-champ-ligne')) boiteSuggestions.classList.add('hidden');
     });
 
     document.getElementById('boite-mail-nouveau-form').addEventListener('submit', async (e) => {
@@ -4991,29 +5011,54 @@ async function renderMessagerie(){
         if(boiteMailActive === 'envoyes') chargerListe();
       }catch(err){ toast(err.message, 'error'); }
     });
+  }
 
-    const formForum = document.getElementById('boite-mail-forum-form');
-    if(formForum){
-      formForum.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fd = new FormData(e.target);
-        const classeId = document.getElementById('boite-mail-classe-select').value;
-        const contenu = fd.get('contenu').trim();
-        if(!classeId){ toast('Choisis une classe.', 'error'); return; }
-        const classe = classesAvecEleves.find(c => String(c.id) === classeId);
-        let success = 0, echecs = 0;
-        for(const et of classe.etudiants){
-          try{ await api('/messages', { method:'POST', body: JSON.stringify({ destinataireId: et.id, contenu })}); success++; }
-          catch(err){ echecs++; }
-        }
-        toast(`Message publié au forum de la classe : ${success} élève(s)${echecs ? `, ${echecs} échec(s)` : ''}.`, echecs ? 'error' : undefined);
-        formForum.reset();
-        if(boiteMailActive === 'envoyes') chargerListe();
-      });
-    }
+  function ouvrirForum(){
+    boiteMailMessageOuvert = null;
+    document.querySelectorAll('.boite-mail-ligne').forEach(l => l.classList.remove('active'));
+    const lecture = document.getElementById('boite-mail-lecture');
+    lecture.innerHTML = `
+      <div class="boite-mail-fenetre boite-mail-fenetre-forum">
+        <div class="boite-mail-fenetre-titre">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          Forum de classe
+        </div>
+        <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 16px;">Envoie le même message à chaque élève d'une classe, en une fois.</p>
+        <form id="boite-mail-forum-form">
+          <div class="boite-mail-champ-ligne">
+            <label>Classe</label>
+            <select id="boite-mail-classe-select" required style="flex:1;">
+              <option value="">— Choisir une classe —</option>
+              ${classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)} (${c.etudiants.length} élèves)</option>`).join('')}
+            </select>
+          </div>
+          <textarea name="contenu" placeholder="Message pour toute la classe…" rows="9" required></textarea>
+          <div class="boite-mail-fenetre-pied">
+            <button class="btn-submit" type="submit">Publier au forum</button>
+          </div>
+        </form>
+      </div>`;
+
+    document.getElementById('boite-mail-forum-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const classeId = document.getElementById('boite-mail-classe-select').value;
+      const contenu = fd.get('contenu').trim();
+      if(!classeId){ toast('Choisis une classe.', 'error'); return; }
+      const classe = classesAvecEleves.find(c => String(c.id) === classeId);
+      let success = 0, echecs = 0;
+      for(const et of classe.etudiants){
+        try{ await api('/messages', { method:'POST', body: JSON.stringify({ destinataireId: et.id, contenu })}); success++; }
+        catch(err){ echecs++; }
+      }
+      toast(`Message publié au forum de la classe : ${success} élève(s)${echecs ? `, ${echecs} échec(s)` : ''}.`, echecs ? 'error' : undefined);
+      if(boiteMailActive === 'envoyes') chargerListe();
+    });
   }
 
   document.getElementById('msg-nouveau-btn').addEventListener('click', ouvrirComposition);
+  const btnForum = document.getElementById('msg-forum-btn');
+  if(btnForum) btnForum.addEventListener('click', ouvrirForum);
   content.querySelectorAll('.boite-mail-dossier').forEach(btn => {
     btn.addEventListener('click', () => {
       boiteMailActive = btn.dataset.boite;
