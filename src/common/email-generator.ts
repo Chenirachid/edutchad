@@ -13,30 +13,30 @@ export function normalizeEmailPart(value: string): string {
 }
 
 /**
- * Domaine email selon le rôle de l'utilisateur.
+ * Mot distinguant le rôle, ajouté à la fin de la partie locale de l'adresse.
  */
-export function domainForRole(role: Role): string {
+export function roleSuffix(role: Role): string {
   switch (role) {
     case Role.ETUDIANT:
-      return 'eleves.educheni.com';
+      return 'eleves';
     case Role.PROFESSEUR:
-      return 'profs.educheni.com';
+      return 'profs';
     case Role.ADMIN:
-      return 'admin.educheni.com';
+      return 'admin';
     case Role.PARENT:
-      return 'parents.educheni.com';
+      return 'parents';
     default:
-      return 'educheni.com';
+      return 'educheni';
   }
 }
 
 /**
  * Construit l'adresse email de base (sans vérifier l'unicité) :
- * prenom.nom@domaine-du-role
+ * prenom.nom.role@educheni.com
  */
 export function buildBaseEmail(prenom: string, nom: string, role: Role): string {
-  const base = `${normalizeEmailPart(prenom)}.${normalizeEmailPart(nom)}`;
-  return `${base}@${domainForRole(role)}`;
+  const base = `${normalizeEmailPart(prenom)}.${normalizeEmailPart(nom)}.${roleSuffix(role)}`;
+  return `${base}@educheni.com`;
 }
 
 /**
