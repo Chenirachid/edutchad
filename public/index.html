@@ -705,6 +705,34 @@
   }
 
   /* ---------- MESSAGERIE ---------- */
+  .boite-mail-barre{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
+  .boite-mail-onglets{display:flex;gap:4px;}
+  .boite-mail-onglet{padding:8px 14px;border-radius:7px;background:transparent;border:none;font-size:13px;font-weight:600;color:var(--text-muted);}
+  .boite-mail-onglet.active{background:var(--teal-100);color:var(--teal-900);}
+  .boite-mail-corps{display:flex;height:560px;}
+  .boite-mail-liste{width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;}
+  .boite-mail-ligne{
+    display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:12px 16px;
+    border-bottom:1px solid var(--border);background:transparent;position:relative;
+  }
+  .boite-mail-ligne:hover{background:var(--bg);}
+  .boite-mail-ligne.active{background:var(--teal-100);}
+  .boite-mail-ligne.non-lu{background:rgba(29,110,104,.05);}
+  .boite-mail-ligne.non-lu::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal-700);}
+  .boite-mail-expediteur{font-size:13.5px;color:var(--teal-900);}
+  .boite-mail-ligne.non-lu .boite-mail-expediteur{font-weight:700;}
+  .boite-mail-apercu{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .boite-mail-date{font-size:10.5px;color:var(--text-muted);position:absolute;top:12px;right:14px;}
+  .boite-mail-lecture{flex:1;padding:22px 26px;overflow-y:auto;}
+  .boite-mail-lecture-entete{border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px;}
+  .boite-mail-lecture-nom{font-size:16px;font-weight:700;color:var(--teal-900);}
+  .boite-mail-lecture-date{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .boite-mail-lecture-corps{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:24px;}
+  .boite-mail-reponse{display:flex;gap:8px;border-top:1px solid var(--border);padding-top:16px;}
+  .boite-mail-reponse input{flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;}
+  .boite-mail-composition .f{margin-bottom:12px;}
+  @media screen and (max-width:900px){.boite-mail-corps{flex-direction:column;height:auto;}.boite-mail-liste{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:280px;}}
+
   .msg-layout{display:flex;height:560px;}
   .msg-contacts{width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:8px;}
   .msg-contact{
@@ -4748,194 +4776,170 @@ async function renderAdminLiaisons(){
 /* ============================================================
    MESSAGERIE
    ============================================================ */
-let messagerieSelectedContact = null;
+let boiteMailActive = 'recus';
+let boiteMailMessageOuvert = null;
 
 async function renderMessagerie(){
   document.getElementById('page-subtitle').textContent = '';
   const content = document.getElementById('content');
-  const [contacts, recus, classes] = await Promise.all([
-    api('/messages/contacts'), api('/messages/recus'),
+  const [contacts, classes] = await Promise.all([
+    api('/messages/contacts'),
     ['ADMIN','CHEF_ETABLISSEMENT','VIE_SCOLAIRE','PROFESSEUR'].includes(state.user.role) ? api('/classes') : Promise.resolve([]),
   ]);
   const classesAvecEleves = classes.filter(c => c.etudiants && c.etudiants.length).sort((a, b) => a.nom.localeCompare(b.nom));
 
-  const unreadByContact = {};
-  recus.forEach(m => {
-    if(!m.lu) unreadByContact[m.expediteur.id] = (unreadByContact[m.expediteur.id] || 0) + 1;
-  });
-
-  const contactItems = contacts.map(c => `
-    <button class="msg-contact" data-contact-id="${c.id}" data-contact-name="${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}">
-      <span class="msg-contact-name">${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}</span>
-      <span class="msg-contact-role">${c.role}</span>
-      ${unreadByContact[c.id] ? `<span class="msg-unread-badge">${unreadByContact[c.id]}</span>` : ''}
-    </button>`).join('');
-
   content.innerHTML = `
     <div class="card" style="padding:0;overflow:hidden;">
-      <div class="msg-layout">
-        <div class="msg-contacts">
-          ${classesAvecEleves.length ? `
-          <form id="msg-classe-form" style="padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
-            <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;">Message à toute une classe</label>
-            <select id="msg-classe-select" style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;">
-              <option value="">— Choisir une classe —</option>
-              ${classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)} (${c.etudiants.length})</option>`).join('')}
-            </select>
-            <input type="text" id="msg-classe-contenu" placeholder="Message pour toute la classe…" style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;" />
-            <button class="btn-secondary" type="submit" style="font-size:12.5px;">Envoyer à la classe</button>
-          </form>
-          ${state.user.role === 'PROFESSEUR' ? `
-          <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
-            <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;">Trouver un élève par classe</label>
-            <select id="msg-eleve-classe-select" style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;">
-              <option value="">— Choisir une classe —</option>
-              ${classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}
-            </select>
-            <select id="msg-eleve-select" style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;">
-              <option value="">— Choisir une classe d'abord —</option>
-            </select>
-          </div>` : ''}
-          ` : ''}
-          <form id="msg-nouveau-email-form" style="padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
-            <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;">${t('el_ecrire_email')}</label>
-            <input type="email" id="msg-nouveau-email" placeholder="prenom.nom@..." required style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;" />
-            <input type="text" id="msg-nouveau-contenu" placeholder="${t('el_votre_message')}" required style="padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;" />
-            <button class="btn-secondary" type="submit" style="font-size:12.5px;">${t('el_envoyer')}</button>
-          </form>
-          ${contacts.length ? contactItems : `<div class="empty-state">${t('el_aucun_autre_utilisateur')}</div>`}
+      <div class="boite-mail-barre">
+        <button class="btn-submit" id="msg-nouveau-btn" style="margin:0;">+ Nouveau message</button>
+        <div class="boite-mail-onglets">
+          <button class="boite-mail-onglet ${boiteMailActive === 'recus' ? 'active' : ''}" data-boite="recus">Boîte de réception</button>
+          <button class="boite-mail-onglet ${boiteMailActive === 'envoyes' ? 'active' : ''}" data-boite="envoyes">Envoyés</button>
         </div>
-        <div class="msg-thread-panel">
-          <div class="msg-thread-header" id="msg-thread-header">${t('el_selectionner_personne')}</div>
-          <div class="msg-thread" id="msg-thread"></div>
-          <form class="msg-compose" id="msg-compose-form">
-            <input type="text" name="contenu" placeholder="${t('el_ecrire_message')}" autocomplete="off" disabled />
-            <button class="btn-submit" type="submit" disabled>${t('el_envoyer')}</button>
-          </form>
-        </div>
+      </div>
+      <div class="boite-mail-corps">
+        <div class="boite-mail-liste" id="boite-mail-liste"><div class="empty-state">Chargement…</div></div>
+        <div class="boite-mail-lecture" id="boite-mail-lecture"><div class="empty-state">Sélectionne un message pour le lire.</div></div>
       </div>
     </div>`;
 
-  const formClasse = document.getElementById('msg-classe-form');
-  if(formClasse){
-    formClasse.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const classeId = Number(document.getElementById('msg-classe-select').value);
-      const contenu = document.getElementById('msg-classe-contenu').value.trim();
-      if(!classeId){ toast('Choisissez une classe.', 'error'); return; }
-      if(!contenu){ toast('Écris un message.', 'error'); return; }
-      const classe = classesAvecEleves.find(c => c.id === classeId);
-      let success = 0, echecs = 0;
-      for(const et of classe.etudiants){
-        try{
-          await api('/messages', { method:'POST', body: JSON.stringify({ destinataireId: et.id, contenu })});
-          success++;
-        }catch(err){ echecs++; }
-      }
-      toast(`Message envoyé à ${success} élève(s)${echecs ? `, ${echecs} échec(s)` : ''}.`, echecs ? 'error' : undefined);
-      formClasse.reset();
-    });
-  }
-
-  const selectEleveClasse = document.getElementById('msg-eleve-classe-select');
-  if(selectEleveClasse){
-    selectEleveClasse.addEventListener('change', () => {
-      const classe = classesAvecEleves.find(c => String(c.id) === selectEleveClasse.value);
-      const selectEleve = document.getElementById('msg-eleve-select');
-      if(!classe){
-        selectEleve.innerHTML = '<option value="">— Choisir une classe d\'abord —</option>';
-        return;
-      }
-      const eleves = classe.etudiants.slice().sort((a, b) => a.nom.localeCompare(b.nom));
-      selectEleve.innerHTML = '<option value="">— Choisir un élève —</option>' + eleves.map(et => `<option value="${et.id}" data-nom="${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}">${escapeHtml(et.prenom)} ${escapeHtml(et.nom)}</option>`).join('');
-    });
-    document.getElementById('msg-eleve-select').addEventListener('change', (e) => {
-      const option = e.target.selectedOptions[0];
-      if(!option.value) return;
-      openConversation(Number(option.value), option.dataset.nom);
-    });
-  }
-
-  document.getElementById('msg-nouveau-email-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('msg-nouveau-email').value.trim();
-    const contenu = document.getElementById('msg-nouveau-contenu').value.trim();
-    try{
-      const message = await api('/messages', { method:'POST', body: JSON.stringify({ destinataireEmail: email, contenu })});
-      toast('Message envoyé.');
-      await renderMessagerie();
-      openConversation(message.destinataire.id, message.destinataire.prenom + ' ' + message.destinataire.nom);
-    }catch(err){ toast(err.message, 'error'); }
-  });
-
-  content.querySelectorAll('[data-contact-id]').forEach(btn => {
-    btn.addEventListener('click', () => openConversation(Number(btn.dataset.contactId), btn.dataset.contactName));
-  });
-
-  document.getElementById('msg-compose-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if(!messagerieSelectedContact) return;
-    const fd = new FormData(e.target);
-    const contenu = fd.get('contenu').trim();
-    if(!contenu) return;
-    try{
-      await api('/messages', { method:'POST', body: JSON.stringify({ destinataireId: messagerieSelectedContact, contenu }) });
-      e.target.reset();
-      await loadConversation(messagerieSelectedContact);
-    }catch(err){ toast(err.message, 'error'); }
-  });
-
-  if(messagerieSelectedContact){
-    const stillThere = contacts.find(c => c.id === messagerieSelectedContact);
-    if(stillThere){
-      openConversation(stillThere.id, stillThere.prenom + ' ' + stillThere.nom);
-    } else {
-      messagerieSelectedContact = null;
+  async function chargerListe(){
+    const zone = document.getElementById('boite-mail-liste');
+    zone.innerHTML = '<div class="empty-state">Chargement…</div>';
+    const messages = await api('/messages/' + boiteMailActive).catch(() => []);
+    if(!messages.length){
+      zone.innerHTML = `<div class="empty-state">${boiteMailActive === 'recus' ? 'Aucun message reçu.' : 'Aucun message envoyé.'}</div>`;
+      return;
     }
+    zone.innerHTML = messages.map(m => {
+      const personne = boiteMailActive === 'recus' ? m.expediteur : m.destinataire;
+      const nonLu = boiteMailActive === 'recus' && !m.lu;
+      return `
+      <button class="boite-mail-ligne ${nonLu ? 'non-lu' : ''} ${boiteMailMessageOuvert === m.id ? 'active' : ''}" data-msg-id="${m.id}">
+        <span class="boite-mail-expediteur">${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)}</span>
+        <span class="boite-mail-apercu">${escapeHtml((m.contenu || '').slice(0, 70))}${(m.contenu || '').length > 70 ? '…' : ''}</span>
+        <span class="boite-mail-date">${new Date(m.createdAt).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' })}</span>
+      </button>`;
+    }).join('');
+
+    zone.querySelectorAll('[data-msg-id]').forEach(btn => {
+      btn.addEventListener('click', () => ouvrirMessage(Number(btn.dataset.msgId), messages));
+    });
   }
-}
 
-function openConversation(contactId, contactName){
-  messagerieSelectedContact = contactId;
-  document.querySelectorAll('.msg-contact').forEach(b => {
-    b.classList.toggle('active', Number(b.dataset.contactId) === contactId);
-  });
-  document.getElementById('msg-thread-header').textContent = contactName;
-  const input = document.querySelector('#msg-compose-form input');
-  const btn = document.querySelector('#msg-compose-form button');
-  input.disabled = false; btn.disabled = false;
-  loadConversation(contactId);
-}
-
-async function loadConversation(contactId){
-  const thread = document.getElementById('msg-thread');
-  thread.innerHTML = '<div class="empty-state">Chargement…</div>';
-  try{
-    const messages = await api('/messages/conversation/' + contactId);
-    thread.innerHTML = messages.length ? messages.map(m => {
-      const mine = m.expediteur.id === state.user.id;
-      return `<div class="msg-bubble-row ${mine ? 'mine' : ''}">
-        <div class="msg-bubble ${mine ? 'mine' : ''}">
-          <div>${escapeHtml(m.contenu)}</div>
-          <div class="msg-bubble-time">${new Date(m.createdAt).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</div>
+  async function ouvrirMessage(msgId, messages){
+    boiteMailMessageOuvert = msgId;
+    document.querySelectorAll('.boite-mail-ligne').forEach(l => l.classList.toggle('active', Number(l.dataset.msgId) === msgId));
+    const m = messages.find(x => x.id === msgId);
+    const lecture = document.getElementById('boite-mail-lecture');
+    const personne = boiteMailActive === 'recus' ? m.expediteur : m.destinataire;
+    lecture.innerHTML = `
+      <div class="boite-mail-lecture-entete">
+        <div>
+          <div class="boite-mail-lecture-nom">${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)}</div>
+          <div class="boite-mail-lecture-date">${new Date(m.createdAt).toLocaleString('fr-FR', { dateStyle:'long', timeStyle:'short' })}</div>
         </div>
-      </div>`;
-    }).join('') : '<div class="empty-state">Aucun message pour l\'instant. Écris le premier !</div>';
-    thread.scrollTop = thread.scrollHeight;
+      </div>
+      <div class="boite-mail-lecture-corps">${escapeHtml(m.contenu).replace(/\n/g,'<br>')}</div>
+      ${boiteMailActive === 'recus' ? `
+      <form id="boite-mail-reponse-form" class="boite-mail-reponse">
+        <input type="text" name="contenu" placeholder="Répondre…" autocomplete="off" required />
+        <button class="btn-submit" type="submit">Envoyer</button>
+      </form>` : ''}`;
 
-    const aLire = messages.filter(m => !m.lu && m.destinataire.id === state.user.id);
-    await Promise.all(aLire.map(m => api('/messages/' + m.id + '/lu', { method:'PATCH' }).catch(() => {})));
-    if(aLire.length){
-      document.querySelectorAll('.msg-contact').forEach(b => {
-        if(Number(b.dataset.contactId) === contactId){
-          const badge = b.querySelector('.msg-unread-badge');
-          if(badge) badge.remove();
-        }
+    if(boiteMailActive === 'recus' && !m.lu){
+      m.lu = true;
+      await api('/messages/' + m.id + '/lu', { method:'PATCH' }).catch(() => {});
+      const ligne = document.querySelector(`.boite-mail-ligne[data-msg-id="${msgId}"]`);
+      if(ligne) ligne.classList.remove('non-lu');
+      actualiserBadgesRaccourcis();
+    }
+
+    const formReponse = document.getElementById('boite-mail-reponse-form');
+    if(formReponse){
+      formReponse.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const contenu = fd.get('contenu').trim();
+        if(!contenu) return;
+        try{
+          await api('/messages', { method:'POST', body: JSON.stringify({ destinataireId: personne.id, contenu }) });
+          toast('Réponse envoyée.');
+          e.target.reset();
+        }catch(err){ toast(err.message, 'error'); }
       });
     }
-  }catch(err){
-    thread.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
   }
+
+  function ouvrirComposition(){
+    boiteMailMessageOuvert = null;
+    document.querySelectorAll('.boite-mail-ligne').forEach(l => l.classList.remove('active'));
+    const lecture = document.getElementById('boite-mail-lecture');
+    lecture.innerHTML = `
+      <form id="boite-mail-nouveau-form" class="boite-mail-composition">
+        <h3 style="margin:0 0 12px;">Nouveau message</h3>
+        <div class="f"><label>Destinataire (email)</label><input type="email" name="email" placeholder="prenom.nom@..." required /></div>
+        ${classesAvecEleves.length ? `
+        <div class="f"><label>Ou choisir un contact</label>
+          <select id="boite-mail-contact-select">
+            <option value="">— Choisir —</option>
+            ${contacts.map(c => `<option value="${escapeHtml(c.email || '')}" data-email="${escapeHtml(c.email || '')}">${escapeHtml(c.prenom)} ${escapeHtml(c.nom)} (${c.role})</option>`).join('')}
+          </select>
+        </div>
+        <div class="f"><label>Ou toute une classe</label>
+          <select id="boite-mail-classe-select">
+            <option value="">— Aucune —</option>
+            ${classesAvecEleves.map(c => `<option value="${c.id}">${escapeHtml(c.nom)} (${c.etudiants.length})</option>`).join('')}
+          </select>
+        </div>` : ''}
+        <div class="f"><label>Message</label><textarea name="contenu" rows="5" required></textarea></div>
+        <button class="btn-submit" type="submit">Envoyer</button>
+      </form>`;
+
+    const selectContact = document.getElementById('boite-mail-contact-select');
+    if(selectContact){
+      selectContact.addEventListener('change', () => {
+        const email = selectContact.selectedOptions[0].dataset.email;
+        if(email) document.querySelector('#boite-mail-nouveau-form [name="email"]').value = email;
+      });
+    }
+
+    document.getElementById('boite-mail-nouveau-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const classeId = document.getElementById('boite-mail-classe-select') ? document.getElementById('boite-mail-classe-select').value : '';
+      const contenu = fd.get('contenu').trim();
+      try{
+        if(classeId){
+          const classe = classesAvecEleves.find(c => String(c.id) === classeId);
+          let success = 0, echecs = 0;
+          for(const et of classe.etudiants){
+            try{ await api('/messages', { method:'POST', body: JSON.stringify({ destinataireId: et.id, contenu })}); success++; }
+            catch(err){ echecs++; }
+          }
+          toast(`Message envoyé à ${success} élève(s)${echecs ? `, ${echecs} échec(s)` : ''}.`, echecs ? 'error' : undefined);
+        } else {
+          await api('/messages', { method:'POST', body: JSON.stringify({ destinataireEmail: fd.get('email'), contenu })});
+          toast('Message envoyé.');
+        }
+        if(boiteMailActive === 'envoyes') chargerListe();
+      }catch(err){ toast(err.message, 'error'); }
+    });
+  }
+
+  document.getElementById('msg-nouveau-btn').addEventListener('click', ouvrirComposition);
+  content.querySelectorAll('.boite-mail-onglet').forEach(btn => {
+    btn.addEventListener('click', () => {
+      boiteMailActive = btn.dataset.boite;
+      boiteMailMessageOuvert = null;
+      content.querySelectorAll('.boite-mail-onglet').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('boite-mail-lecture').innerHTML = '<div class="empty-state">Sélectionne un message pour le lire.</div>';
+      chargerListe();
+    });
+  });
+
+  await chargerListe();
 }
 
 /* ============================================================
