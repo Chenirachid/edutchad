@@ -706,30 +706,36 @@
 
   /* ---------- MESSAGERIE ---------- */
   .boite-mail-barre{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
-  .boite-mail-onglets{display:flex;gap:4px;}
-  .boite-mail-onglet{padding:8px 14px;border-radius:7px;background:transparent;border:none;font-size:13px;font-weight:600;color:var(--text-muted);}
-  .boite-mail-onglet.active{background:var(--teal-100);color:var(--teal-900);}
+  .boite-mail-onglets{display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:9px;}
+  .boite-mail-onglet{padding:7px 16px;border-radius:6px;background:transparent;border:none;font-size:12.5px;font-weight:600;color:var(--text-muted);transition:background .15s,color .15s;}
+  .boite-mail-onglet.active{background:#fff;color:var(--teal-900);box-shadow:var(--shadow);}
   .boite-mail-corps{display:flex;height:560px;}
   .boite-mail-liste{width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;}
   .boite-mail-ligne{
-    display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:12px 16px;
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 16px;
     border-bottom:1px solid var(--border);background:transparent;position:relative;
   }
   .boite-mail-ligne:hover{background:var(--bg);}
   .boite-mail-ligne.active{background:var(--teal-100);}
-  .boite-mail-ligne.non-lu{background:rgba(29,110,104,.05);}
-  .boite-mail-ligne.non-lu::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal-700);}
-  .boite-mail-expediteur{font-size:13.5px;color:var(--teal-900);}
+  .boite-mail-ligne.non-lu::before{content:'';position:absolute;left:6px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  .boite-mail-avatar{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--teal-500),var(--teal-700));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+  }
+  .boite-mail-avatar-grand{width:44px;height:44px;font-size:15px;}
+  .boite-mail-texte{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .boite-mail-expediteur{font-size:13.5px;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;font-weight:600;}
   .boite-mail-ligne.non-lu .boite-mail-expediteur{font-weight:700;}
   .boite-mail-apercu{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .boite-mail-date{font-size:10.5px;color:var(--text-muted);position:absolute;top:12px;right:14px;}
+  .boite-mail-date{font-size:10.5px;color:var(--text-muted);flex-shrink:0;}
   .boite-mail-lecture{flex:1;padding:22px 26px;overflow-y:auto;}
-  .boite-mail-lecture-entete{border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px;}
-  .boite-mail-lecture-nom{font-size:16px;font-weight:700;color:var(--teal-900);}
+  .boite-mail-lecture-entete{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:18px;}
+  .boite-mail-lecture-nom{font-size:18px;font-weight:600;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;}
   .boite-mail-lecture-date{font-size:12px;color:var(--text-muted);margin-top:2px;}
   .boite-mail-lecture-corps{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:24px;}
   .boite-mail-reponse{display:flex;gap:8px;border-top:1px solid var(--border);padding-top:16px;}
   .boite-mail-reponse input{flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;}
+  .boite-mail-composition h3{font-family:'Fraunces',Georgia,serif;font-weight:600;color:var(--teal-900);}
   .boite-mail-composition .f{margin-bottom:12px;}
   @media screen and (max-width:900px){.boite-mail-corps{flex-direction:column;height:auto;}.boite-mail-liste{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:280px;}}
 
@@ -4791,7 +4797,10 @@ async function renderMessagerie(){
   content.innerHTML = `
     <div class="card" style="padding:0;overflow:hidden;">
       <div class="boite-mail-barre">
-        <button class="btn-submit" id="msg-nouveau-btn" style="margin:0;">+ Nouveau message</button>
+        <button class="btn-submit" id="msg-nouveau-btn" style="margin:0;display:flex;align-items:center;gap:7px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nouveau message
+        </button>
         <div class="boite-mail-onglets">
           <button class="boite-mail-onglet ${boiteMailActive === 'recus' ? 'active' : ''}" data-boite="recus">Boîte de réception</button>
           <button class="boite-mail-onglet ${boiteMailActive === 'envoyes' ? 'active' : ''}" data-boite="envoyes">Envoyés</button>
@@ -4814,10 +4823,14 @@ async function renderMessagerie(){
     zone.innerHTML = messages.map(m => {
       const personne = boiteMailActive === 'recus' ? m.expediteur : m.destinataire;
       const nonLu = boiteMailActive === 'recus' && !m.lu;
+      const initiales = (personne.prenom[0] + personne.nom[0]).toUpperCase();
       return `
       <button class="boite-mail-ligne ${nonLu ? 'non-lu' : ''} ${boiteMailMessageOuvert === m.id ? 'active' : ''}" data-msg-id="${m.id}">
-        <span class="boite-mail-expediteur">${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)}</span>
-        <span class="boite-mail-apercu">${escapeHtml((m.contenu || '').slice(0, 70))}${(m.contenu || '').length > 70 ? '…' : ''}</span>
+        <span class="boite-mail-avatar">${initiales}</span>
+        <span class="boite-mail-texte">
+          <span class="boite-mail-expediteur">${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)}</span>
+          <span class="boite-mail-apercu">${escapeHtml((m.contenu || '').slice(0, 70))}${(m.contenu || '').length > 70 ? '…' : ''}</span>
+        </span>
         <span class="boite-mail-date">${new Date(m.createdAt).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' })}</span>
       </button>`;
     }).join('');
@@ -4831,10 +4844,12 @@ async function renderMessagerie(){
     boiteMailMessageOuvert = msgId;
     document.querySelectorAll('.boite-mail-ligne').forEach(l => l.classList.toggle('active', Number(l.dataset.msgId) === msgId));
     const m = messages.find(x => x.id === msgId);
-    const lecture = document.getElementById('boite-mail-lecture');
     const personne = boiteMailActive === 'recus' ? m.expediteur : m.destinataire;
+    const initiales = (personne.prenom[0] + personne.nom[0]).toUpperCase();
+    const lecture = document.getElementById('boite-mail-lecture');
     lecture.innerHTML = `
       <div class="boite-mail-lecture-entete">
+        <span class="boite-mail-avatar boite-mail-avatar-grand">${initiales}</span>
         <div>
           <div class="boite-mail-lecture-nom">${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)}</div>
           <div class="boite-mail-lecture-date">${new Date(m.createdAt).toLocaleString('fr-FR', { dateStyle:'long', timeStyle:'short' })}</div>
