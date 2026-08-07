@@ -868,11 +868,8 @@
   #presentation-screen .hero-boutons{display:flex;gap:14px;flex-wrap:wrap;}
   #presentation-screen .btn-primaire{padding:14px 28px;border-radius:6px;background:#fff;color:var(--teal-900);font-weight:700;font-size:14.5px;text-decoration:none;border:1.5px solid #fff;cursor:pointer;transition:background .15s;}
   #presentation-screen .hero-dropdown-connexion{position:relative;}
-  #presentation-screen .btn-icone-connexion{padding:13px 16px;display:flex;align-items:center;gap:8px;}
-  #presentation-screen .menu-choix-espace{
-    position:absolute;top:calc(100% + 8px);left:0;background:#fff;border-radius:10px;
-    box-shadow:0 8px 30px rgba(11,79,82,.18);overflow:hidden;min-width:160px;z-index:10;
-  }
+  #presentation-screen .btn-icone-connexion{padding:13px 24px;display:flex;align-items:center;gap:8px;}
+  .menu-flottant{position:fixed;top:0;left:0;}
   #presentation-screen .btn-primaire:hover{background:var(--accent-light);}
   #presentation-screen .btn-secondaire{padding:14px 28px;border-radius:6px;border:1.5px solid rgba(255,255,255,.6);color:#fff;font-weight:700;font-size:14.5px;text-decoration:none;transition:background .15s,border-color .15s;}
   #presentation-screen .btn-secondaire:hover{background:rgba(255,255,255,.1);border-color:#fff;}
@@ -972,6 +969,16 @@
 
 <!-- ================= PRÉSENTATION (accueil) ================= -->
 <div id="presentation-screen">
+<div class="menu-choix-espace hidden menu-flottant" id="menu-choix-espace-hero">
+  <button class="item-choix-espace" data-espace="etudiant" data-label="Espace Élève">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>
+    Élève
+  </button>
+  <button class="item-choix-espace" data-espace="parent" data-label="Espace Parent">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M2 20c0-3.5 2.5-6 6-6s6 2.5 6 6M14 20c0-2.5 1.5-4.5 4-4.8"/></svg>
+    Parent
+  </button>
+</div>
   <header>
     <div class="conteneur entete-flex">
       <div class="logo" style="display:flex;align-items:center;gap:10px;font-size:19px;font-weight:700;color:var(--teal-900);">
@@ -1000,20 +1007,10 @@
       <p id="pub-hero-texte">Notes, absences, emploi du temps, communication avec les familles — un seul espace pour votre établissement.</p>
       <div class="hero-boutons">
         <div class="hero-dropdown-connexion">
-          <button class="btn-primaire btn-icone-connexion" id="btn-mon-compte-hero" type="button" title="Se connecter">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          <button class="btn-primaire btn-icone-connexion" id="btn-mon-compte-hero" type="button">
+            <span>Se connecter</span>
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div class="menu-choix-espace hidden" id="menu-choix-espace-hero">
-            <button class="item-choix-espace" data-espace="etudiant" data-label="Espace Élève">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>
-              Élève
-            </button>
-            <button class="item-choix-espace" data-espace="parent" data-label="Espace Parent">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M2 20c0-3.5 2.5-6 6-6s6 2.5 6 6M14 20c0-2.5 1.5-4.5 4-4.8"/></svg>
-              Parent
-            </button>
-          </div>
         </div>
         <a class="btn-secondaire" href="/rejoindre" id="lien-nous-contacter-hero">Nous contacter</a>
       </div>
@@ -2029,7 +2026,14 @@ const menuHeroEspace = document.getElementById('menu-choix-espace-hero');
 if(btnHeroConnexion){
   btnHeroConnexion.addEventListener('click', (e) => {
     e.stopPropagation();
-    menuHeroEspace.classList.toggle('hidden');
+    if(menuHeroEspace.classList.contains('hidden')){
+      const rect = btnHeroConnexion.getBoundingClientRect();
+      menuHeroEspace.style.top = (rect.bottom + 8) + 'px';
+      menuHeroEspace.style.left = rect.left + 'px';
+      menuHeroEspace.classList.remove('hidden');
+    } else {
+      menuHeroEspace.classList.add('hidden');
+    }
   });
   menuHeroEspace.querySelectorAll('.item-choix-espace').forEach(item => {
     item.addEventListener('click', () => {
