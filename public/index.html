@@ -167,6 +167,28 @@
     content:'';position:absolute;top:0;left:0;right:0;height:4px;
     background:var(--teal-700);
   }
+  .portail-barre-haut{
+    position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;
+    padding:24px 32px 0;
+  }
+  .portail-dropdown-espaces{position:relative;}
+  .btn-choix-espace{
+    display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;
+    font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;
+  }
+  .btn-choix-espace:hover{background:rgba(255,255,255,.2);}
+  .menu-choix-espace{
+    position:absolute;top:calc(100% + 8px);right:0;background:#fff;border-radius:10px;
+    box-shadow:0 8px 30px rgba(11,79,82,.18);overflow:hidden;min-width:160px;z-index:10;
+  }
+  .item-choix-espace{
+    display:flex;align-items:center;gap:10px;width:100%;padding:11px 16px;background:transparent;border:none;
+    text-align:left;font-size:13.5px;font-weight:600;color:var(--teal-900);cursor:pointer;transition:background .15s;
+  }
+  .item-choix-espace:hover{background:var(--teal-100);}
+  .item-choix-espace svg{color:var(--teal-700);flex-shrink:0;}
+
   .login-brand{
     display:flex;
     align-items:center;
@@ -991,19 +1013,36 @@
 <!-- ================= ACCUEIL ================= -->
 <!-- ================= LOGIN ================= -->
 <div id="login-screen" class="portail-connexion hidden">
-  <div class="portail-panneau-gauche">
-    <div class="portail-motif"></div>
-    <div class="portail-contenu-gauche">
-      <div class="login-brand">
-        <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4L3 8.5l9 4 9-4L12 4z" fill="white"/><path d="M7 9.8v3.4c0 1.4 2 2.8 5 2.8s5-1.4 5-2.8V9.8" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20.5 8.5v4" stroke="white" stroke-width="1.4" stroke-linecap="round"/><circle cx="20.5" cy="13.3" r="0.9" fill="white"/></svg></div>
-        <span>EduCheni</span>
+  <div class="portail-barre-haut">
+    <div class="login-brand">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4L3 8.5l9 4 9-4L12 4z" fill="white"/><path d="M7 9.8v3.4c0 1.4 2 2.8 5 2.8s5-1.4 5-2.8V9.8" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20.5 8.5v4" stroke="white" stroke-width="1.4" stroke-linecap="round"/><circle cx="20.5" cy="13.3" r="0.9" fill="white"/></svg></div>
+      <span>EduCheni</span>
+    </div>
+    <div class="portail-dropdown-espaces" id="portail-dropdown-espaces-defaut">
+      <button class="btn-choix-espace" id="btn-choix-espace-defaut" type="button">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        <span>Se connecter</span>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="menu-choix-espace hidden" id="menu-choix-espace-defaut">
+        <button class="item-choix-espace" data-espace="etudiant" data-label="Espace Élève">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>
+          Élève
+        </button>
+        <button class="item-choix-espace" data-espace="parent" data-label="Espace Parent">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M2 20c0-3.5 2.5-6 6-6s6 2.5 6 6M14 20c0-2.5 1.5-4.5 4-4.8"/></svg>
+          Parent
+        </button>
       </div>
+    </div>
+  </div>
+  <div class="portail-motif"></div>
+  <div class="portail-centre">
+    <div class="portail-intro">
       <p class="portail-etablissement hidden" id="marque-etablissement-nom"></p>
       <h1 class="portail-titre">Espace Numérique de Travail</h1>
       <p class="portail-sous-titre">Notes, absences, emploi du temps, messagerie et vie scolaire — réunis au même endroit pour élèves, familles et personnel.</p>
     </div>
-  </div>
-  <div class="portail-panneau-droit">
     <div class="login-card hidden" id="vitrine-etablissement-card">
       <img id="vitrine-photo" class="hidden" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-bottom:14px;" alt="Photo de l'établissement" />
       <p style="text-align:center;font-size:20px;font-weight:700;color:var(--teal-900);margin:0 0 6px;" id="vitrine-nom"></p>
@@ -1014,17 +1053,7 @@
       <button class="btn-primary" id="vitrine-se-connecter-btn" style="width:100%;">Se connecter →</button>
     </div>
     <div class="login-card" id="espace-selection-card">
-      <p class="login-sub">Choisissez votre espace pour vous connecter.</p>
-      <div class="espaces-grille">
-        <button class="espace-carte" data-espace="etudiant" data-label="Espace Élève">
-          <span class="espace-icone"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
-          <span>Élève</span>
-        </button>
-        <button class="espace-carte" data-espace="parent" data-label="Espace Parent">
-          <span class="espace-icone"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M2 20c0-3.5 2.5-6 6-6s6 2.5 6 6M14 20c0-2.5 1.5-4.5 4-4.8"/></svg></span>
-          <span>Parent</span>
-        </button>
-      </div>
+      <p class="login-sub">Choisissez votre espace en haut à droite pour vous connecter.</p>
       <p style="text-align:center;font-size:11px;color:var(--text-muted);margin:16px 0 0;line-height:1.5;border-top:1px solid var(--border);padding-top:14px;">
         Vos données personnelles sont protégées et ne sont utilisées que dans le cadre de la gestion scolaire de votre établissement. Elles ne sont ni partagées ni vendues à des tiers.
       </p>
@@ -1859,6 +1888,28 @@ document.querySelectorAll('.espace-carte').forEach(carte => {
     document.getElementById('login-email').focus();
   });
 });
+
+const btnChoixEspace = document.getElementById('btn-choix-espace-defaut');
+const menuChoixEspace = document.getElementById('menu-choix-espace-defaut');
+if(btnChoixEspace){
+  btnChoixEspace.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menuChoixEspace.classList.toggle('hidden');
+  });
+  menuChoixEspace.querySelectorAll('.item-choix-espace').forEach(item => {
+    item.addEventListener('click', () => {
+      menuChoixEspace.classList.add('hidden');
+      espaceChoisiActuel = item.dataset.espace;
+      document.getElementById('espace-selection-card').classList.add('hidden');
+      document.getElementById('espace-administration-card').classList.add('hidden');
+      document.getElementById('vitrine-etablissement-card').classList.add('hidden');
+      document.getElementById('login-card-connexion').classList.remove('hidden');
+      document.getElementById('espace-choisi-titre').textContent = etablissementDetecteNom ? `${etablissementDetecteNom} — ${item.dataset.label}` : item.dataset.label;
+      document.getElementById('login-email').focus();
+    });
+  });
+  document.addEventListener('click', () => menuChoixEspace.classList.add('hidden'));
+}
 
 document.getElementById('lien-retour-espaces-normaux').addEventListener('click', (e) => {
   e.preventDefault();
