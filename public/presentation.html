@@ -66,6 +66,11 @@
   .hero{position:relative;padding:64px 0 72px;background:var(--teal-900);overflow:hidden;}
   .hero .conteneur{position:relative;z-index:1;}
   .hero-texte{max-width:600px;}
+  .hero-simple{padding:100px 0;}
+  .hero-simple .hero-motif{display:none;}
+  .hero-texte-centre{max-width:640px;margin:0 auto;text-align:center;}
+  .hero-simple-p{font-size:16.5px;color:rgba(255,255,255,.85);margin:0 0 30px;line-height:1.6;}
+  .hero-boutons-centre{justify-content:center;}
   .hero-motif{
     position:absolute;top:0;right:0;width:46%;height:100%;z-index:0;pointer-events:none;
     background-image:repeating-linear-gradient(115deg, transparent 0 18px, var(--accent) 18px 21px, transparent 21px 40px);
@@ -257,180 +262,23 @@
   </div>
 </header>
 
-<div class="hero">
+<div class="hero hero-simple">
   <div class="hero-motif" aria-hidden="true"></div>
   <div class="conteneur">
-    <div class="hero-texte">
+    <div class="hero-texte hero-texte-centre">
       <span class="hero-eyebrow" data-i18n="eyebrow">Plateforme de gestion scolaire</span>
       <h1 data-i18n="h1">La gestion de votre établissement, centralisée</h1>
-      <div class="hero-liens-profils">
-        <a href="#publics" data-i18n="lien_eleves_parents">Pour les élèves et les parents <span>›</span></a>
-        <a href="#publics" data-i18n="lien_profs">Pour les professeurs <span>›</span></a>
-      </div>
-      <div class="hero-boutons">
+      <p class="hero-simple-p" data-i18n="hero_simple_p">Notes, absences, emploi du temps, communication avec les familles — un seul espace pour votre établissement.</p>
+      <div class="hero-boutons hero-boutons-centre">
         <a class="btn-primaire-hero" href="/" data-i18n="btn1">Se connecter</a>
-        <a class="btn-secondaire-hero" href="#fonctionnalites" data-i18n="btn2">Fonctionnalités</a>
+        <a class="btn-secondaire-hero" href="/rejoindre" data-i18n="util_contact">Nous contacter</a>
       </div>
     </div>
   </div>
 </div>
 
-<section style="padding-top:0;">
-  <div class="conteneur">
-    <div class="etapes-ligne">
-      <div class="etape-item">
-        <div class="etape-num">01</div>
-        <div class="etape-trait"></div>
-        <h3 data-i18n="etape1_h">Configuration</h3>
-        <p data-i18n="etape1_p">Classes, matières, professeurs.</p>
-      </div>
-      <div class="etape-item">
-        <div class="etape-num">02</div>
-        <div class="etape-trait"></div>
-        <h3 data-i18n="etape2_h">Accès</h3>
-        <p data-i18n="etape2_p">Un identifiant pour chaque profil.</p>
-      </div>
-      <div class="etape-item">
-        <div class="etape-num">03</div>
-        <h3 data-i18n="etape3_h">Utilisation</h3>
-        <p data-i18n="etape3_p">Au quotidien, sans friction.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="fonctionnalites">
-  <div class="conteneur conteneur-etroit">
-    <h2 class="titre-section" data-i18n="f_titre">Fonctionnalités</h2>
-    <p class="sous-titre-section" data-i18n="f_sous">L'essentiel, sans superflu.</p>
-    <div class="liste-fonctions">
-      <div class="ligne-fonction"><span class="numero">01</span><div><h3 data-i18n="f01_h">Notes et bulletins</h3><p data-i18n="f01_p">Moyennes calculées automatiquement. Bulletins imprimables.</p></div></div>
-      <div class="ligne-fonction"><span class="numero">02</span><div><h3 data-i18n="f02_h">Vie scolaire</h3><p data-i18n="f02_p">Absences, retards, sanctions. Suivi en temps réel.</p></div></div>
-      <div class="ligne-fonction"><span class="numero">03</span><div><h3 data-i18n="f03_h">Emploi du temps</h3><p data-i18n="f03_p">Appel et cahier de texte intégrés à chaque créneau.</p></div></div>
-      <div class="ligne-fonction"><span class="numero">04</span><div><h3 data-i18n="f04_h">Messagerie</h3><p data-i18n="f04_p">Communication directe entre l'école et les familles.</p></div></div>
-      <div class="ligne-fonction"><span class="numero">05</span><div><h3 data-i18n="f05_h">Bibliothèque</h3><p data-i18n="f05_p">Documents pédagogiques centralisés.</p></div></div>
-      <div class="ligne-fonction"><span class="numero">06</span><div><h3 data-i18n="f06_h">Frais scolaires</h3><p data-i18n="f06_p">Suivi des paiements. Quittances automatiques.</p></div></div>
-      <div class="ligne-fonction"><span class="numero">07</span><div><h3 data-i18n="f07_h">Certificats</h3><p data-i18n="f07_p">Documents officiels générés instantanément.</p></div></div>
-      <div class="ligne-fonction"><span class="numero">08</span><div><h3 data-i18n="f08_h">Multi-établissements</h3><p data-i18n="f08_p">Chaque établissement, cloisonné et indépendant.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<section style="padding-top:0;">
-  <div class="conteneur">
-    <h2 class="titre-section" data-i18n="espaces_titre">Accès direct</h2>
-    <p class="sous-titre-section" data-i18n="espaces_sous">Connectez-vous directement à votre espace.</p>
-    <div class="grille-espaces">
-      <a class="carte-espace" href="/">
-        <div class="carte-espace-apercu"><div class="apercu-barre"></div><div class="apercu-ligne" style="width:70%;"></div><div class="apercu-ligne" style="width:45%;"></div></div>
-        <h3 data-i18n="pa_h">Élèves</h3>
-        <span data-i18n="espace_lien">Se connecter →</span>
-      </a>
-      <a class="carte-espace" href="/">
-        <div class="carte-espace-apercu"><div class="apercu-barre"></div><div class="apercu-ligne" style="width:60%;"></div><div class="apercu-ligne" style="width:80%;"></div></div>
-        <h3 data-i18n="pb_h">Professeurs</h3>
-        <span data-i18n="espace_lien">Se connecter →</span>
-      </a>
-      <a class="carte-espace" href="/">
-        <div class="carte-espace-apercu"><div class="apercu-barre"></div><div class="apercu-ligne" style="width:50%;"></div><div class="apercu-ligne" style="width:65%;"></div></div>
-        <h3 data-i18n="pc_h">Parents</h3>
-        <span data-i18n="espace_lien">Se connecter →</span>
-      </a>
-      <a class="carte-espace" href="/">
-        <div class="carte-espace-apercu"><div class="apercu-barre"></div><div class="apercu-ligne" style="width:80%;"></div><div class="apercu-ligne" style="width:35%;"></div></div>
-        <h3 data-i18n="pd_h">Administration</h3>
-        <span data-i18n="espace_lien">Se connecter →</span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<section id="publics" style="background:var(--bg);">
-  <div class="conteneur conteneur-etroit">
-    <h2 class="titre-section" data-i18n="p_titre">Espaces</h2>
-    <p class="sous-titre-section" data-i18n="p_sous">Un accès distinct pour chaque profil.</p>
-    <div class="liste-publics">
-      <div class="ligne-public">
-        <span class="numero-public">A</span>
-        <h3 data-i18n="pa_h">Élèves</h3>
-        <p><span data-i18n="pa_1">Notes et bulletin</span> · <span data-i18n="pa_2">emploi du temps</span> · <span data-i18n="pa_3">absences</span>.</p>
-      </div>
-      <div class="ligne-public">
-        <span class="numero-public">B</span>
-        <h3 data-i18n="pb_h">Professeurs</h3>
-        <p><span data-i18n="pb_1">Appel et notes</span> · <span data-i18n="pb_2">cahier de texte</span> · <span data-i18n="pb_3">messagerie</span>.</p>
-      </div>
-      <div class="ligne-public">
-        <span class="numero-public">C</span>
-        <h3 data-i18n="pc_h">Parents</h3>
-        <p><span data-i18n="pc_1">Suivi des enfants</span> · <span data-i18n="pc_2">rendez-vous</span> · <span data-i18n="pc_3">frais scolaires</span>.</p>
-      </div>
-      <div class="ligne-public">
-        <span class="numero-public">D</span>
-        <h3 data-i18n="pd_h">Administration</h3>
-        <p><span data-i18n="pd_1">Gestion des comptes</span> · <span data-i18n="pd_2">statistiques</span> · <span data-i18n="pd_3">documents officiels</span>.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="faq" style="background:var(--bg);">
-  <div class="conteneur">
-    <h2 class="titre-section" data-i18n="faq_titre">Questions fréquentes</h2>
-    <div class="faq-liste">
-      <div class="faq-item">
-        <button class="faq-question" data-i18n="faq1_q">Délai de mise en service ?</button>
-        <p class="faq-reponse" data-i18n="faq1_r">Quelques jours.</p>
-      </div>
-      <div class="faq-item">
-        <button class="faq-question" data-i18n="faq2_q">Installation requise ?</button>
-        <p class="faq-reponse" data-i18n="faq2_r">Aucune. Un navigateur suffit.</p>
-      </div>
-      <div class="faq-item">
-        <button class="faq-question" data-i18n="faq3_q">Séparation des données entre établissements ?</button>
-        <p class="faq-reponse" data-i18n="faq3_r">Totale.</p>
-      </div>
-      <div class="faq-item">
-        <button class="faq-question" data-i18n="faq4_q">Comment obtenir un accès ?</button>
-        <p class="faq-reponse" data-i18n="faq4_r">Contactez-nous.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="conteneur">
-    <div class="bandeau-cta">
-      <h2 data-i18n="cta_titre">Mettre en place votre établissement</h2>
-      <p data-i18n="cta_p">Connectez-vous, ou contactez-nous.</p>
-      <a class="btn-primaire" href="/" data-i18n="btn_connexion">Se connecter</a>
-    </div>
-  </div>
-</section>
-
-<footer class="pied-page-complet">
-  <div class="conteneur">
-    <div class="pied-colonnes">
-      <div class="pied-colonne">
-        <div class="pied-titre" data-i18n="pied_produit">La plateforme</div>
-        <a href="#fonctionnalites" data-i18n="pied_fonctionnalites">Fonctionnalités</a>
-        <a href="#publics" data-i18n="pied_espaces">Les espaces</a>
-        <a href="/" data-i18n="btn_connexion">Se connecter</a>
-      </div>
-      <div class="pied-colonne">
-        <div class="pied-titre" data-i18n="pied_utilisateurs">Utilisateurs</div>
-        <a href="#publics" data-i18n="pa_h">Élèves</a>
-        <a href="#publics" data-i18n="pb_h">Professeurs</a>
-        <a href="#publics" data-i18n="pc_h">Parents</a>
-      </div>
-      <div class="pied-colonne">
-        <div class="pied-titre" data-i18n="pied_etablissement">Votre établissement</div>
-        <a href="/rejoindre" data-i18n="pied_nous_contacter">Nous contacter</a>
-        <a href="#faq" data-i18n="faq_titre">Questions fréquentes</a>
-      </div>
-    </div>
-    <div class="pied-bas" data-i18n="footer">EduCheni — Plateforme scolaire de gestion d'établissement</div>
-  </div>
+<footer>
+  <div class="conteneur" data-i18n="footer">EduCheni — Plateforme scolaire de gestion d'établissement</div>
 </footer>
 
 <script>
@@ -438,7 +286,7 @@ const I18N_PRESENTATION = {
   fr: {
     eyebrow: "Plateforme de gestion scolaire",
     h1: "La gestion de votre établissement, centralisée",
-    hero_p: "",
+    hero_simple_p: "Notes, absences, emploi du temps, communication avec les familles — un seul espace pour votre établissement.",
     btn1: "Se connecter", btn2: "Fonctionnalités", btn_connexion: "Se connecter",
     f_titre: "Fonctionnalités", f_sous: "L'essentiel, sans superflu.",
     f01_h: "Notes et bulletins", f01_p: "Moyennes calculées automatiquement. Bulletins imprimables.",
@@ -473,6 +321,7 @@ const I18N_PRESENTATION = {
   en: {
     eyebrow: "Built for schools",
     h1: "Your school's daily life, finally easy to follow",
+    hero_simple_p: "Grades, absences, timetable, communication with families — one space for your school.",
     hero_p: "Grades, absences, the timetable, messages to families — everything a teaching team does every day, without a folder that piles up or an Excel file to update by hand.",
     btn1: "Sign in to my account", btn2: "See what's inside", btn_connexion: "Sign in",
     f_titre: "What it actually does", f_sous: "The tools a school really uses, day to day — nothing more.",
@@ -508,6 +357,7 @@ const I18N_PRESENTATION = {
   ar: {
     eyebrow: "مصممة للمدارس",
     h1: "الحياة اليومية لمدرستك، أصبحت أخيراً سهلة المتابعة",
+    hero_simple_p: "النقاط، الغيابات، الجدول الزمني، التواصل مع الأسر — مساحة واحدة لمؤسستكم.",
     hero_p: "النقاط، الغيابات، الجدول الزمني، الرسائل الموجهة للأسر — كل ما يقوم به الفريق التربوي يومياً، دون ملفات ورقية متراكمة أو جداول إكسل يجب تحديثها يدوياً.",
     btn1: "تسجيل الدخول إلى مساحتي", btn2: "اكتشف محتوى المنصة", btn_connexion: "تسجيل الدخول",
     f_titre: "ما الذي نقوم به فعلياً", f_sous: "الأدوات التي تستخدمها المدرسة فعلاً، يوماً بعد يوم — لا أكثر.",
@@ -569,15 +419,6 @@ document.querySelectorAll('#lang-switch-menu [data-lang]').forEach(btn => {
 });
 document.addEventListener('click', () => {
   document.getElementById('lang-switch-menu').classList.add('hidden');
-});
-
-document.querySelectorAll('.faq-question').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const item = btn.closest('.faq-item');
-    const etaitOuvert = item.classList.contains('ouvert');
-    document.querySelectorAll('.faq-item.ouvert').forEach(i => i.classList.remove('ouvert'));
-    if(!etaitOuvert) item.classList.add('ouvert');
-  });
 });
 </script>
 
