@@ -114,13 +114,12 @@
   }
   .portail-panneau-gauche{
     flex:1.1;position:relative;overflow:hidden;display:flex;align-items:center;
-    background:linear-gradient(160deg,var(--teal-900),var(--teal-700));
+    background:var(--teal-900);
     padding:60px;
   }
   .portail-motif{
-    position:absolute;inset:0;opacity:.10;
-    background-image:radial-gradient(circle,#fff 2px,transparent 2px);
-    background-size:34px 34px;
+    position:absolute;top:-40%;right:-15%;width:70%;height:180%;
+    background:var(--accent);opacity:.12;transform:rotate(18deg);border-radius:40%;
   }
   .portail-contenu-gauche{position:relative;z-index:1;max-width:460px;}
   .portail-etablissement{font-size:15px;font-weight:700;color:#fff;margin:18px 0 2px;}
