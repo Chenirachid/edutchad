@@ -940,12 +940,15 @@
     .brand span{font-size:14px;}
 
     /* En-tête de la page publique (logo, Nous contacter, Mon compte) : plus d'air entre les éléments */
-    #presentation-screen .entete-flex{gap:10px;}
+    #presentation-screen header{padding:14px 0;}
+    #presentation-screen .entete-flex{gap:8px;}
     #presentation-screen .logo span{font-size:15px;}
     #presentation-screen .logo-mark{width:26px;height:26px;}
-    #presentation-screen .entete-flex > div[style*="gap:20px"]{gap:12px;}
-    #presentation-screen a[href="/rejoindre"]{font-size:12px;white-space:nowrap;}
-    #presentation-screen .btn-connexion{padding:8px 14px;font-size:12.5px;white-space:nowrap;}
+    #presentation-screen .entete-flex > div[style*="gap:18px"]{gap:8px;}
+    #presentation-screen a[href="/rejoindre"]{display:none;}
+    #presentation-screen .btn-connexion{padding:7px 12px;font-size:12px;white-space:nowrap;}
+    #presentation-screen .btn-connexion span{display:inline;}
+    #presentation-screen .lang-dropdown-btn span{display:none;}
     .topnav-raccourcis{gap:2px;}
     .lang-dropdown-btn-app span{display:none;} /* garde juste le drapeau/icône, pas le texte "FR" */
 
@@ -1010,15 +1013,6 @@
     <div class="conteneur">
       <h1 id="pub-hero-titre">Le quotidien de votre école,<br/>enfin simple à suivre</h1>
       <p id="pub-hero-texte">Notes, absences, emploi du temps, communication avec les familles — un seul espace pour votre établissement.</p>
-      <div class="hero-boutons">
-        <div class="hero-dropdown-connexion">
-          <button class="btn-primaire btn-icone-connexion" id="btn-mon-compte-hero" type="button">
-            <span>Se connecter</span>
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
-        </div>
-        <a class="btn-secondaire" href="/rejoindre" id="lien-nous-contacter-hero">Nous contacter</a>
-      </div>
     </div>
   </div>
 
