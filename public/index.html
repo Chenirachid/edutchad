@@ -4727,19 +4727,21 @@ async function renderAdminCreneaux(){
 
   content.innerHTML = `
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-        <h2 style="margin:0;">Emploi du temps par classe</h2>
-        <div class="f" style="margin:0;"><label>Classe</label><select id="creneaux-admin-classe">${classes.map(c => `<option value="${c.id}" ${c.id === creneauxAdminClasseId ? 'selected' : ''}>${escapeHtml(c.nom)}</option>`).join('') || '<option value="">Aucune classe</option>'}</select></div>
+      <h2 style="margin:0 0 4px;">Emploi du temps par classe</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 14px;">Cliquez sur une case vide (« + ») pour ajouter un cours à cette heure-là. Sur un cours existant : Modifier, Réunion ou ✕ pour supprimer. La pause (${escapeHtml(parametres.heureDebutPause)}–${escapeHtml(parametres.heureFinPause)}, réglable dans Paramètres) est signalée par la ligne verte.</p>
+      <div class="selecteur-enfants" id="creneaux-admin-classe-pilules" style="margin-bottom:16px;">
+        ${classes.map(c => `<button type="button" class="pilule-enfant ${c.id === creneauxAdminClasseId ? 'active' : ''}" data-classe-id="${c.id}">${escapeHtml(c.nom)}</button>`).join('') || '<span class="empty-state">Aucune classe pour l\'instant.</span>'}
       </div>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Cliquez sur une case vide (« + ») pour ajouter un cours à cette heure-là. Sur un cours existant : Modifier, Réunion ou ✕ pour supprimer. La pause (${escapeHtml(parametres.heureDebutPause)}–${escapeHtml(parametres.heureFinPause)}, réglable dans Paramètres) est signalée par la ligne verte.</p>
-      ${classes.length ? `<table class="emploi-grille"><thead><tr><th></th>${enTetes}</tr></thead><tbody>${lignesGrille}</tbody></table>` : '<div class="empty-state">Aucune classe pour l\'instant.</div>'}
+      ${classes.length ? `<table class="emploi-grille"><thead><tr><th></th>${enTetes}</tr></thead><tbody>${lignesGrille}</tbody></table>` : ''}
     </div>
     <div id="creneau-form-zone"></div>
     <div id="reunion-creneau-zone"></div>`;
 
-  document.getElementById('creneaux-admin-classe').addEventListener('change', (e) => {
-    creneauxAdminClasseId = Number(e.target.value);
-    renderAdminCreneaux();
+  document.getElementById('creneaux-admin-classe-pilules').querySelectorAll('.pilule-enfant').forEach(btn => {
+    btn.addEventListener('click', () => {
+      creneauxAdminClasseId = Number(btn.dataset.classeId);
+      renderAdminCreneaux();
+    });
   });
 
   function afficherFormulaireCreneau(prefill){
