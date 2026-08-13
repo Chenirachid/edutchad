@@ -874,6 +874,29 @@
   #presentation-screen .hero h1{font-family:'Fraunces',Georgia,serif;font-size:42px;font-weight:600;color:#fff;margin:0 0 18px;line-height:1.2;}
   #presentation-screen .hero p{font-size:16.5px;color:rgba(255,255,255,.82);max-width:520px;margin:0 0 34px;}
   #presentation-screen .hero-boutons{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn-installer-app{
+    display:inline-flex;align-items:center;gap:9px;margin-top:26px;padding:12px 22px;border-radius:8px;
+    background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.35);color:#fff;
+    font-size:13.5px;font-weight:700;cursor:pointer;transition:background .15s;
+  }
+  .btn-installer-app:hover{background:rgba(255,255,255,.2);}
+  .modale-install-ios{
+    position:fixed;inset:0;background:rgba(11,25,26,.55);z-index:200;
+    display:flex;align-items:flex-end;justify-content:center;
+  }
+  .modale-install-ios-contenu{
+    background:#fff;border-radius:18px 18px 0 0;padding:26px 24px 34px;max-width:440px;width:100%;
+    position:relative;box-shadow:0 -8px 30px rgba(0,0,0,.2);
+  }
+  .modale-install-ios-contenu h3{font-family:'Fraunces',Georgia,serif;font-size:19px;color:var(--teal-900);margin:0 0 16px;}
+  .modale-install-ios-contenu ol{padding-left:20px;margin:0 0 14px;display:flex;flex-direction:column;gap:10px;}
+  .modale-install-ios-contenu li{font-size:14px;color:var(--text);line-height:1.5;}
+  .icone-partage-illustration{display:inline-block;}
+  .modale-install-note{font-size:12px;color:var(--text-muted);margin:0;}
+  .modale-install-fermer{
+    position:absolute;top:16px;right:16px;background:var(--bg);border:none;width:30px;height:30px;
+    border-radius:50%;font-size:14px;color:var(--text-muted);cursor:pointer;
+  }
   #presentation-screen .btn-primaire{padding:14px 28px;border-radius:6px;background:#fff;color:var(--teal-900);font-weight:700;font-size:14.5px;text-decoration:none;border:1.5px solid #fff;cursor:pointer;transition:background .15s;}
   #presentation-screen .hero-dropdown-connexion{position:relative;}
   #presentation-screen .btn-icone-connexion{padding:13px 24px;display:flex;align-items:center;gap:8px;}
@@ -1020,6 +1043,20 @@
     <div class="conteneur">
       <h1 id="pub-hero-titre">Le quotidien de votre école,<br/>enfin simple à suivre</h1>
       <p id="pub-hero-texte">Notes, absences, emploi du temps, communication avec les familles — un seul espace pour votre établissement.</p>
+      <div id="zone-installer-app"></div>
+    </div>
+  </div>
+
+  <div class="modale-install-ios hidden" id="modale-install-ios">
+    <div class="modale-install-ios-contenu">
+      <button class="modale-install-fermer" id="fermer-modale-install-ios" type="button">✕</button>
+      <h3>Installer sur iPhone / iPad</h3>
+      <ol>
+        <li>Touchez l'icône Partager <span class="icone-partage-illustration">⬆️</span> en bas de l'écran (dans Safari)</li>
+        <li>Faites défiler et choisissez <strong>« Sur l'écran d'accueil »</strong></li>
+        <li>Touchez <strong>« Ajouter »</strong> en haut à droite</li>
+      </ol>
+      <p class="modale-install-note">Ça ne fonctionne que depuis Safari — pas Chrome ni une autre app.</p>
     </div>
   </div>
 
@@ -8377,6 +8414,67 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   });
 }
+
+(function initBoutonInstallerApp(){
+  const zone = document.getElementById('zone-installer-app');
+  if(!zone) return;
+
+  const dejaInstalle = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if(dejaInstalle) return;
+
+  const ua = window.navigator.userAgent;
+  const estIOS = /iPhone|iPad|iPod/.test(ua) && !window.MSStream;
+  const estAndroid = /Android/.test(ua);
+  let evenementInstallDiffere = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    evenementInstallDiffere = e;
+    afficherBouton();
+  });
+
+  function afficherBouton(){
+    if(zone.querySelector('.btn-installer-app')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-installer-app';
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l-4-4m4 4l4-4"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+      Installer l'application
+    `;
+    btn.addEventListener('click', async () => {
+      if(estIOS){
+        document.getElementById('modale-install-ios').classList.remove('hidden');
+      } else if(evenementInstallDiffere){
+        evenementInstallDiffere.prompt();
+        await evenementInstallDiffere.userChoice;
+        evenementInstallDiffere = null;
+      } else if(estAndroid){
+        document.getElementById('modale-install-ios').querySelector('h3').textContent = 'Installer sur Android';
+        document.getElementById('modale-install-ios').querySelector('ol').innerHTML = `
+          <li>Touchez le menu ⋮ en haut à droite de Chrome</li>
+          <li>Choisissez <strong>« Installer l'application »</strong> ou <strong>« Ajouter à l'écran d'accueil »</strong></li>
+          <li>Confirmez l'installation</li>`;
+        document.getElementById('modale-install-ios').classList.remove('hidden');
+      }
+    });
+    zone.appendChild(btn);
+  }
+
+  // Sur iOS, il n'y a pas d'événement "beforeinstallprompt" : on affiche le bouton directement.
+  if(estIOS) afficherBouton();
+  // Sur Android hors Chrome (ou navigateurs qui ne déclenchent jamais l'événement), on affiche aussi le bouton après un court délai.
+  else if(estAndroid) setTimeout(() => { if(!evenementInstallDiffere) afficherBouton(); }, 1500);
+
+  const btnFermer = document.getElementById('fermer-modale-install-ios');
+  if(btnFermer){
+    btnFermer.addEventListener('click', () => document.getElementById('modale-install-ios').classList.add('hidden'));
+  }
+  const modale = document.getElementById('modale-install-ios');
+  if(modale){
+    modale.addEventListener('click', (e) => { if(e.target === modale) modale.classList.add('hidden'); });
+  }
+})();
 </script>
 </body>
 </html>
