@@ -8433,6 +8433,31 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   });
 }
+
+/* ============================================================
+   DÉCONNEXION AUTOMATIQUE APRÈS INACTIVITÉ
+   ============================================================ */
+(function initDeconnexionInactivite(){
+  const DUREE_INACTIVITE_MS = 15 * 60 * 1000; // 15 minutes
+  let minuteurInactivite = null;
+
+  function reinitialiserMinuteur(){
+    if(!state.token) return; // personne connecté, rien à surveiller
+    if(minuteurInactivite) clearTimeout(minuteurInactivite);
+    minuteurInactivite = setTimeout(() => {
+      if(state.token){
+        deconnecterUtilisateur();
+        toast("Vous avez été déconnecté après 15 minutes d'inactivité.", 'error');
+      }
+    }, DUREE_INACTIVITE_MS);
+  }
+
+  ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evenement => {
+    document.addEventListener(evenement, reinitialiserMinuteur, { passive: true });
+  });
+
+  reinitialiserMinuteur();
+})();
 </script>
 </body>
 </html>
