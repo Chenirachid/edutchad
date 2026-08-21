@@ -874,37 +874,35 @@
   #presentation-screen .hero h1{font-family:'Fraunces',Georgia,serif;font-size:42px;font-weight:600;color:#fff;margin:0 0 18px;line-height:1.2;}
   #presentation-screen .hero p{font-size:16.5px;color:rgba(255,255,255,.82);max-width:520px;margin:0 0 34px;}
   #presentation-screen .hero-boutons{display:flex;gap:14px;flex-wrap:wrap;}
-  .btn-installer-app{
-    display:inline-flex;align-items:center;gap:9px;margin-top:26px;padding:12px 22px;border-radius:8px;
-    background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.35);color:#fff;
-    font-size:13.5px;font-weight:700;cursor:pointer;transition:background .15s;
+
+  /* Hero diagonal : fond à deux tons, plus original qu'un simple bandeau uni */
+  #presentation-screen .hero-diagonale{background:var(--bg);}
+  #presentation-screen .hero-diagonale::before{display:none;}
+  #presentation-screen .hero-diagonale-fond{
+    position:absolute;inset:0;background:var(--teal-900);
+    clip-path:polygon(0 0, 72% 0, 55% 100%, 0 100%);
   }
-  .btn-installer-app:hover{background:rgba(255,255,255,.2);}
-  .choix-plateforme-install{display:flex;gap:10px;margin-top:12px;}
-  .btn-plateforme{
-    display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:8px;
-    background:#fff;color:var(--teal-900);border:1.5px solid transparent;font-size:13px;font-weight:700;
-    cursor:pointer;transition:transform .1s;
+  #presentation-screen .hero-diagonale .conteneur{position:relative;z-index:1;}
+  #presentation-screen .hero-diagonale h1,
+  #presentation-screen .hero-diagonale .hero-eyebrow,
+  #presentation-screen .hero-diagonale p{color:#fff;}
+  #presentation-screen .hero-diagonale .hero-eyebrow{
+    font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;font-size:14.5px;
+    color:var(--accent);display:block;margin-bottom:14px;
   }
-  .btn-plateforme:hover{transform:translateY(-1px);}
-  .btn-plateforme:active{transform:translateY(0);}
-  .modale-install-ios{
-    position:fixed;inset:0;background:rgba(11,25,26,.55);z-index:200;
-    display:flex;align-items:flex-end;justify-content:center;
+
+  .section-raisons{padding:64px 0;background:var(--bg);}
+  .raisons-grille{display:grid;grid-template-columns:repeat(3,1fr);gap:0;}
+  .raison-item{padding:0 28px;border-left:1px solid var(--border);}
+  .raison-item:first-child{padding-left:0;border-left:none;}
+  .raison-chiffre{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:26px;color:var(--accent);margin-bottom:12px;}
+  .raison-item h3{font-size:16px;color:var(--teal-900);margin:0 0 8px;}
+  .raison-item p{font-size:13.5px;color:var(--text-muted);line-height:1.6;margin:0;}
+  @media (max-width:760px){
+    .raisons-grille{grid-template-columns:1fr;gap:28px;}
+    .raison-item{padding:0;border-left:none;}
   }
-  .modale-install-ios-contenu{
-    background:#fff;border-radius:18px 18px 0 0;padding:26px 24px 34px;max-width:440px;width:100%;
-    position:relative;box-shadow:0 -8px 30px rgba(0,0,0,.2);
-  }
-  .modale-install-ios-contenu h3{font-family:'Fraunces',Georgia,serif;font-size:19px;color:var(--teal-900);margin:0 0 16px;}
-  .modale-install-ios-contenu ol{padding-left:20px;margin:0 0 14px;display:flex;flex-direction:column;gap:10px;}
-  .modale-install-ios-contenu li{font-size:14px;color:var(--text);line-height:1.5;}
-  .icone-partage-illustration{display:inline-block;}
-  .modale-install-note{font-size:12px;color:var(--text-muted);margin:0;}
-  .modale-install-fermer{
-    position:absolute;top:16px;right:16px;background:var(--bg);border:none;width:30px;height:30px;
-    border-radius:50%;font-size:14px;color:var(--text-muted);cursor:pointer;
-  }
+
   #presentation-screen .btn-primaire{padding:14px 28px;border-radius:6px;background:#fff;color:var(--teal-900);font-weight:700;font-size:14.5px;text-decoration:none;border:1.5px solid #fff;cursor:pointer;transition:background .15s;}
   #presentation-screen .hero-dropdown-connexion{position:relative;}
   #presentation-screen .btn-icone-connexion{padding:13px 24px;display:flex;align-items:center;gap:8px;}
@@ -942,6 +940,9 @@
   @media screen and (max-width:640px){
     #presentation-screen .hero h1{font-size:29px;}
     #presentation-screen .hero{padding:40px 0;}
+    #presentation-screen .hero-diagonale-fond{clip-path:none;}
+    .raisons-grille{grid-template-columns:1fr;gap:28px;}
+    .raison-item{padding:0;border-left:none;}
     #presentation-screen .hero h1{font-size:28px;}
     #presentation-screen .hero::before{opacity:.08;}
     #presentation-screen section{padding:46px 0;}
@@ -1047,26 +1048,36 @@
     </div>
   </header>
 
-  <div class="hero">
+  <div class="hero hero-diagonale">
+    <div class="hero-diagonale-fond"></div>
     <div class="conteneur">
+      <span class="hero-eyebrow" id="pub-hero-eyebrow">Pensée pour une salle des profs, pas pour une démo</span>
       <h1 id="pub-hero-titre">Le quotidien de votre école,<br/>enfin simple à suivre</h1>
       <p id="pub-hero-texte">Notes, absences, emploi du temps, communication avec les familles — un seul espace pour votre établissement.</p>
-      <div id="zone-installer-app"></div>
     </div>
   </div>
 
-  <div class="modale-install-ios hidden" id="modale-install-ios">
-    <div class="modale-install-ios-contenu">
-      <button class="modale-install-fermer" id="fermer-modale-install-ios" type="button">✕</button>
-      <h3>Installer sur iPhone / iPad</h3>
-      <ol>
-        <li>Touchez l'icône Partager <svg class="icone-partage-illustration" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0B84FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-5px;"><path d="M12 2v13"/><path d="M8 6l4-4 4 4"/><rect x="4" y="9" width="16" height="13" rx="2.5"/></svg> en bas de l'écran (dans Safari)</li>
-        <li>Faites défiler et choisissez <strong>« Sur l'écran d'accueil »</strong></li>
-        <li>Touchez <strong>« Ajouter »</strong> en haut à droite</li>
-      </ol>
-      <p class="modale-install-note">Ça ne fonctionne que depuis Safari — pas Chrome ni une autre app.</p>
+  <section class="section-raisons">
+    <div class="conteneur">
+      <div class="raisons-grille">
+        <div class="raison-item">
+          <div class="raison-chiffre">01</div>
+          <h3>Ça tient sur un seul écran</h3>
+          <p>Un carnet de notes, un tableur Excel, un cahier de correspondance qui traîne — remplacés par un seul endroit que tout le monde regarde.</p>
+        </div>
+        <div class="raison-item">
+          <div class="raison-chiffre">02</div>
+          <h3>Personne n'attend</h3>
+          <p>Une note entrée, une absence signalée — les parents et les élèves le voient tout de suite, pas en fin de trimestre.</p>
+        </div>
+        <div class="raison-item">
+          <div class="raison-chiffre">03</div>
+          <h3>Rien qui traîne au hasard</h3>
+          <p>Chaque établissement, chaque compte, chaque classe reste dans son propre espace, séparé du reste — sans exception.</p>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
   <footer>
     <div class="conteneur" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
@@ -8422,88 +8433,6 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   });
 }
-
-(function initBoutonInstallerApp(){
-  const zone = document.getElementById('zone-installer-app');
-  if(!zone) return;
-
-  const dejaInstalle = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  if(dejaInstalle) return;
-
-  let evenementInstallDiffere = null;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    evenementInstallDiffere = e;
-  });
-
-  function afficherInstructionsIOS(){
-    document.getElementById('modale-install-ios').querySelector('h3').textContent = 'Installer sur iPhone / iPad';
-    document.getElementById('modale-install-ios').querySelector('ol').innerHTML = `
-      <li>Dans Safari, touchez l'icône Partager <svg class="icone-partage-illustration" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0B84FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-5px;"><path d="M12 2v13"/><path d="M8 6l4-4 4 4"/><rect x="4" y="9" width="16" height="13" rx="2.5"/></svg> — en bas de l'écran au centre (ou en haut à droite sur iPad)</li>
-      <li>Faites défiler la liste et choisissez <strong>« Sur l'écran d'accueil »</strong></li>
-      <li>Touchez <strong>« Ajouter »</strong> en haut à droite</li>`;
-    document.getElementById('modale-install-ios').classList.remove('hidden');
-  }
-
-  async function installerAndroid(){
-    if(evenementInstallDiffere){
-      evenementInstallDiffere.prompt();
-      await evenementInstallDiffere.userChoice;
-      evenementInstallDiffere = null;
-    } else {
-      document.getElementById('modale-install-ios').querySelector('h3').textContent = 'Installer sur Android';
-      document.getElementById('modale-install-ios').querySelector('ol').innerHTML = `
-        <li>Touchez le menu ⋮ en haut à droite de Chrome</li>
-        <li>Choisissez <strong>« Installer l'application »</strong> ou <strong>« Ajouter à l'écran d'accueil »</strong></li>
-        <li>Confirmez l'installation</li>`;
-      document.getElementById('modale-install-ios').classList.remove('hidden');
-    }
-  }
-
-  const btnPrincipal = document.createElement('button');
-  btnPrincipal.type = 'button';
-  btnPrincipal.className = 'btn-installer-app';
-  btnPrincipal.innerHTML = `
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l-4-4m4 4l4-4"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-    Installer l'application
-  `;
-
-  const choixPlateforme = document.createElement('div');
-  choixPlateforme.className = 'choix-plateforme-install hidden';
-  choixPlateforme.innerHTML = `
-    <button type="button" class="btn-plateforme" id="choix-installer-iphone">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10" y1="19" x2="14" y2="19"/></svg>
-      iPhone
-    </button>
-    <button type="button" class="btn-plateforme" id="choix-installer-android">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="4" width="12" height="18" rx="2"/><line x1="10" y1="19" x2="14" y2="19"/><line x1="9" y1="4" x2="9" y2="2.5"/><line x1="15" y1="4" x2="15" y2="2.5"/></svg>
-      Android
-    </button>`;
-
-  btnPrincipal.addEventListener('click', () => {
-    choixPlateforme.classList.toggle('hidden');
-  });
-  zone.appendChild(btnPrincipal);
-  zone.appendChild(choixPlateforme);
-
-  document.getElementById('choix-installer-iphone').addEventListener('click', () => {
-    choixPlateforme.classList.add('hidden');
-    afficherInstructionsIOS();
-  });
-  document.getElementById('choix-installer-android').addEventListener('click', () => {
-    choixPlateforme.classList.add('hidden');
-    installerAndroid();
-  });
-
-  const btnFermer = document.getElementById('fermer-modale-install-ios');
-  if(btnFermer){
-    btnFermer.addEventListener('click', () => document.getElementById('modale-install-ios').classList.add('hidden'));
-  }
-  const modale = document.getElementById('modale-install-ios');
-  if(modale){
-    modale.addEventListener('click', (e) => { if(e.target === modale) modale.classList.add('hidden'); });
-  }
-})();
 </script>
 </body>
 </html>
