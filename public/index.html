@@ -1439,6 +1439,20 @@ const I18N = {
     nt_coefficient: 'Coefficient', nt_afficher_a_partir: 'Afficher aux élèves à partir de', nt_ajouter_colonne: 'Ajouter la colonne',
     nt_numero_etudiant: 'N° étudiant', nt_moyenne: 'Moyenne', nt_moyenne_classe: 'Moyenne de la classe',
     nt_enregistrer_modifs: 'Enregistrer les modifications', nt_aucune_evaluation: 'Crée une première évaluation ci-dessus pour commencer à saisir des notes.',
+    ins_annee: 'Année', ins_administrative: 'Administrative', ins_pedagogique: 'Pédagogique', ins_actions: 'Actions',
+    ins_import_titre: "Import en masse d'élèves",
+    ins_import_desc: "Colle une ligne par élève, au format Nom;Prénom;Classe (le nom de la classe doit correspondre exactement à une classe déjà créée). Chaque élève reçoit un compte, un numéro et un code d'activation, comme lors d'une création individuelle — mais sans le dossier administratif (justificatif), à compléter ensuite si besoin.",
+    ins_importer: 'Importer',
+    ins_nouvelle_titre: 'Nouvelle inscription — élève qui se présente pour la première fois',
+    ins_nouvelle_desc: "Crée le compte, l'affecte à sa classe et enregistre son dossier de justificatifs — tout en une seule fois.",
+    ins_prenom: 'Prénom', ins_nom: 'Nom', ins_date_naissance: 'Date de naissance',
+    ins_email: 'Adresse email (facultatif)', ins_telephone: 'Numéro de téléphone (facultatif)',
+    ins_type_justificatif: "Type de justificatif d'identité", ins_acte_naissance: 'Acte de naissance', ins_piece_identite: "Pièce d'identité", ins_passeport: 'Passeport',
+    ins_justificatif_fichier: "Justificatif d'identité (fichier)", ins_vient_autre: "Vient d'un autre établissement ?",
+    ins_non: 'Non', ins_oui: 'Oui', ins_justificatif_transfert: 'Justificatif de transfert (obligatoire)', ins_creer_inscrire: 'Créer et inscrire',
+    ins_admin_titre: 'Inscription administrative — élève déjà créé',
+    ins_admin_desc: "Si le compte de l'élève existe déjà (créé séparément), complète juste son dossier ici via son numéro étudiant.",
+    ins_numero_etudiant: 'Numéro étudiant',
     nav_frais: 'Frais scolaires', nav_demandes_suppression: 'Demandes de suppression',
     title_actualites: 'Accueil', title_sondages: 'Sondages', title_bulletin: 'Mon bulletin', title_notes_liste: 'Notes', title_resultats: 'Résultats', title_absences: 'Mes absences', title_comportement: 'Mon comportement',
     title_emploi: 'Emploi du temps', title_emploi_classes: 'Emploi du temps des classes', title_emploi_profs: 'Emploi du temps des professeurs', title_enseignements: 'Mes classes', title_appel: "Faire l'appel",
@@ -1560,6 +1574,20 @@ const I18N = {
     nt_coefficient: 'Coefficient', nt_afficher_a_partir: 'Show to students from', nt_ajouter_colonne: 'Add column',
     nt_numero_etudiant: 'Student no.', nt_moyenne: 'Average', nt_moyenne_classe: 'Class average',
     nt_enregistrer_modifs: 'Save changes', nt_aucune_evaluation: 'Create a first assessment above to start entering grades.',
+    ins_annee: 'Year', ins_administrative: 'Administrative', ins_pedagogique: 'Academic', ins_actions: 'Actions',
+    ins_import_titre: 'Bulk import of students',
+    ins_import_desc: 'Paste one line per student, formatted as Name;First name;Class (the class name must exactly match an existing class). Each student receives an account, a number and an activation code, just like an individual creation — but without the administrative file (supporting document), to complete later if needed.',
+    ins_importer: 'Import',
+    ins_nouvelle_titre: 'New enrollment — student joining for the first time',
+    ins_nouvelle_desc: 'Creates the account, assigns them to their class and records their supporting documents — all at once.',
+    ins_prenom: 'First name', ins_nom: 'Last name', ins_date_naissance: 'Date of birth',
+    ins_email: 'Email address (optional)', ins_telephone: 'Phone number (optional)',
+    ins_type_justificatif: 'Type of ID document', ins_acte_naissance: 'Birth certificate', ins_piece_identite: 'ID card', ins_passeport: 'Passport',
+    ins_justificatif_fichier: 'ID document (file)', ins_vient_autre: 'Coming from another school?',
+    ins_non: 'No', ins_oui: 'Yes', ins_justificatif_transfert: 'Transfer document (required)', ins_creer_inscrire: 'Create and enroll',
+    ins_admin_titre: 'Administrative enrollment — student already created',
+    ins_admin_desc: "If the student's account already exists (created separately), just complete their file here using their student number.",
+    ins_numero_etudiant: 'Student number',
     nav_frais: 'School fees', nav_demandes_suppression: 'Deletion requests',
     title_actualites: 'Home', title_sondages: 'Polls', title_bulletin: 'My report card', title_notes_liste: 'Grades', title_resultats: 'Results', title_absences: 'My absences', title_comportement: 'My behaviour',
     title_emploi: 'Timetable', title_emploi_classes: 'Class timetables', title_emploi_profs: 'Teacher timetables', title_enseignements: 'My classes', title_appel: 'Take attendance',
@@ -1681,6 +1709,20 @@ const I18N = {
     nt_coefficient: 'المعامل', nt_afficher_a_partir: 'إظهار للتلاميذ ابتداءً من', nt_ajouter_colonne: 'إضافة العمود',
     nt_numero_etudiant: 'رقم التلميذ', nt_moyenne: 'المعدل', nt_moyenne_classe: 'معدل القسم',
     nt_enregistrer_modifs: 'حفظ التعديلات', nt_aucune_evaluation: 'أنشئ أول تقييم أعلاه لبدء تسجيل النقاط.',
+    ins_annee: 'السنة', ins_administrative: 'إداري', ins_pedagogique: 'تربوي', ins_actions: 'الإجراءات',
+    ins_import_titre: 'استيراد جماعي للتلاميذ',
+    ins_import_desc: 'الصق سطراً لكل تلميذ، بالصيغة: الاسم؛الاسم الأول؛القسم (يجب أن يطابق اسم القسم تماماً قسماً موجوداً مسبقاً). يحصل كل تلميذ على حساب ورقم ورمز تفعيل، مثل الإنشاء الفردي — لكن دون الملف الإداري (المستند المبرر)، الذي يُستكمل لاحقاً عند الحاجة.',
+    ins_importer: 'استيراد',
+    ins_nouvelle_titre: 'تسجيل جديد — تلميذ يتقدم لأول مرة',
+    ins_nouvelle_desc: 'ينشئ الحساب، يسجله في قسمه، ويحفظ ملف مستنداته المبررة — كل ذلك دفعة واحدة.',
+    ins_prenom: 'الاسم الأول', ins_nom: 'اللقب', ins_date_naissance: 'تاريخ الميلاد',
+    ins_email: 'البريد الإلكتروني (اختياري)', ins_telephone: 'رقم الهاتف (اختياري)',
+    ins_type_justificatif: 'نوع وثيقة الهوية', ins_acte_naissance: 'شهادة الميلاد', ins_piece_identite: 'بطاقة الهوية', ins_passeport: 'جواز السفر',
+    ins_justificatif_fichier: 'وثيقة الهوية (ملف)', ins_vient_autre: 'قادم من مؤسسة أخرى؟',
+    ins_non: 'لا', ins_oui: 'نعم', ins_justificatif_transfert: 'وثيقة التحويل (إلزامية)', ins_creer_inscrire: 'إنشاء وتسجيل',
+    ins_admin_titre: 'التسجيل الإداري — تلميذ منشأ مسبقاً',
+    ins_admin_desc: 'إذا كان حساب التلميذ موجوداً مسبقاً (أُنشئ بشكل منفصل)، أكمل ملفه هنا فقط عبر رقمه الطلابي.',
+    ins_numero_etudiant: 'رقم التلميذ',
     nav_frais: 'الرسوم المدرسية', nav_demandes_suppression: 'طلبات الحذف',
     title_actualites: 'الرئيسية', title_sondages: 'استطلاعات', title_bulletin: 'كشف نقاطي', title_notes_liste: 'الدرجات', title_resultats: 'النتائج', title_absences: 'غياباتي', title_comportement: 'سلوكي',
     title_emploi: 'الجدول الزمني', title_emploi_classes: 'جدول الأقسام', title_emploi_profs: 'جدول الأساتذة', title_enseignements: 'أقسامي', title_appel: 'أخذ الحضور',
@@ -6277,73 +6319,73 @@ async function renderAdminInscriptions(){
       <td><span class="moy-pill" style="background:transparent;border:1.5px solid ${STATUT_INSCRIPTION_COLORS[i.statut]};color:${STATUT_INSCRIPTION_COLORS[i.statut]};">${STATUT_INSCRIPTION_LABELS[i.statut]}</span></td>
       <td><span class="moy-pill" style="background:transparent;border:1.5px solid ${STATUT_INSCRIPTION_COLORS[i.statutPedagogique]};color:${STATUT_INSCRIPTION_COLORS[i.statutPedagogique]};">${STATUT_INSCRIPTION_LABELS[i.statutPedagogique]}</span></td>
       <td>
-        <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="VALIDEE" style="border-color:var(--success);color:var(--success);">Valider</button>
-        <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">Refuser</button>
+        <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="VALIDEE" style="border-color:var(--success);color:var(--success);">${t('vs_valider')}</button>
+        <button class="btn-secondary" data-statut-inscription="${i.id}" data-valeur="REFUSEE" style="border-color:var(--danger);color:var(--danger);margin-left:6px;">${t('vs_refuser')}</button>
       </td>
     </tr>`;
 
   const sectionsParClasse = Object.keys(parClasse).sort().map(nom => `
     <div style="margin-bottom:22px;">
       <h3 style="font-size:13.5px;color:var(--teal-700);margin:0 0 8px;">${escapeHtml(nom)} (${parClasse[nom].length})</h3>
-      <table><thead><tr><th>N° étudiant</th><th>Étudiant</th><th>Année</th><th>Administrative</th><th>Pédagogique</th><th>Actions</th></tr></thead><tbody>${parClasse[nom].map(ligneInscription).join('')}</tbody></table>
+      <table><thead><tr><th>${t('nt_numero_etudiant')}</th><th>${t('vs_etudiant')}</th><th>${t('ins_annee')}</th><th>${t('ins_administrative')}</th><th>${t('ins_pedagogique')}</th><th>${t('ins_actions')}</th></tr></thead><tbody>${parClasse[nom].map(ligneInscription).join('')}</tbody></table>
     </div>`).join('');
 
 
   content.innerHTML = `
     <div class="card">
-      <h2>Import en masse d'élèves</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Colle une ligne par élève, au format <code>Nom;Prénom;Classe</code> (le nom de la classe doit correspondre exactement à une classe déjà créée). Chaque élève reçoit un compte, un numéro et un code d'activation, comme lors d'une création individuelle — mais sans le dossier administratif (justificatif), à compléter ensuite si besoin.</p>
+      <h2>${t('ins_import_titre')}</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">${t('ins_import_desc')}</p>
       <form id="import-eleves-form">
         <textarea id="import-eleves-texte" rows="8" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:13px;" placeholder="Dupont;Amina;6e A
 Traoré;Moussa;6e A
 Ndiaye;Fatou;5e B"></textarea>
-        <button class="btn-submit" type="submit" style="margin-top:10px;">Importer</button>
+        <button class="btn-submit" type="submit" style="margin-top:10px;">${t('ins_importer')}</button>
       </form>
       <div id="import-eleves-resultat" style="margin-top:16px;"></div>
     </div>
     <div class="card">
-      <h2>Nouvelle inscription — élève qui se présente pour la première fois</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Crée le compte, l'affecte à sa classe et enregistre son dossier de justificatifs — tout en une seule fois.</p>
+      <h2>${t('ins_nouvelle_titre')}</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">${t('ins_nouvelle_desc')}</p>
       <form class="inline-form" id="nouvelle-inscription-form">
-        <div class="f"><label>Prénom</label><input type="text" name="prenom" required /></div>
-        <div class="f"><label>Nom</label><input type="text" name="nom" required /></div>
+        <div class="f"><label>${t('ins_prenom')}</label><input type="text" name="prenom" required /></div>
+        <div class="f"><label>${t('ins_nom')}</label><input type="text" name="nom" required /></div>
         <div class="f">
-          <label>Classe</label>
+          <label>${t('vs_classe')}</label>
           <select name="classeId" required>
-            <option value="">— Choisir —</option>
+            <option value="">${t('vs_choisir')}</option>
             ${classes.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')}
           </select>
         </div>
-        <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
-        <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required /></div>
-        <div class="f"><label>Adresse email (facultatif)</label><input type="email" name="emailContact" placeholder="famille@exemple.com" /></div>
-        <div class="f"><label>Numéro de téléphone (facultatif)</label><input type="tel" name="telephoneContact" placeholder="06 12 34 56 78" /></div>
+        <div class="f"><label>${t('ins_annee')}</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
+        <div class="f"><label>${t('ins_date_naissance')}</label><input type="date" name="dateNaissance" required /></div>
+        <div class="f"><label>${t('ins_email')}</label><input type="email" name="emailContact" placeholder="famille@exemple.com" /></div>
+        <div class="f"><label>${t('ins_telephone')}</label><input type="tel" name="telephoneContact" placeholder="06 12 34 56 78" /></div>
         <div class="f">
-          <label>Type de justificatif d'identité</label>
+          <label>${t('ins_type_justificatif')}</label>
           <select name="typeJustificatif" required>
-            <option value="ACTE_NAISSANCE">Acte de naissance</option>
-            <option value="PIECE_IDENTITE">Pièce d'identité</option>
-            <option value="PASSEPORT">Passeport</option>
+            <option value="ACTE_NAISSANCE">${t('ins_acte_naissance')}</option>
+            <option value="PIECE_IDENTITE">${t('ins_piece_identite')}</option>
+            <option value="PASSEPORT">${t('ins_passeport')}</option>
           </select>
         </div>
-        <div class="f"><label>Justificatif d'identité (fichier)</label><input type="file" name="justificatif" id="nouvelle-inscription-justificatif" required /></div>
+        <div class="f"><label>${t('ins_justificatif_fichier')}</label><input type="file" name="justificatif" id="nouvelle-inscription-justificatif" required /></div>
         <div class="f">
-          <label>Vient d'un autre établissement ?</label>
+          <label>${t('ins_vient_autre')}</label>
           <select name="vientDAutreEtablissement" id="nouvelle-inscription-vient-autre" required>
-            <option value="">— Choisir —</option>
-            <option value="non">Non</option>
-            <option value="oui">Oui</option>
+            <option value="">${t('vs_choisir')}</option>
+            <option value="non">${t('ins_non')}</option>
+            <option value="oui">${t('ins_oui')}</option>
           </select>
         </div>
-        <div class="f hidden" id="nouvelle-inscription-transfert-zone"><label>Justificatif de transfert (obligatoire)</label><input type="file" name="justificatifTransfert" id="nouvelle-inscription-justificatif-transfert" /></div>
-        <button class="btn-submit" type="submit">Créer et inscrire</button>
+        <div class="f hidden" id="nouvelle-inscription-transfert-zone"><label>${t('ins_justificatif_transfert')}</label><input type="file" name="justificatifTransfert" id="nouvelle-inscription-justificatif-transfert" /></div>
+        <button class="btn-submit" type="submit">${t('ins_creer_inscrire')}</button>
       </form>
     </div>
     <div class="card">
-      <h2>Inscription administrative — élève déjà créé</h2>
-      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">Si le compte de l'élève existe déjà (créé séparément), complète juste son dossier ici via son numéro étudiant.</p>
+      <h2>${t('ins_admin_titre')}</h2>
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-8px 0 14px;">${t('ins_admin_desc')}</p>
       <form class="inline-form" id="inscription-admin-form">
-        <div class="f"><label>Numéro étudiant</label><input type="text" name="numeroEtudiant" required placeholder="ETU-00007" /></div>
+        <div class="f"><label>${t('ins_numero_etudiant')}</label><input type="text" name="numeroEtudiant" required placeholder="ETU-00007" /></div>
         <div class="f"><label>Année scolaire</label><input type="text" name="anneeScolaire" required placeholder="2025-2026" /></div>
         <div class="f"><label>Date de naissance</label><input type="date" name="dateNaissance" required /></div>
         <div class="f">
