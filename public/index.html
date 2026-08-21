@@ -399,10 +399,16 @@
   tr:last-child td{border-bottom:none;}
 
   .chip{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap;}
-  .moy-pill{display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:4px 8px;border-radius:6px;font-weight:700;font-size:13px;white-space:nowrap;}
-  .moy-good{background:var(--teal-100);color:var(--teal-900);}
-  .moy-mid{background:#FBEEDD;color:#9A5B23;}
-  .moy-low{background:var(--accent-light);color:#9A3E1B;}
+  .moy-pill{display:inline-flex;align-items:center;gap:6px;justify-content:center;min-width:48px;padding:4px 10px;border-radius:20px;font-weight:700;font-size:13px;white-space:nowrap;}
+  .moy-pill::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .moy-excellent{background:#E5F6E8;color:#0F6B2C;}
+  .moy-excellent::before{background:#1F9D42;}
+  .moy-good{background:#EEF7E9;color:#3F7D24;}
+  .moy-good::before{background:#6BAF3E;}
+  .moy-mid{background:#FDF3D9;color:#946A0A;}
+  .moy-mid::before{background:#E0A424;}
+  .moy-low{background:#FBE7E4;color:#B33A2E;}
+  .moy-low::before{background:#DD5140;}
 
   .stat{display:flex;flex-direction:column;gap:4px;}
   .stat .big{font-size:32px;font-weight:600;color:var(--teal-900);font-family:'Fraunces',Georgia,serif;}
@@ -2007,7 +2013,8 @@ function generateRandomPassword(){
 
 function moyennePillClass(m){
   if(m === null || m === undefined) return '';
-  if(m >= 14) return 'moy-good';
+  if(m >= 16) return 'moy-excellent';
+  if(m >= 12) return 'moy-good';
   if(m >= 10) return 'moy-mid';
   return 'moy-low';
 }
