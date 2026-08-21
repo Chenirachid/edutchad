@@ -1393,6 +1393,7 @@ const I18N = {
     nav_utilisateurs: 'Utilisateurs', nav_eleves: 'Élèves', nav_personnel: 'Personnel', nav_inscriptions: 'Inscriptions', nav_classes: 'Classes', nav_etablissements: 'Établissements', nav_statistiques: 'Statistiques',
     nav_matieres: 'Matières', nav_enseignements_admin: 'Enseignements', nav_creneaux_admin: 'Emploi du temps',
     nav_liaisons: 'Liaisons parents', nav_vie_scolaire: 'Vie scolaire', nav_bulletins_pdf: 'Bulletins PDF', nav_certificats: 'Certificats',
+    groupe_vie_scolaire: 'Vie scolaire', groupe_info_pedagogique: 'Informations pédagogiques', groupe_eleves_personnel: 'Élèves & Personnel', groupe_documents: 'Documents officiels',
     nav_frais: 'Frais scolaires', nav_demandes_suppression: 'Demandes de suppression',
     title_actualites: 'Accueil', title_sondages: 'Sondages', title_bulletin: 'Mon bulletin', title_notes_liste: 'Notes', title_resultats: 'Résultats', title_absences: 'Mes absences', title_comportement: 'Mon comportement',
     title_emploi: 'Emploi du temps', title_emploi_classes: 'Emploi du temps des classes', title_emploi_profs: 'Emploi du temps des professeurs', title_enseignements: 'Mes classes', title_appel: "Faire l'appel",
@@ -1468,6 +1469,7 @@ const I18N = {
     nav_utilisateurs: 'Users', nav_eleves: 'Students', nav_personnel: 'Staff', nav_inscriptions: 'Enrolments', nav_classes: 'Classes', nav_etablissements: 'Schools', nav_statistiques: 'Statistics',
     nav_matieres: 'Subjects', nav_enseignements_admin: 'Teaching assignments', nav_creneaux_admin: 'Timetable',
     nav_liaisons: 'Parent links', nav_vie_scolaire: 'Student life', nav_bulletins_pdf: 'Report cards (PDF)', nav_certificats: 'Certificates',
+    groupe_vie_scolaire: 'Student life', groupe_info_pedagogique: 'Academic information', groupe_eleves_personnel: 'Students & Staff', groupe_documents: 'Official documents',
     nav_frais: 'School fees', nav_demandes_suppression: 'Deletion requests',
     title_actualites: 'Home', title_sondages: 'Polls', title_bulletin: 'My report card', title_notes_liste: 'Grades', title_resultats: 'Results', title_absences: 'My absences', title_comportement: 'My behaviour',
     title_emploi: 'Timetable', title_emploi_classes: 'Class timetables', title_emploi_profs: 'Teacher timetables', title_enseignements: 'My classes', title_appel: 'Take attendance',
@@ -1543,6 +1545,7 @@ const I18N = {
     nav_utilisateurs: 'المستخدمون', nav_eleves: 'الطلاب', nav_personnel: 'الموظفون', nav_inscriptions: 'التسجيلات', nav_classes: 'الأقسام', nav_etablissements: 'المؤسسات', nav_statistiques: 'الإحصائيات',
     nav_matieres: 'المواد', nav_enseignements_admin: 'التكليفات التعليمية', nav_creneaux_admin: 'الجدول الزمني',
     nav_liaisons: 'روابط أولياء الأمور', nav_vie_scolaire: 'الحياة المدرسية', nav_bulletins_pdf: 'كشوف النقاط PDF', nav_certificats: 'الشهادات',
+    groupe_vie_scolaire: 'الحياة المدرسية', groupe_info_pedagogique: 'المعلومات التربوية', groupe_eleves_personnel: 'التلاميذ والموظفون', groupe_documents: 'الوثائق الرسمية',
     nav_frais: 'الرسوم المدرسية', nav_demandes_suppression: 'طلبات الحذف',
     title_actualites: 'الرئيسية', title_sondages: 'استطلاعات', title_bulletin: 'كشف نقاطي', title_notes_liste: 'الدرجات', title_resultats: 'النتائج', title_absences: 'غياباتي', title_comportement: 'سلوكي',
     title_emploi: 'الجدول الزمني', title_emploi_classes: 'جدول الأقسام', title_emploi_profs: 'جدول الأساتذة', title_enseignements: 'أقسامي', title_appel: 'أخذ الحضور',
@@ -2256,10 +2259,10 @@ const NAV_ICONS = {
 };
 
 const GROUPES_MENU = {
-  'vie-scolaire': { label: 'Vie scolaire', icone: NAV_ICONS['vie-scolaire'] },
-  'info-pedagogique': { label: 'Informations pédagogiques', icone: svgIcon('<path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/><path d="M20 9v5"/>') },
-  'eleves-personnel': { label: 'Élèves & Personnel', icone: NAV_ICONS.utilisateurs },
-  'documents': { label: 'Documents officiels', icone: svgIcon('<path d="M6 3h9l4 4v14H6V3z"/><path d="M9 12h6M9 15h6M9 9h3"/>') },
+  'vie-scolaire': { cle: 'groupe_vie_scolaire', icone: NAV_ICONS['vie-scolaire'] },
+  'info-pedagogique': { cle: 'groupe_info_pedagogique', icone: svgIcon('<path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/><path d="M20 9v5"/>') },
+  'eleves-personnel': { cle: 'groupe_eleves_personnel', icone: NAV_ICONS.utilisateurs },
+  'documents': { cle: 'groupe_documents', icone: svgIcon('<path d="M6 3h9l4 4v14H6V3z"/><path d="M9 12h6M9 15h6M9 9h3"/>') },
 };
 
 const ICONE_DOSSIER = svgIcon('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>');
@@ -2329,7 +2332,7 @@ async function enterApp(){
       wrap.className = 'nav-item-groupe';
       const btnGroupe = document.createElement('button');
       btnGroupe.className = 'nav-item nav-item-groupe-btn';
-      btnGroupe.innerHTML = `<span>${escapeHtml(groupeInfo.label)}</span><span class="nav-groupe-fleche">▾</span>`;
+      btnGroupe.innerHTML = `<span>${escapeHtml(t(groupeInfo.cle))}</span><span class="nav-groupe-fleche">▾</span>`;
       const dropdown = document.createElement('div');
       dropdown.className = 'nav-dropdown hidden';
       enfants.forEach(enfant => {
@@ -2392,7 +2395,7 @@ function selectMenu(menuId){
   if(itemActif && itemActif.grupo){
     const groupeInfo = GROUPES_MENU[itemActif.grupo];
     document.querySelectorAll('.nav-item-groupe-btn').forEach(b => {
-      if(groupeInfo && b.textContent.includes(groupeInfo.label)) b.classList.add('active');
+      if(groupeInfo && b.textContent.includes(t(groupeInfo.cle))) b.classList.add('active');
     });
   }
   fermerMenuMobile();
